@@ -66,17 +66,22 @@ export const SupplierHistoryModal = ({ isOpen, onClose, supplier }) => {
               </thead>
               <tbody>
                 {paymentLogs.length > 0 ? (
-                  paymentLogs.map((log) => (
-                    <tr key={log.id}>
-                      <td style={{ fontWeight: 700 }}>{formatDateDDMMYYYY(log.date)}</td>
-                      <td style={{ fontWeight: 900, color: '#059669' }}>Rs. {Number(log.amountPaid).toFixed(2)}</td>
-                      <td><span style={{ fontWeight: 700, backgroundColor: '#E0F2FE', color: '#0369A1', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.75rem' }}>{log.paymentMode || 'Cash'}</span></td>
-                      <td style={{ fontWeight: 800, color: log.remainingBalance > 0 ? '#DC2626' : '#059669' }}>
-                        Rs. {Number(log.remainingBalance).toFixed(2)}
-                      </td>
-                      <td style={{ color: '#64748B' }}>{log.notes || 'Supplier Cash Payment'}</td>
-                    </tr>
-                  ))
+                  paymentLogs.map((log) => {
+                    const amtPaid = Number(log.amountPaid) || 0;
+                    const remBal = Number(log.remainingBalance !== undefined ? log.remainingBalance : (log.remainingBalanceAfter !== undefined ? log.remainingBalanceAfter : 0));
+
+                    return (
+                      <tr key={log.id || Math.random()}>
+                        <td style={{ fontWeight: 700 }}>{formatDateDDMMYYYY(log.date)} <span style={{ fontSize: '0.725rem', color: '#64748B' }}>{log.time || ''}</span></td>
+                        <td style={{ fontWeight: 900, color: '#059669' }}>Rs. {amtPaid.toFixed(2)}</td>
+                        <td><span style={{ fontWeight: 700, backgroundColor: '#E0F2FE', color: '#0369A1', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.75rem' }}>{log.paymentMode || 'Cash'}</span></td>
+                        <td style={{ fontWeight: 800, color: remBal > 0 ? '#DC2626' : '#059669' }}>
+                          Rs. {remBal.toFixed(2)}
+                        </td>
+                        <td style={{ color: '#64748B' }}>{log.note || log.notes || 'Supplier Cash Payment'}</td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
                     <td colSpan="5" style={{ textAlign: 'center', padding: '1.25rem', color: '#64748B' }}>

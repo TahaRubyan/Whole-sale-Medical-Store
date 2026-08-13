@@ -144,7 +144,7 @@ export const RegionLedgerPage = () => {
       regionOptions: list,
       activeRegionsCount: activeCount,
     };
-  }, [invoices]);
+  }, [invoices, customRegions]);
 
   // 2. Filter invoices by selected region, payment status, and search query
   const filteredInvoices = useMemo(() => {
@@ -699,11 +699,11 @@ export const RegionLedgerPage = () => {
             }}
           >
             <option value="All Regions">
-              🌐 All Regions ({invoices.length} {invoices.length === 1 ? 'shop' : 'shops'})
+              🌐 All Regions
             </option>
             {regionOptions.map((item) => (
               <option key={item.key} value={item.displayName}>
-                📍 {item.displayName} ({item.count} {item.count === 1 ? 'shop' : 'shops'})
+                📍 {item.displayName}
               </option>
             ))}
           </select>

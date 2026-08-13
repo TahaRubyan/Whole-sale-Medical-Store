@@ -59,7 +59,7 @@ export const POSPage = () => {
     shipTo: '',
   });
 
-  const [paymentStatus, setPaymentStatus] = useState('PAID'); // 'PAID' | 'UNPAID_CREDIT'
+  const [paymentStatus, setPaymentStatus] = useState('UNPAID_CREDIT'); // 'PAID' | 'UNPAID_CREDIT'
   
   // DUAL SEPARATE WARRANTY CHECKBOXES FOR INVOICE
   const [includeDrugActWarranty, setIncludeDrugActWarranty] = useState(true);

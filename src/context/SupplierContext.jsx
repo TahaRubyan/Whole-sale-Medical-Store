@@ -102,6 +102,8 @@ export const SupplierProvider = ({ children }) => {
             amountPaid: amount,
             paymentMode: paymentMode || 'Cash',
             note: note || 'Supplier Debt Payment',
+            notes: note || 'Supplier Debt Payment',
+            remainingBalance: newBal,
             remainingBalanceAfter: newBal,
           };
           return {
