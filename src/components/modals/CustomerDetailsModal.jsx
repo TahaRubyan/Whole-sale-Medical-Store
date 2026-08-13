@@ -67,16 +67,24 @@ export const CustomerDetailsModal = ({ customerDetails, onSave, onClose }) => {
 
             <div>
               <label style={{ fontSize: '0.775rem', fontWeight: 700, display: 'block', marginBottom: '0.2rem' }}>
-                Region / Territory:
+                Region / Territory *:
               </label>
-              <input
-                type="text"
+              <select
                 name="region"
                 value={formData.region}
                 onChange={handleChange}
-                placeholder="Enter Region / Territory (e.g. Karianwala, Gujrat)"
-                style={{ width: '100%', padding: '0.45rem', fontSize: '0.85rem', borderRadius: '4px', border: '1px solid #CBD5E1' }}
-              />
+                style={{ width: '100%', padding: '0.45rem', fontSize: '0.85rem', fontWeight: 700, borderRadius: '4px', border: '1.5px solid #0284C7', backgroundColor: '#F0F9FF', color: '#0369A1' }}
+                required
+              >
+                <option value="">-- Select Region / Territory --</option>
+                {(() => {
+                  const saved = localStorage.getItem('pharmalink_regions');
+                  const list = saved ? JSON.parse(saved) : ['Karianwala', 'Gujrat', 'Tanda', 'Jalalpur Jattan', 'Lalamusa', 'Dingha'];
+                  return list.map((reg) => (
+                    <option key={reg} value={reg}>📍 {reg}</option>
+                  ));
+                })()}
+              </select>
             </div>
           </div>
 

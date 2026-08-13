@@ -1,5 +1,5 @@
 import React, { useState, Component } from 'react';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { PatientProvider } from './context/PatientContext';
 import { InventoryProvider } from './context/InventoryContext';
 import { SupplierProvider } from './context/SupplierContext';
@@ -14,6 +14,7 @@ import SuppliersPage from './pages/SuppliersPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import SettingsPage from './pages/SettingsPage';
 import RegionLedgerPage from './pages/RegionLedgerPage';
+import LoginPage from './pages/LoginPage';
 
 // Fallback Error Boundary to prevent Blank White Screen on unexpected runtime errors
 class ErrorBoundary extends Component {
@@ -48,29 +49,28 @@ class ErrorBoundary extends Component {
             border: '2px solid #EF4444',
             borderRadius: '12px',
             padding: '2rem',
-            maxWidth: '550px',
-            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
-            textAlign: 'center'
+            maxWidth: '500px',
+            textAlign: 'center',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
           }}>
-            <h2 style={{ color: '#DC2626', fontSize: '1.4rem', fontWeight: 800, margin: '0 0 0.5rem 0' }}>
-              System Recovery Mode
-            </h2>
-            <p style={{ color: '#475569', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
+            <h2 style={{ color: '#DC2626', margin: '0 0 1rem 0' }}>System Recovery Mode</h2>
+            <p style={{ color: '#4B5563', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
               An unexpected cache or state glitch occurred. Click below to clear stale cache and reload the application cleanly.
             </p>
-            <div style={{
-              backgroundColor: '#FEF2F2',
-              color: '#991B1B',
-              padding: '0.75rem',
-              borderRadius: '6px',
-              fontFamily: 'monospace',
-              fontSize: '0.8rem',
-              marginBottom: '1.5rem',
-              textAlign: 'left',
-              wordBreak: 'break-word'
-            }}>
-              {this.state.error?.toString() || 'Unknown Runtime Exception'}
-            </div>
+            {this.state.error && (
+              <pre style={{
+                backgroundColor: '#FEF2F2',
+                color: '#991B1B',
+                padding: '0.75rem',
+                borderRadius: '6px',
+                fontSize: '0.75rem',
+                textAlign: 'left',
+                overflowX: 'auto',
+                marginBottom: '1.5rem'
+              }}>
+                {this.state.error.toString()}
+              </pre>
+            )}
             <button
               onClick={() => {
                 localStorage.clear();
@@ -82,8 +82,7 @@ class ErrorBoundary extends Component {
                 border: 'none',
                 padding: '0.75rem 1.5rem',
                 borderRadius: '6px',
-                fontWeight: 800,
-                fontSize: '0.95rem',
+                fontWeight: 'bold',
                 cursor: 'pointer'
               }}
             >
@@ -98,8 +97,13 @@ class ErrorBoundary extends Component {
   }
 }
 
-export function App() {
+const AppContent = () => {
+  const { isAuthenticated } = useAuth();
   const [currentScreen, setCurrentScreen] = useState('dashboard');
+
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
 
   const renderScreen = () => {
     switch (currentScreen) {
@@ -126,6 +130,14 @@ export function App() {
   };
 
   return (
+    <Layout currentScreen={currentScreen} setCurrentScreen={setCurrentScreen}>
+      {renderScreen()}
+    </Layout>
+  );
+};
+
+export function App() {
+  return (
     <ErrorBoundary>
       <AuthProvider>
         <PatientProvider>
@@ -133,9 +145,7 @@ export function App() {
             <SupplierProvider>
               <SalesProvider>
                 <CartProvider>
-                  <Layout currentScreen={currentScreen} setCurrentScreen={setCurrentScreen}>
-                    {renderScreen()}
-                  </Layout>
+                  <AppContent />
                 </CartProvider>
               </SalesProvider>
             </SupplierProvider>

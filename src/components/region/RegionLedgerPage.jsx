@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   MapPin,
   Search,
@@ -16,10 +16,12 @@ import {
   RotateCcw,
   X,
   Layers,
+  Plus,
 } from 'lucide-react';
 import { useSales } from '../../context/SalesContext';
 import PaymentHistoryModal from './PaymentHistoryModal';
 import RegionalDeliveryManifestModal from './RegionalDeliveryManifestModal';
+import AddRegionModal from '../modals/AddRegionModal';
 
 export const RegionLedgerPage = () => {
   const { invoices = [], recordDebtPayment } = useSales();
@@ -30,6 +32,35 @@ export const RegionLedgerPage = () => {
   const [selectedStatus, setSelectedStatus] = useState('ALL');
   // Search query for filtering shop name / invoice / delivery man / phone
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Custom Created Regions State (persisted to localStorage)
+  const [customRegions, setCustomRegions] = useState(() => {
+    const saved = localStorage.getItem('pharmalink_regions');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    return ['Karianwala', 'Gujrat', 'Tanda', 'Jalalpur Jattan', 'Lalamusa', 'Dingha'];
+  });
+
+  const [isAddRegionOpen, setIsAddRegionOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('pharmalink_regions', JSON.stringify(customRegions));
+  }, [customRegions]);
+
+  const handleAddRegion = (newRegionName) => {
+    if (!newRegionName) return;
+    const exists = customRegions.some((r) => r.toLowerCase() === newRegionName.toLowerCase());
+    if (!exists) {
+      setCustomRegions((prev) => [...prev, newRegionName]);
+      showNotification(`Region "${newRegionName}" added successfully!`);
+    } else {
+      showNotification(`Region "${newRegionName}" already exists!`, 'error');
+    }
+  };
 
   // Focus states for input styling
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -55,7 +86,7 @@ export const RegionLedgerPage = () => {
 
   // 1. Dynamic Region Sync: Extract unique region names normalized with shop counts
   const { regionOptions, activeRegionsCount } = useMemo(() => {
-    const defaults = ['Karianwala', 'Gujrat', 'Tanda', 'Jalalpur Jattan'];
+    const defaults = customRegions;
     
     // Key-to-display map to handle case-insensitive normalization
     const keyToDisplayMap = new Map();
@@ -329,7 +360,7 @@ export const RegionLedgerPage = () => {
               color: '#FFFFFF',
               display: 'flex',
               alignItems: 'center',
-              justify: 'center',
+              justifyContent: 'center',
               boxShadow: '0 4px 14px rgba(2, 132, 199, 0.3)',
             }}
           >
@@ -423,7 +454,7 @@ export const RegionLedgerPage = () => {
               color: '#0284C7',
               display: 'flex',
               alignItems: 'center',
-              justify: 'center',
+              justifyContent: 'center',
               flexShrink: 0,
             }}
           >
@@ -466,7 +497,7 @@ export const RegionLedgerPage = () => {
               color: '#DC2626',
               display: 'flex',
               alignItems: 'center',
-              justify: 'center',
+              justifyContent: 'center',
               flexShrink: 0,
             }}
           >
@@ -636,7 +667,7 @@ export const RegionLedgerPage = () => {
         </div>
 
         {/* Region Dropdown Filter */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1', minWidth: '240px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1.2', minWidth: '280px' }}>
           <Filter size={18} color="#0284C7" />
           <select
             value={selectedRegion}
@@ -663,6 +694,14 @@ export const RegionLedgerPage = () => {
               </option>
             ))}
           </select>
+          <button
+            onClick={() => setIsAddRegionOpen(true)}
+            className="btn btn-outline"
+            style={{ padding: '0.55rem 0.75rem', fontSize: '0.8rem', fontWeight: 800, borderColor: '#0284C7', color: '#0284C7', display: 'flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}
+            title="Create a new delivery region"
+          >
+            <Plus size={16} /> + Region
+          </button>
         </div>
 
         {/* Payment Status Dropdown Filter */}
@@ -1027,6 +1066,13 @@ export const RegionLedgerPage = () => {
         onClose={() => setIsManifestModalOpen(false)}
         selectedRegion={selectedRegion}
         invoices={filteredInvoices}
+      />
+
+      {/* Add New Region Modal */}
+      <AddRegionModal
+        isOpen={isAddRegionOpen}
+        onClose={() => setIsAddRegionOpen(false)}
+        onAddRegion={handleAddRegion}
       />
     </div>
   );

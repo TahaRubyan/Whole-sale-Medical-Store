@@ -161,17 +161,17 @@ export const InventoryPage = () => {
                         Rs. {Number(med.boxPrice || 600).toFixed(2)}
                       </td>
                       <td style={{ textAlign: 'right' }}>
-                        <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'flex-end' }}>
-                          <button
-                            onClick={() => setEditingMedicine(med)}
-                            className="btn btn-outline"
-                            style={{ padding: '0.25rem 0.55rem', fontSize: '0.75rem', borderColor: '#0284C7', color: '#0284C7', fontWeight: 700 }}
-                            title="Edit Wholesale Box Price"
-                          >
-                            <Edit3 size={14} /> Edit Price
-                          </button>
+                        {!isCashier ? (
+                          <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'flex-end' }}>
+                            <button
+                              onClick={() => setEditingMedicine(med)}
+                              className="btn btn-outline"
+                              style={{ padding: '0.25rem 0.55rem', fontSize: '0.75rem', borderColor: '#0284C7', color: '#0284C7', fontWeight: 700 }}
+                              title="Edit Wholesale Box Price"
+                            >
+                              <Edit3 size={14} /> Edit Price
+                            </button>
 
-                          {!isCashier && (
                             <button
                               onClick={() => setDeletingMedicine(med)}
                               className="btn btn-outline"
@@ -180,8 +180,12 @@ export const InventoryPage = () => {
                             >
                               <Trash2 size={14} /> Delete
                             </button>
-                          )}
-                        </div>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', backgroundColor: '#F1F5F9', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+                            View Only
+                          </span>
+                        )}
                       </td>
                     </tr>
                   );

@@ -3,6 +3,7 @@ import { useSupplier } from '../../context/SupplierContext';
 import { useInventory } from '../../context/InventoryContext';
 import { Truck, CheckCircle, X, Plus, Trash2, Package } from 'lucide-react';
 import { isWithinSixMonths } from '../../utils/dateUtils';
+import AlertWarningModal from './AlertWarningModal';
 
 export const NewPOModal = ({ isOpen, onClose }) => {
   const { createPurchaseOrder, generatePONumber, suppliers, addSupplier } = useSupplier();
@@ -70,12 +71,14 @@ export const NewPOModal = ({ isOpen, onClose }) => {
     return sum + (qty * cost);
   }, 0);
 
+  const [warningMsg, setWarningMsg] = useState('');
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
     for (const item of poItems) {
       if (isWithinSixMonths(item.expiryDate)) {
-        alert("Cannot Add Batch: Expiry Date Exceeded (Must be > 6 Months)");
+        setWarningMsg(`Cannot Add Batch: Expiry Date Exceeded for "${item.brandName || 'Medicine'}". Expiry must be greater than 6 months from today!`);
         return;
       }
     }
@@ -461,6 +464,14 @@ export const NewPOModal = ({ isOpen, onClose }) => {
           </div>
         </form>
       </div>
+
+      {/* Alert Warning Modal for 6-Month Expiry */}
+      <AlertWarningModal
+        isOpen={!!warningMsg}
+        title="Expiry Date Exceeded Warning"
+        message={warningMsg}
+        onClose={() => setWarningMsg('')}
+      />
     </div>
   );
 };

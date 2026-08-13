@@ -16,6 +16,7 @@ import A4InvoicePrintModal from '../components/modals/A4InvoicePrintModal';
 import SalesReturnModal from '../components/modals/SalesReturnModal';
 import CustomerDetailsModal from '../components/modals/CustomerDetailsModal';
 import CartItemEditModal from '../components/modals/CartItemEditModal';
+import AlertWarningModal from '../components/modals/AlertWarningModal';
 import { formatDateDDMMYYYY, isWithinSixMonths } from '../utils/dateUtils';
 
 export const POSPage = () => {
@@ -73,6 +74,7 @@ export const POSPage = () => {
 
   const [showA4Modal, setShowA4Modal] = useState(false);
   const [showReturnModal, setShowReturnModal] = useState(false);
+  const [warningMsg, setWarningMsg] = useState('');
 
   const searchInputRef = useRef(null);
   const searchContainerRef = useRef(null);
@@ -124,7 +126,7 @@ export const POSPage = () => {
 
     const targetBatch = activeBatches[0];
     if (isWithinSixMonths(targetBatch.expiryDate)) {
-      alert("Cannot Add Item: Expiry Date Exceeded (Expires within 6 Months)");
+      setWarningMsg(`Cannot Add Item: Expiry Date Exceeded for "${med.brandName || 'Medicine'}". Expiry date is within 6 months!`);
       return;
     }
 
@@ -633,6 +635,14 @@ export const POSPage = () => {
           onClose={() => setShowReturnModal(false)}
         />
       )}
+
+      {/* Alert Warning Modal for 6-Month Expiry Block */}
+      <AlertWarningModal
+        isOpen={!!warningMsg}
+        title="Expiry Date Exceeded Warning"
+        message={warningMsg}
+        onClose={() => setWarningMsg('')}
+      />
     </div>
   );
 };

@@ -3,7 +3,8 @@ import {
   ShieldCheck, 
   UserCheck, 
   Store,
-  RefreshCw
+  RefreshCw,
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { STORE_INFO } from '../../data/mockData';
@@ -20,7 +21,7 @@ const SCREEN_TITLES = {
 };
 
 export const Topbar = ({ currentScreen }) => {
-  const { user, toggleRole, isAdmin } = useAuth();
+  const { user, toggleRole, isAdmin, logout } = useAuth();
 
   return (
     <header style={{
@@ -49,8 +50,8 @@ export const Topbar = ({ currentScreen }) => {
         </div>
       </div>
 
-      {/* Right Controls: Role Switcher & User Profile */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+      {/* Right Controls: Role Switcher & User Profile & Logout */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         {/* Live RBAC Role Switcher Toggle */}
         <button
           onClick={toggleRole}
@@ -106,7 +107,7 @@ export const Topbar = ({ currentScreen }) => {
             fontSize: '0.75rem',
             fontWeight: 700
           }}>
-            {user.name.charAt(0)}
+            {user.name ? user.name.charAt(0) : 'U'}
           </div>
           <div>
             <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-main)', lineHeight: 1.1 }}>
@@ -117,6 +118,27 @@ export const Topbar = ({ currentScreen }) => {
             </div>
           </div>
         </div>
+
+        {/* Logout Button */}
+        <button
+          onClick={logout}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            padding: '0.4rem 0.75rem',
+            borderRadius: '6px',
+            border: '1px solid #EF4444',
+            backgroundColor: '#FEF2F2',
+            color: '#EF4444',
+            fontWeight: 800,
+            fontSize: '0.8rem',
+            cursor: 'pointer'
+          }}
+          title="Sign out of system"
+        >
+          <LogOut size={15} /> Logout
+        </button>
       </div>
     </header>
   );

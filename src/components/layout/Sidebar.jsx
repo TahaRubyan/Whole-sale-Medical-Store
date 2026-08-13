@@ -13,14 +13,14 @@ import {
 import { useAuth } from '../../context/AuthContext';
 
 export const NAV_ITEMS = [
-  { id: 'dashboard', label: 'Home / Overview', icon: LayoutDashboard, requiresAdmin: false },
-  { id: 'pos', label: 'Sales & Billing (POS)', icon: ShoppingCart, requiresAdmin: false },
-  { id: 'inventory', label: 'Medicine Stock', icon: Package, requiresAdmin: false },
-  { id: 'expiry', label: 'Expiry Alerts', icon: AlertTriangle, requiresAdmin: false },
-  { id: 'region-ledger', label: 'Region Deliveries & Cash', icon: MapPin, requiresAdmin: false },
-  { id: 'suppliers', label: 'Suppliers & Purchases', icon: Truck, requiresAdmin: false },
-  { id: 'analytics', label: 'Sales & Profit Reports', icon: TrendingUp, requiresAdmin: true },
-  { id: 'settings', label: 'Store Settings', icon: Settings, requiresAdmin: true },
+  { id: 'dashboard', label: 'Home', icon: LayoutDashboard, requiresAdmin: false },
+  { id: 'pos', label: 'POS Sale', icon: ShoppingCart, requiresAdmin: false },
+  { id: 'inventory', label: 'Stock', icon: Package, requiresAdmin: false },
+  { id: 'expiry', label: 'Expiry', icon: AlertTriangle, requiresAdmin: false },
+  { id: 'region-ledger', label: 'Region Cash', icon: MapPin, requiresAdmin: false },
+  { id: 'suppliers', label: 'Suppliers', icon: Truck, requiresAdmin: false },
+  { id: 'analytics', label: 'Analytics', icon: TrendingUp, requiresAdmin: true },
+  { id: 'settings', label: 'Settings', icon: Settings, requiresAdmin: true },
 ];
 
 export const Sidebar = ({ currentScreen, onNavigate }) => {
@@ -36,7 +36,7 @@ export const Sidebar = ({ currentScreen, onNavigate }) => {
 
   return (
     <aside style={{
-      width: '240px',
+      width: '210px',
       backgroundColor: '#0284C7', // Ocean Cyan Blue Theme
       color: '#FFFFFF',
       display: 'flex',
@@ -46,15 +46,15 @@ export const Sidebar = ({ currentScreen, onNavigate }) => {
     }}>
       {/* Brand Header */}
       <div style={{
-        padding: '1.25rem 1.5rem',
+        padding: '1.1rem 1.25rem',
         borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
         display: 'flex',
         alignItems: 'center',
-        gap: '0.75rem'
+        gap: '0.65rem'
       }}>
         <div style={{
-          width: '36px',
-          height: '36px',
+          width: '34px',
+          height: '34px',
           borderRadius: 'var(--radius-md)',
           backgroundColor: '#FFFFFF',
           color: '#0284C7',
@@ -63,88 +63,66 @@ export const Sidebar = ({ currentScreen, onNavigate }) => {
           justifyContent: 'center',
           boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
         }}>
-          <Pill size={22} />
+          <Pill size={20} />
         </div>
         <div>
-          <h1 style={{ fontSize: '1.125rem', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em', margin: 0 }}>
             PharmaLink
           </h1>
-          <p style={{ fontSize: '0.725rem', color: '#E0F2FE', fontWeight: 500 }}>
-            Wholesale ERP System
-          </p>
+          <span style={{ fontSize: '0.675rem', color: '#E0F2FE', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Wholesale ERP
+          </span>
         </div>
       </div>
 
-      {/* Navigation Menu */}
-      <nav style={{ flex: 1, padding: '1rem 0.75rem', overflowY: 'auto' }}>
-        <p style={{
-          fontSize: '0.7rem',
-          fontWeight: 700,
-          textTransform: 'uppercase',
-          color: '#E0F2FE',
-          padding: '0.5rem 0.75rem 0.75rem',
-          letterSpacing: '0.05em',
-          opacity: 0.9
-        }}>
-          Wholesale Navigation
-        </p>
+      {/* Navigation Links */}
+      <nav style={{ flex: 1, padding: '1rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.35rem', overflowY: 'auto' }}>
+        <div style={{ padding: '0.25rem 0.5rem', fontSize: '0.65rem', fontWeight: 800, color: '#BAE6FD', letterSpacing: '0.05em' }}>
+          NAVIGATION
+        </div>
+        {visibleNavItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = currentScreen === item.id || (item.id === 'region-ledger' && currentScreen === '/region-ledger');
 
-        <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-          {visibleNavItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = currentScreen === item.id;
-
-            return (
-              <li key={item.id}>
-                <button
-                  onClick={() => onNavigate(item.id)}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '0.65rem 0.85rem',
-                    borderRadius: 'var(--radius-md)',
-                    border: 'none',
-                    backgroundColor: isActive 
-                      ? '#0369A1' 
-                      : 'transparent',
-                    color: '#FFFFFF',
-                    fontWeight: isActive ? 800 : 500,
-                    fontSize: '0.9rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.12)';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <Icon size={19} color={isActive ? '#FFFFFF' : '#BAE6FD'} />
-                    <span>{item.label}</span>
-                  </div>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+          return (
+            <button
+              key={item.id}
+              onClick={() => onNavigate(item.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.6rem 0.85rem',
+                borderRadius: '8px',
+                border: 'none',
+                backgroundColor: isActive ? '#0369A1' : 'transparent',
+                color: '#FFFFFF',
+                fontWeight: isActive ? 800 : 600,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all var(--transition-fast)',
+                boxShadow: isActive ? 'inset 0 1px 0 rgba(255,255,255,0.2)' : 'none'
+              }}
+            >
+              <Icon size={18} opacity={isActive ? 1 : 0.85} />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
       </nav>
 
-      {/* Role Footer Badge */}
+      {/* Footer System Status */}
       <div style={{
-        padding: '0.85rem',
+        padding: '0.85rem 1rem',
         borderTop: '1px solid rgba(255, 255, 255, 0.15)',
-        backgroundColor: 'rgba(0, 0, 0, 0.15)',
-        margin: '0.75rem',
-        borderRadius: 'var(--radius-md)',
-        textAlign: 'center'
+        fontSize: '0.7rem',
+        color: '#E0F2FE'
       }}>
-        <span style={{ fontSize: '0.75rem', color: '#E0F2FE', fontWeight: 600 }}>
-          Logged in as {isCashier ? 'Cashier' : 'Admin'}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#4ADE80' }}></span>
+          <span style={{ fontWeight: 700 }}>System Ready</span>
+        </div>
       </div>
     </aside>
   );

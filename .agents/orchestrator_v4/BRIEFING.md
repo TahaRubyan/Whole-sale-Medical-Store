@@ -48,16 +48,14 @@ Execute Milestone 4 (R7 Region Ledger UI Redesign & Dynamic Region Sync) for Who
 | teamwork_preview_worker_m4_1 | teamwork_preview_worker | Implement M4 (R7 Region Ledger) | completed | cf299afe-fad5-4f89-8506-b20f7af20bde |
 | teamwork_preview_reviewer_m4_1 | teamwork_preview_reviewer | Review M4 | completed (APPROVE) | 97f67649-3fce-4e5f-95a9-96e0256a17b5 |
 | teamwork_preview_reviewer_m4_2 | teamwork_preview_reviewer | Review M4 | completed (APPROVE) | 8cc757e2-15b4-4563-bce9-2da00a5c1a4b |
-| challenger_m4_1 | teamwork_preview_challenger | Challenge M4 | failed (replaced) | 15c73ece-bd16-472d-bc6e-38d4ad01030f |
-| challenger_m4_1_gen2 | teamwork_preview_challenger | Challenge M4 | in-progress | 46054e5c-174a-42d7-ad0d-f0bfd222467d |
-| challenger_m4_2 | teamwork_preview_challenger | Challenge M4 | in-progress | 6e3106b0-81bb-4863-b44a-eadc088ce3e1 |
-| auditor_m4 | teamwork_preview_auditor | Audit M4 | failed (replaced) | 41a34996-5a42-448f-b7f0-5cf174497071 |
-| auditor_m4_gen2 | teamwork_preview_auditor | Audit M4 | in-progress | bfa682a3-aa4f-4685-a59a-4389c966484a |
+| challenger_m4_1_gen3 | teamwork_preview_challenger | Challenge M4 | in-progress | 79e296ad-92a2-4f77-999f-1dcf9450b6b1 |
+| challenger_m4_2 | teamwork_preview_challenger | Challenge M4 | completed (APPROVE) | 6e3106b0-81bb-4863-b44a-eadc088ce3e1 |
+| auditor_m4_gen3 | teamwork_preview_auditor | Audit M4 | in-progress | cda84b1f-fc24-452a-a137-05620d4f1684 |
 
 ## Succession Status
 - Succession required: no
-- Spawn count: 9 / 20
-- Pending subagents: 46054e5c-174a-42d7-ad0d-f0bfd222467d, 6e3106b0-81bb-4863-b44a-eadc088ce3e1, bfa682a3-aa4f-4685-a59a-4389c966484a
+- Spawn count: 11 / 20
+- Pending subagents: 79e296ad-92a2-4f77-999f-1dcf9450b6b1, cda84b1f-fc24-452a-a137-05620d4f1684
 - Predecessor: 41842781-6b21-4650-b664-d4beb052a90e (orchestrator_v3)
 - Successor: not yet spawned
 
