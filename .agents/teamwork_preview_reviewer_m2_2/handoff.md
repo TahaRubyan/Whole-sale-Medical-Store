@@ -1,122 +1,101 @@
-# Reviewer Handoff Report: Milestone 2 Re-verification (Iteration 2)
+# Milestone 2 (R2 & R3) Code Review & Handoff Report
 
-## Review Summary
+**Reviewer Agent**: `teamwork_preview_reviewer_m2_2`  
+**Milestone**: M2 (R2: 6-Month Expiry Rejection & Warning Popups, R3: Date Standardization DD-MM-YYYY)  
+**Target Codebase**: `d:/Code/medical store whole sale/Medical Store Phase 2`  
+**Date**: 2026-08-13  
 **Verdict**: **APPROVE**
-
-No integrity violations, dummy implementations, or hardcoded shortcuts were detected. `addPatient(patientData)` synchronously returns the created/updated patient object (with guaranteed `id`), enabling `addRxLog` to execute cleanly immediately during checkout when Schedule H items and patient details are provided. `npm run build` completed with zero errors.
 
 ---
 
 ## 1. Observation
 
-### Codebase Inspection Findings
-1. **`src/context/PatientContext.jsx`**:
-   - `addPatient(patientData)` (Lines 27–91):
-     - Validates `patientData` and `patientData.name`.
-     - Searches existing patient by `id`, `phone` (with non-digit stripping), or case-insensitive `name`.
-     - Synchronously constructs `targetPatient` with ID (`PAT-${Date.now().toString().slice(-4)}` or existing ID), visit counts, dates, chronic conditions, and timestamps.
-     - Calls `setPatients` to update state asynchronously while returning `targetPatient` synchronously at line 90.
-   - `addRxLog(patientId, rxRecord)` (Lines 93–123):
-     - Receives `patientId` (or phone) and `rxRecord`.
-     - Normalizes `patientId` and matches against `p.id`, `p.phone`, or sanitized phone digits.
-     - Prepends `rxEntry` (`RX-${Date.now().toString().slice(-6)}`) to `rxLogs` and updates `lastVisitDate` and `totalVisits`.
+Direct code and execution observations:
 
-2. **`src/context/CartContext.jsx`**:
-   - `processCheckout` (Lines 235–305):
-     - Checks `hasScheduleHItems` and `isRxComplete` (Lines 241–245). Prompts `patientRx` modal if missing required Schedule H details.
-     - During checkout execution (Lines 280–293):
-       ```javascript
-       if (rxPatient && rxPatient.name) {
-         const savedPatient = addPatient(rxPatient);
-         if (savedPatient && savedPatient.id) {
-           const scheduleHMeds = cart.filter((item) => item.isScheduleH).map((item) => item.name);
-           const allMeds = cart.map((item) => item.name);
-           addRxLog(savedPatient.id, {
-             invoiceNo,
-             date: dateStr,
-             doctorName: rxPatient.doctorName || '',
-             doctorRegNo: rxPatient.doctorRegNo || '',
-             medicines: scheduleHMeds.length > 0 ? scheduleHMeds : allMeds
-           });
-         }
-       }
-       ```
-     - Because `addPatient` returns `savedPatient` synchronously with a guaranteed `id`, `savedPatient && savedPatient.id` resolves to `true` on the exact same call stack line, immediately invoking `addRxLog`.
+1. **Utility Functions (`src/utils/dateUtils.js`)**:
+   - `formatDateDDMMYYYY`: Correctly parses null/undefined/empty string, `Date` objects, ISO strings, `YYYY-MM-DD`, `DD/MM/YYYY`, `YYYY/MM/DD`, and `YYYY-MM` formats, formatting all valid inputs to `DD-MM-YYYY`.
+   - `isWithinSixMonths`: Accurately computes a 6-month cutoff date (`today.getFullYear(), today.getMonth() + 6, today.getDate()`) with end-of-day boundary (`23:59:59.999`) and compares parsed expiry dates normalized to `00:00:00.000`. Correctly returns `true` when expiry date is `<= 6 months` from today (or already expired).
 
-3. **`src/pages/PatientsPage.jsx`**:
-   - Consumes `usePatient().patients` and dynamically renders patient registry rows (Lines 52–83).
-   - Displays patient name, phone/gender/age, attending doctor, chronic conditions, total visits, last visit date, and Rx log badge counts (`pat.rxLogs.length`).
+2. **POS 6-Month Expiry Check & Exact Alert (`src/pages/POSPage.jsx`)**:
+   - Lines 118–122: In `handleAddItemToCart`, active non-quarantined batches are sorted by FEFO (`expiryDate` ascending). Checks `targetBatch` with `isWithinSixMonths(targetBatch.expiryDate)`.
+   - On match, invokes exact popup alert:  
+     `alert("Cannot Add Item: Expiry Date Exceeded (Expires within 6 Months)");`  
+     and returns immediately, blocking item addition to cart.
+   - Line 388: Cart table item expiry date is formatted using `formatDateDDMMYYYY(ci.expiryDate)`.
 
-### Build Execution Command & Output
-- Command: `npm run build` in `d:\Code\Medical Store`
-- Output:
-  ```
-  > pharmalink-erp-pos@1.0.0 build
-  > vite build
+3. **New PO Inward Stock 6-Month Expiry Check & Exact Alert (`src/components/modals/NewPOModal.jsx`)**:
+   - Lines 76–81: In `handleSubmit`, iterates over `poItems` array. Evaluates each item's expiry date using `isWithinSixMonths(item.expiryDate)`.
+   - On match, invokes exact popup alert:  
+     `alert("Cannot Add Batch: Expiry Date Exceeded (Must be > 6 Months)");`  
+     and returns immediately, blocking PO submission and batch stock creation.
 
-  vite v5.4.21 building for production...
-  transforming...
-  ✓ 1494 modules transformed.
-  rendering chunks...
-  computing gzip size...
-  dist/index.html                   0.80 kB │ gzip:  0.45 kB
-  dist/assets/index-Chgzj4aR.css    5.59 kB │ gzip:  1.72 kB
-  dist/assets/index-C0zfglBd.js   266.81 kB │ gzip: 72.13 kB
-  ✓ built in 3.82s
-  ```
+4. **Date Standardization Across Components (DD-MM-YYYY)**:
+   - `src/components/modals/A4InvoiceModal.jsx`: Lines 160, 162, 222 format `sale.date`, `sale.dueDate`, and line item `expiryDate` with `formatDateDDMMYYYY`.
+   - `src/components/modals/A4InvoicePrintModal.jsx`: Lines 160, 162, 222 format `invoice.date`, `invoice.dueDate`, and line item `expiryDate` with `formatDateDDMMYYYY`.
+   - `src/components/inventory/StockSummaryReportModal.jsx`: Line 33 formats `currentDateStr` with `formatDateDDMMYYYY`.
+   - `src/components/region/PaymentHistoryModal.jsx`: Line 181 formats log date with `formatDateDDMMYYYY`.
+   - `src/components/region/RegionalDeliveryManifestModal.jsx`: Line 55 formats `currentDateStr` with `formatDateDDMMYYYY`.
+   - `src/pages/AnalyticsPage.jsx`: Lines 399 & 456 format daily summary date and transaction log date with `formatDateDDMMYYYY`.
+   - `src/components/modals/AnalyticsReportPrintModal.jsx`: Formats custom period title dates and transaction log dates with `formatDateDDMMYYYY`.
+   - `src/pages/ExpiryRadarPage.jsx`: Line 130 formats batch table expiry date with `formatDateDDMMYYYY`.
+   - `src/pages/SuppliersPage.jsx`: Line 174 formats inward date with `formatDateDDMMYYYY`.
+
+5. **Build Verification**:
+   - Executed `npm run build` in `d:/Code/medical store whole sale/Medical Store Phase 2`.
+   - Output: `vite v5.4.21 building for production... ✓ 1508 modules transformed. built in 1.79s`. Exit code `0`, 0 errors.
+
+6. **Integrity & Code Quality Verification**:
+   - Verified no hardcoded test outputs, dummy implementations, or bypassed checks.
+   - Genuine date calculations and proper UI modal integration present.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Integrity Violation Analysis**:
-   - Analyzed `PatientContext.jsx`, `CartContext.jsx`, and `PatientsPage.jsx` for hardcoded test fixtures, dummy return stubs, or self-certifying shortcuts.
-   - Found real, dynamic implementations using React State, local storage sync, FEFO batch selection, dynamic ID generation (`PAT-xxxx`, `RX-xxxxxx`, `INV-xxxxxx`), and dynamic GST breakdown calculations.
+1. **Date Parsing & Boundary Math**:
+   - JavaScript's `Date` constructor handles month overflow naturally (e.g. `today.getMonth() + 6` rolls over years properly, e.g. August + 6 months -> February of next year).
+   - Normalizing `expDate` to `00:00:00` and `cutoff` to `23:59:59` guarantees inclusive comparison so any item expiring on or before the 6th month boundary triggers the rejection popup.
 
-2. **Synchronous Return & RxLog Chain Verification**:
-   - `addPatient` constructs the patient object before enqueuing state updates via `setPatients`, returning `targetPatient` synchronously.
-   - `CartContext.jsx` receives `savedPatient` synchronously from `addPatient(rxPatient)`.
-   - `savedPatient.id` is truthy, triggering `addRxLog(savedPatient.id, rxRecord)` in the exact same tick.
-   - React state batching ensures `setPatients` in `addRxLog` runs after `addPatient`'s state transformation, correctly matching the patient by ID or sanitized phone and prepending the Rx log.
+2. **Validation Enforcement**:
+   - Adding items to cart on POSPage checks `activeBatches[0]` (the earliest FEFO batch). Blocking at `handleAddItemToCart` prevents invalid stock from entering sales invoices.
+   - Adding new purchase order inward stock in `NewPOModal.jsx` validates all inward items before updating state contexts (`InventoryContext` and `SupplierContext`), preventing substandard stock from entering inventory.
 
-3. **Production Build Verification**:
-   - Executed `npm run build` via terminal shell in `d:\Code\Medical Store`.
-   - Verified 0 TypeScript / JSX errors and clean Vite bundle output (`dist/index.html`, `dist/assets/...`).
+3. **Consistency**:
+   - All user-facing display components utilize `formatDateDDMMYYYY`, ensuring consistent `DD-MM-YYYY` representation while preserving native HTML date input fields (`YYYY-MM-DD`).
 
 ---
 
 ## 3. Caveats
-- No caveats. The implementation directly fulfills the requirements without edge-case regressions.
+
+- HTML `<input type="date">` inputs continue to use ISO format (`YYYY-MM-DD`) internally as required by HTML5 standards; all rendered text, tables, modals, and PDF print exports use `DD-MM-YYYY`.
+- No caveats.
 
 ---
 
 ## 4. Conclusion
-The implementation of `addPatient` and `addRxLog` in `PatientContext.jsx` and its invocation in `CartContext.jsx` is verified to be complete, correct, and robust. Production build passes cleanly.
 
-**Final Verdict**: **APPROVE**
+The implementation of Milestone 2 (R2: 6-Month Expiry Rejection & Warning Popups and R3: Date Standardization DD-MM-YYYY) by Worker M2 is fully verified. All exact alert strings match requirements, date math handle edge cases correctly, date formatting is standardized across the entire application, and the build is completely clean.
 
 ---
 
 ## 5. Verification Method
 
-### How to Independently Verify:
-1. **Source Code Inspection**:
-   - View `src/context/PatientContext.jsx` (lines 27–123) to confirm synchronous return of `targetPatient` in `addPatient` and matching logic in `addRxLog`.
-   - View `src/context/CartContext.jsx` (lines 280–293) to confirm `addPatient` return value is consumed immediately to trigger `addRxLog`.
-2. **Build Verification Command**:
-   ```bash
-   cd "d:\Code\Medical Store"
+To re-verify:
+1. **Production Build**:
+   ```powershell
    npm run build
    ```
-   Expect build completion within ~4 seconds with zero errors.
+   Must exit with code 0 and 0 build errors.
+
+2. **Alert Message Verification**:
+   - Check `src/pages/POSPage.jsx` for string: `"Cannot Add Item: Expiry Date Exceeded (Expires within 6 Months)"`.
+   - Check `src/components/modals/NewPOModal.jsx` for string: `"Cannot Add Batch: Expiry Date Exceeded (Must be > 6 Months)"`.
+
+3. **Date Helper Logic**:
+   - Inspect `src/utils/dateUtils.js` for `formatDateDDMMYYYY` and `isWithinSixMonths`.
 
 ---
 
-## 6. Challenge & Stress Test Report (Adversarial Critic)
+## Final Verdict
 
-- **Assumption 1**: `addPatient` might fail if phone numbers have varying formats (e.g. `+91 98765-43210` vs `9876543210`).
-  - *Result*: Pass. `p.phone.replace(/\D/g, '') === patientData.phone.replace(/\D/g, '')` normalizes digits.
-- **Assumption 2**: `addRxLog` might fail to find newly created patient in `setPatients` callback.
-  - *Result*: Pass. `setPatients` callback receives latest state queue which includes the target patient added by `addPatient`.
-- **Assumption 3**: Schedule H item checkout without patient info.
-  - *Result*: Pass. `processCheckout` checks `hasScheduleHItems && !isRxComplete` and blocks checkout, opening `patientRx` modal.
+**APPROVE**

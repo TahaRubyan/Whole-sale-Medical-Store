@@ -5,6 +5,7 @@ import {
   Package, 
   AlertTriangle, 
   Truck, 
+  MapPin,
   TrendingUp, 
   Settings, 
   Pill,
@@ -12,12 +13,13 @@ import {
 import { useAuth } from '../../context/AuthContext';
 
 export const NAV_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, requiresAdmin: false },
-  { id: 'pos', label: 'POS Billing', icon: ShoppingCart, requiresAdmin: false },
-  { id: 'inventory', label: 'Inventory Catalog', icon: Package, requiresAdmin: false },
-  { id: 'expiry', label: 'Expiry Radar', icon: AlertTriangle, requiresAdmin: false },
-  { id: 'suppliers', label: 'Suppliers & PO', icon: Truck, requiresAdmin: false },
-  { id: 'analytics', label: 'Financial Analytics', icon: TrendingUp, requiresAdmin: true },
+  { id: 'dashboard', label: 'Home / Overview', icon: LayoutDashboard, requiresAdmin: false },
+  { id: 'pos', label: 'Sales & Billing (POS)', icon: ShoppingCart, requiresAdmin: false },
+  { id: 'inventory', label: 'Medicine Stock', icon: Package, requiresAdmin: false },
+  { id: 'expiry', label: 'Expiry Alerts', icon: AlertTriangle, requiresAdmin: false },
+  { id: 'region-ledger', label: 'Region Deliveries & Cash', icon: MapPin, requiresAdmin: false },
+  { id: 'suppliers', label: 'Suppliers & Purchases', icon: Truck, requiresAdmin: false },
+  { id: 'analytics', label: 'Sales & Profit Reports', icon: TrendingUp, requiresAdmin: true },
   { id: 'settings', label: 'Store Settings', icon: Settings, requiresAdmin: true },
 ];
 

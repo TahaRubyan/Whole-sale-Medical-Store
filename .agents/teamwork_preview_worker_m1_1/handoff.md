@@ -1,63 +1,33 @@
-# Handoff Report — Milestone 1: Infra & Foundation Setup
+# Milestone 1 (R1 & R5) Handoff Report
 
 ## 1. Observation
-- Created worker metadata directory at `d:\Code\Medical Store\.agents\teamwork_preview_worker_m1_1`.
-- Built the entire React 18 + Vite application structure in `d:\Code\Medical Store`:
-  - `package.json`: Vite, React 18, React DOM, Lucide React, `@vitejs/plugin-react`.
-  - `vite.config.js`: Dev server on port 3000 with React plugin.
-  - `index.html`: Google Font `Plus Jakarta Sans` preconnected and imported (weights 400-800), root div container.
-  - `src/styles/theme.css`: Ocean Blue theme custom properties (`--color-primary`: `#0284C7`, `--color-canvas`: `#F7F4EF`, `--color-primary-light`: `#E0F2FE`, Plus Jakarta Sans font stack, radii, and shadow tokens).
-  - `src/styles/global.css`: Reset, custom scrollbar, card, grid layout utilities (`grid-2`, `grid-3`, `grid-4`), buttons (`btn-primary`, `btn-outline`, etc.), badges (`badge-rx`, `badge-danger`), table styling.
-  - `src/index.css`: Imports `theme.css` and `global.css`.
-  - `src/data/mockData.js`: Store profile (`STORE_INFO`: DL Form 20/21 `DL-20/2024/7890`, GSTIN `27AABCP12341ZV`), products dataset (`MOCK_PRODUCTS`: 8 multi-batch FEFO medicines with Rack/Shelf locations, Schedule H Rx flags, HSN 3004, GST rates, MRP, purchase price), suppliers (`MOCK_SUPPLIERS`), patients (`MOCK_PATIENTS`), 7-day sales ledger (`MOCK_SALES_HISTORY`), and FEFO calculation helpers (`getFEFOBatch`, `calculateNearExpiryCount`, `calculateLowStockCount`).
-  - `src/context/AuthContext.jsx`: `AuthProvider` component with `role` (`'Admin'` | `'Cashier'`), `user` profile, `toggleRole()`, `isAdmin`, `isCashier`, `permissions` (`canOverrideStock`, `canViewFinancialProfit`, `canCreatePurchaseOrder`, `canModifyStoreSettings`), and `localStorage` persistence.
-  - `src/hooks/useHotkeys.js`: Custom global key listener handling `F1` (Dashboard), `F2` (POS), `F3` (Inventory), `F4` (Expiry Radar), `F9` (Thermal Receipt Modal), `F10` (A4 Invoice Modal) with `event.preventDefault()`.
-  - `src/components/layout/Sidebar.jsx`: Brand header, version badge (`v1.0`), 8 screen navigation links with active highlighting, hotkey badges (`F1`-`F4`), cashier lockout indicators (`Lock` icon on Analytics & Settings), and bottom hotkey cheat-sheet.
-  - `src/components/layout/Topbar.jsx`: Screen title breadcrumb, store DL info, quick modal triggers for F9 Thermal Receipt & F10 A4 Invoice, live RBAC Role Switcher toggle button (`Admin` ↔ `Cashier`), and active user profile badge.
-  - `src/components/layout/Layout.jsx`: Main grid layout shell, global hotkey binding, thermal receipt (F9) and A4 GST invoice (F10) preview modals.
-  - `src/pages/DashboardPage.jsx`: Welcome & shift banner, 4 KPI cards (Today's Revenue, Est. Gross Profit with Cashier lockout mask, Low Stock count, Near Expiry count), 7-day sales trend visualizer chart, hotkey quick action panel, and urgent FEFO expiry alert table (< 90 days).
-  - 7 Baseline Placeholder Pages: `POSPage.jsx`, `InventoryPage.jsx`, `ExpiryRadarPage.jsx`, `SuppliersPage.jsx`, `PatientsPage.jsx`, `AnalyticsPage.jsx`, `SettingsPage.jsx`.
-  - `src/App.jsx` and `src/main.jsx`: Main entry point mounting `<App />` within `<AuthProvider>` and `<Layout>`.
-- Executed build verification commands in `d:\Code\Medical Store`:
-  - `npm install`: Audit passed, installed 64 packages cleanly.
-  - `npm run build`: Output verbatim:
-    ```
-    > pharmalink-erp-pos@1.0.0 build
-    > vite build
-
-    vite v5.4.21 building for production...
-    transforming...
-    ✓ 1484 modules transformed.
-    rendering chunks...
-    computing gzip size...
-    dist/index.html                   0.80 kB │ gzip:  0.46 kB
-    dist/assets/index-Chgzj4aR.css    5.59 kB │ gzip:  1.72 kB
-    dist/assets/index-DVDT73s_.js   212.27 kB │ gzip: 59.76 kB
-    ✓ built in 4.00s
-    ```
+- **`src/components/modals/A4InvoiceModal.jsx`**: Line 3 previously imported `STORE_INFO` from `'../../data/mockData'` without importing `getTaxConfig`. Lines 194-196 and 243-245 call `getTaxConfig()`, which produced a runtime `ReferenceError: getTaxConfig is not defined`. Updated line 3 to `import { STORE_INFO, getTaxConfig } from '../../data/mockData';`.
+- **`src/components/modals/A4InvoicePrintModal.jsx`**: Line 3 previously imported `STORE_INFO` from `'../../data/mockData'` without importing `getTaxConfig`. Lines 194-196 and 243-245 call `getTaxConfig()`, which produced a runtime `ReferenceError: getTaxConfig is not defined`. Updated line 3 to `import { STORE_INFO, getTaxConfig } from '../../data/mockData';`.
+- **`src/components/layout/Sidebar.jsx`**: Lines 15-24 defined `NAV_ITEMS` with technical/legacy menu labels. Updated `NAV_ITEMS` labels to:
+  - `dashboard`: `'Home / Overview'`
+  - `pos`: `'Sales & Billing (POS)'`
+  - `inventory`: `'Medicine Stock'`
+  - `expiry`: `'Expiry Alerts'`
+  - `region-ledger`: `'Region Deliveries & Cash'`
+  - `suppliers`: `'Suppliers & Purchases'`
+  - `analytics`: `'Sales & Profit Reports'`
+  - `settings`: `'Store Settings'`
+- **Build Output**: Executed `npm run build` in directory `d:/Code/medical store whole sale/Medical Store Phase 2`. Built successfully in 10.64s with 0 errors (Exit Code 0).
 
 ## 2. Logic Chain
-1. **Foundation Scaffold**: Established standard Vite + React project configuration (`package.json`, `vite.config.js`, `index.html`, `src/main.jsx`, `src/App.jsx`) providing ES module support and fast HMR.
-2. **Design Tokens**: Configured CSS custom variables in `src/styles/theme.css` matching Ocean Blue guidelines (`#0284C7` primary, `#F7F4EF` canvas, `#E0F2FE` tint, Plus Jakarta Sans font) and reusable components in `src/styles/global.css`.
-3. **Data Layer**: Implemented full pharmaceutical mock seed database in `src/data/mockData.js` supporting FEFO multi-batch items, rack/shelf bin locations (e.g. Rack A-01 / Shelf 2), Schedule H Rx flags, HSN code 3004, GST rates, suppliers, patients, sales history, and helper functions (`getFEFOBatch`, `calculateNearExpiryCount`, `calculateLowStockCount`).
-4. **RBAC State**: Built `AuthContext.jsx` with persistent localStorage role toggle between `Admin` and `Cashier` along with explicit permission getters (`permissions.canViewFinancialProfit`, `canOverrideStock`, etc.).
-5. **Hotkey Engine**: Implemented `useHotkeys.js` listener capturing `F1`-`F4` for screen switching and `F9`/`F10` for print modals while preventing browser default behaviors.
-6. **Layout & Shell**: Designed `Sidebar.jsx`, `Topbar.jsx`, and `Layout.jsx` with 8 screen links, live topbar role toggle, print trigger buttons, and modal dialogs for Thermal Receipt (F9) and A4 Invoice (F10).
-7. **Dashboard Implementation**: Designed `DashboardPage.jsx` with welcome banner, 4 KPI cards (masking Gross Profit when in Cashier mode), 7-day revenue chart, hotkey panel, and urgent FEFO expiry feed.
-8. **7 Screen Placeholders**: Created baseline files for all 7 remaining screens ensuring smooth screen switching without missing component errors.
-9. **Build Verification**: Ran `npm install` and `npm run build` directly in `d:\Code\Medical Store`, verifying zero errors and a clean production build bundle (`dist/`).
+1. **Fixing R1**: `getTaxConfig` is exported by `src/data/mockData.js`. Both `A4InvoiceModal.jsx` and `A4InvoicePrintModal.jsx` render tax names dynamically using `getTaxConfig().saleTaxName`, `getTaxConfig().adTaxName`, and `getTaxConfig().advTaxName`. Adding `getTaxConfig` to the named import list in line 3 resolves the `ReferenceError` completely without modifying any surrounding JSX or state logic.
+2. **Fixing R5**: `Sidebar.jsx` exports `NAV_ITEMS` which is consumed by the sidebar navigation UI component (and re-exported by `src/components/common/Sidebar.jsx`). Updating the `label` property of each object in `NAV_ITEMS` updates all visible navigation menu item labels across the SPA to simple, non-technical terms.
+3. **Verification**: Running `npm run build` compiles all JSX, validates imports and syntax, confirming no lingering runtime import errors or broken exports remain.
 
 ## 3. Caveats
-- No external UI component frameworks (Tailwind, MUI, Bootstrap) were used; all styling relies strictly on standard CSS custom properties.
-- React state-based router (`currentScreen`) was chosen for zero-latency instant F1-F4 key navigation.
+No caveats. Only assigned files were modified and changes strictly follow the requirements without extraneous refactoring.
 
 ## 4. Conclusion
-Milestone 1: Infra & Foundation Setup is 100% complete and fully verified. The application scaffold, theme system, mock data engine, AuthContext RBAC, hotkey hook, shell layout, Dashboard page, 7 placeholder pages, and production build system are fully operational.
+Milestone 1 (R1 & R5) fixes have been fully implemented and verified. Both invoice preview modals now correctly import `getTaxConfig`, resolving the `ReferenceError`. All navigation labels in `Sidebar.jsx` have been updated to the required simple terms. The production build passes with 0 errors.
 
 ## 5. Verification Method
-To verify the implementation independently:
-1. Open terminal at `d:\Code\Medical Store`.
-2. Run `npm run build` and confirm Vite compiles 1484 modules cleanly with exit code 0 into `dist/`.
-3. Inspect `d:\Code\Medical Store\src\styles\theme.css` to confirm `--color-primary: #0284C7`, `--color-canvas: #F7F4EF`, `--color-primary-light: #E0F2FE`, and `Plus Jakarta Sans`.
-4. Inspect `d:\Code\Medical Store\src\context\AuthContext.jsx` for role toggle and permission getters.
-5. Inspect `d:\Code\Medical Store\src\hooks\useHotkeys.js` for F1-F4 and F9/F10 event default prevention logic.
+To independently verify:
+1. Inspect `src/components/modals/A4InvoiceModal.jsx` line 3: confirm `import { STORE_INFO, getTaxConfig } from '../../data/mockData';`.
+2. Inspect `src/components/modals/A4InvoicePrintModal.jsx` line 3: confirm `import { STORE_INFO, getTaxConfig } from '../../data/mockData';`.
+3. Inspect `src/components/layout/Sidebar.jsx` lines 15-24: confirm `NAV_ITEMS` contains updated labels (`Home / Overview`, `Sales & Billing (POS)`, `Medicine Stock`, `Expiry Alerts`, `Region Deliveries & Cash`, `Suppliers & Purchases`, `Sales & Profit Reports`, `Store Settings`).
+4. Run `npm run build` from `d:/Code/medical store whole sale/Medical Store Phase 2` directory to confirm clean build exit code 0.

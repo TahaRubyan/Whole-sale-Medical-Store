@@ -3,12 +3,14 @@ import {
   Search, 
   Edit3,
   Trash2,
-  Package
+  Package,
+  FileText
 } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
 import EditMedicineModal from '../components/modals/EditMedicineModal';
 import DeleteConfirmModal from '../components/modals/DeleteConfirmModal';
+import StockSummaryReportModal from '../components/inventory/StockSummaryReportModal';
 
 export const InventoryPage = () => {
   const { medicines, batches, deleteMedicine } = useInventory();
@@ -18,6 +20,7 @@ export const InventoryPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [editingMedicine, setEditingMedicine] = useState(null);
   const [deletingMedicine, setDeletingMedicine] = useState(null);
+  const [isStockSummaryOpen, setIsStockSummaryOpen] = useState(false);
 
   // Extract unique categories
   const categories = useMemo(() => {
@@ -83,9 +86,31 @@ export const InventoryPage = () => {
           </div>
         </div>
 
-        {/* Clean Count Badge */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#E0F2FE', color: '#0369A1', padding: '0.4rem 0.85rem', borderRadius: '6px', fontWeight: 800, fontSize: '0.85rem' }}>
-          <Package size={16} /> Total Items: {filteredMedicines.length} Products
+        {/* Clean Count Badge & Stock Summary Report Button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <button
+            onClick={() => setIsStockSummaryOpen(true)}
+            className="btn btn-primary"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              backgroundColor: '#0284C7',
+              color: '#FFFFFF',
+              fontWeight: 800,
+              fontSize: '0.825rem',
+              padding: '0.45rem 0.85rem',
+              borderRadius: '6px',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <FileText size={16} /> Stock Summary & Reorder Report
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#E0F2FE', color: '#0369A1', padding: '0.4rem 0.85rem', borderRadius: '6px', fontWeight: 800, fontSize: '0.85rem' }}>
+            <Package size={16} /> Total Items: {filteredMedicines.length} Products
+          </div>
         </div>
       </div>
 
@@ -174,6 +199,13 @@ export const InventoryPage = () => {
       </div>
 
       {/* MODALS */}
+      {isStockSummaryOpen && (
+        <StockSummaryReportModal
+          isOpen={isStockSummaryOpen}
+          onClose={() => setIsStockSummaryOpen(false)}
+        />
+      )}
+
       {editingMedicine && (
         <EditMedicineModal
           medicine={editingMedicine}

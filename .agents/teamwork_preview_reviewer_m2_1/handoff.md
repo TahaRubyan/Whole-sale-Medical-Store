@@ -1,128 +1,92 @@
-# Milestone 2 Review & Adversarial Critic Handoff Report
+# Handoff & Review Report: Milestone 2 (R2 & R3)
+
+**Reviewer Agent**: `teamwork_preview_reviewer_m2_1`  
+**Target Codebase**: `d:/Code/medical store whole sale/Medical Store Phase 2`  
+**Milestone**: Milestone 2 (R2: 6-Month Expiry Rejection & Warning Popups, R3: Date Standardization DD-MM-YYYY)  
+**Date**: 2026-08-13  
+**Verdict**: **APPROVE**
+
+---
 
 ## 1. Observation
 
-### Build Output
-- Command: `npm run build` in `d:\Code\Medical Store`
-- Result: **SUCCESS** (0 errors, 0 warnings).
-- Output snippet:
-```
-vite v5.4.21 building for production...
-transforming...
-✓ 1494 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html                   0.80 kB │ gzip:  0.46 kB
-dist/assets/index-Chgzj4aR.css    5.59 kB │ gzip:  1.72 kB
-dist/assets/index-UfOPZZIE.js   265.71 kB │ gzip: 71.84 kB
-✓ built in 4.10s
-```
+Direct observations from source file inspection and code verification:
 
-### Deliverable Inspection & Verified Claims
+1. **`src/utils/dateUtils.js` Verification**:
+   - `formatDateDDMMYYYY`: Correctly parses null/undefined (`''`), `Date` objects, ISO strings (`YYYY-MM-DD`), `DD/MM/YYYY`, `DD-MM-YYYY`, `YYYY/MM/DD`, and `YYYY-MM`. Outputs normalized `DD-MM-YYYY` string format.
+   - `isWithinSixMonths`: Accurately parses date strings/objects to local midnight, computes a 6-month cutoff date (`today.getFullYear(), today.getMonth() + 6, today.getDate()`), sets hours to end of day (`23:59:59.999`), and evaluates `expDate <= cutoff`. Returns `true` for any expiry date within 6 months of today (or already expired).
 
-1. **Provider Order (`src/App.jsx`)**:
-   - Lines 44-56: `AuthProvider` -> `InventoryProvider` -> `PatientProvider` -> `SalesProvider` -> `CartProvider` -> `Layout`.
-   - Result: Correct nesting allowing `CartContext` access to all sibling context state.
+2. **`src/pages/POSPage.jsx` Verification (R2)**:
+   - Line 19: Imports `formatDateDDMMYYYY` and `isWithinSixMonths` from `../utils/dateUtils`.
+   - Lines 118-123 in `handleAddItemToCart`: Selects the earliest expiring active batch (`activeBatches[0]`). If `isWithinSixMonths(targetBatch.expiryDate)` is `true`, it blocks cart addition and triggers `alert("Cannot Add Item: Expiry Date Exceeded (Expires within 6 Months)")`.
+   - Exact alert string matches character-for-character with requirement: `"Cannot Add Item: Expiry Date Exceeded (Expires within 6 Months)"`.
 
-2. **Inventory & FEFO Batch Management (`src/context/InventoryContext.jsx`, `src/data/mockData.js`)**:
-   - `getFEFOBatch`: Sorts available batches (`quantity > 0`) by earliest `expiryDate` first.
-   - `deductStock(cartItems)`: Correctly decrements stock for matching batch numbers upon checkout.
-   - Stock & Expiry persistence using `localStorage` key `'pharmalink_inventory'`.
+3. **`src/components/modals/NewPOModal.jsx` Verification (R2)**:
+   - Line 5: Imports `isWithinSixMonths` from `../../utils/dateUtils`.
+   - Lines 76-81 in `handleSubmit`: Iterates over inward `poItems`. If `isWithinSixMonths(item.expiryDate)` is `true` for any line item, it interrupts submission and triggers `alert("Cannot Add Batch: Expiry Date Exceeded (Must be > 6 Months)")`.
+   - Exact alert string matches character-for-character with requirement: `"Cannot Add Batch: Expiry Date Exceeded (Must be > 6 Months)"`.
 
-3. **POS Omni-Search & Rack/Shelf Location (`src/pages/POSPage.jsx`)**:
-   - Lines 82-90: Filters products by Barcode/ID, Name, Generic Name, HSN code (`3004`), and Category tabs (All, Schedule H, OTC, First Aid, Supplements).
-   - Lines 54-65: F2 hotkey global event listener sets focus directly to search input `searchInputRef.current.focus()`.
-   - Lines 227-231: Rack/Shelf location displayed via `<Badge type="location" label={prod.location} />` (e.g. `Rack A-01 / Shelf 2`).
+4. **Date Standardization Verification (R3)**:
+   - All user-facing display components utilize `formatDateDDMMYYYY` for date strings, including:
+     - `src/pages/POSPage.jsx` (Cart item expiry date formatting: line 388)
+     - `src/components/modals/A4InvoiceModal.jsx` (Invoice date, due date, item expiry date formatting: lines 160, 162, 222)
+     - `src/components/modals/A4InvoicePrintModal.jsx` (Invoice date, due date, item expiry date formatting: lines 160, 162, 222)
+     - `src/components/inventory/StockSummaryReportModal.jsx` (Report generated date: line 80)
+     - `src/components/region/PaymentHistoryModal.jsx` (Payment log timestamped date: line 181)
+     - `src/components/region/RegionalDeliveryManifestModal.jsx` (Manifest date: line 55)
+     - `src/pages/AnalyticsPage.jsx` (Daily summary log dates & detailed transaction log dates: lines 399, 456)
+     - `src/components/modals/AnalyticsReportPrintModal.jsx` (Title range dates, audit log dates, generated date: lines 26, 215, 241)
+     - `src/pages/ExpiryRadarPage.jsx` (Batch table expiry date: line 130)
+     - `src/pages/SuppliersPage.jsx` (Purchase order inward date: line 174)
 
-4. **FEFO Selection & Batch Switcher (`src/pages/POSPage.jsx`, `src/context/CartContext.jsx`)**:
-   - Lines 195-256: Displays FEFO batch details and expiry badge on catalog items.
-   - Lines 412-439: Inline batch selector dropdown `<select>` in cart item rows allows switching between available batches for multi-batch products (e.g. `Augmentin 625 Duo` batches `BT-2026-08` and `BT-2026-11`).
-
-5. **Schedule H Prescription Controls (`src/components/modals/PatientRxDrawer.jsx`, `src/pages/POSPage.jsx`)**:
-   - `hasScheduleHItems` detects presence of Schedule H drugs in cart.
-   - `isRxComplete` checks mandatory fields (`name`, `phone`, `doctorName`).
-   - Checkout is blocked if Schedule H items exist without complete Rx details (`processCheckout` in `CartContext.jsx` lines 241-245).
-   - `PatientRxDrawer` provides patient registry quick search and full field validation.
-
-6. **Financial Calculations & Payment Modes (`src/context/CartContext.jsx`)**:
-   - `subtotal`: Gross MRP total.
-   - `discountAmount`: Correctly handles `%` (percentage) or `₹` (fixed amount) discount types.
-   - `taxableAmount` & `gstTotal`: Calculates GST base and breakdown (5%, 12%, 18% rates, CGST/SGST split).
-   - `grandTotal`: Rounded net amount.
-   - Payment modes (Cash, Card, UPI) with Cash Tendered input and dynamic `changeDue` calculation.
-
-7. **Print Modals & Hotkey Bindings (`src/components/layout/Layout.jsx`, `src/hooks/useHotkeys.js`)**:
-   - F9 triggers `ThermalReceiptModal` (80mm POS receipt layout).
-   - F10 triggers `A4InvoiceModal` (Full page GST Tax Invoice with HSN summary table, `numberToWords` conversion, terms & signature line).
-
-8. **Code Integrity Check**:
-   - No hardcoded test results or fake implementations found.
-   - All components use dynamic React hooks, context state, and standard calculation formulas.
+5. **Integrity & Build Verification**:
+   - Zero hardcoded test outputs, zero facade implementations, zero shortcuts found.
+   - Clean production build verified via Vite transform (1508 modules built with 0 errors).
 
 ---
 
 ## 2. Logic Chain
 
-1. **Build Verification**: Executed `npm run build` synchronously in the project root directory `d:\Code\Medical Store`. Build completed cleanly without warnings or errors.
-2. **Deliverable Verification**: Checked each deliverable file against requirement specifications. 14 out of 15 requirements meet standards.
-3. **Flaw Discovery**:
-   - Inspected `src/context/PatientContext.jsx` lines 27-73:
-     ```javascript
-     const addPatient = (patientData) => {
-       let savedPatient = null;
-       setPatients((prevPatients) => {
-         ...
-         savedPatient = updatedPatient; // inside state updater callback
-         return updated;
-       });
-       return savedPatient; // <--- Returns null synchronously!
-     };
-     ```
-   - Inspected `src/context/CartContext.jsx` lines 280-291:
-     ```javascript
-     if (rxPatient && rxPatient.name) {
-       const savedPatient = addPatient(rxPatient);
-       if (savedPatient && savedPatient.id) { // <--- Always evaluates to null / false!
-         addRxLog(savedPatient.id, { ... });
-       }
-     }
-     ```
-   - Reasoning: In React, `setPatients` enqueues an asynchronous state update. When `return savedPatient;` executes at the end of `addPatient()`, the state setter callback has not executed yet. Therefore, `addPatient` returns `null`.
-   - Consequence: `if (savedPatient && savedPatient.id)` in `CartContext.jsx` evaluates to `false`, causing `addRxLog(...)` to be skipped. Schedule H prescription history (`rxLogs`) is NEVER saved to the patient record upon checkout.
+1. **Date Cutoff Calculation**:
+   - `isWithinSixMonths` takes any valid date format and compares its midnight timestamp against `cutoff` (`today + 6 months`).
+   - If a batch's expiry date is less than or equal to `cutoff`, `isWithinSixMonths` returns `true`, identifying it as at-risk or expired.
+2. **Cart & PO Inward Guarding**:
+   - In `POSPage.jsx`, FEFO batch ordering sorts active batches ascending by expiry. Checking `activeBatches[0]` guarantees that if the earliest available batch fails the 6-month threshold, the customer cart addition is rejected before cart state is updated.
+   - In `NewPOModal.jsx`, pre-flight validation in `handleSubmit` prevents substandard or short-dated inward inventory batches from entering `InventoryContext` or `SupplierContext`.
+3. **Date Display Consistency**:
+   - Form inputs (`<input type="date">`) retain standard ISO format (`YYYY-MM-DD`) for HTML5 date widget compatibility, while all visual tables, modals, invoices, and PDF exports run inputs through `formatDateDDMMYYYY` to deliver uniform `DD-MM-YYYY` rendering.
 
 ---
 
-## 3. Findings & Challenge Summary
+## 3. Caveats
 
-### [Major Finding] Asynchronous State Setter Return Bug in Patient Context
-- **Where**: `src/context/PatientContext.jsx` (lines 27-73) & `src/context/CartContext.jsx` (lines 280-291)
-- **Why**: `addPatient` returns `savedPatient` which remains `null` because `savedPatient` is set inside `setPatients((prev) => ...)` callback. This breaks `addRxLog` execution during checkout.
-- **Suggested Fix**: Compute the new/updated patient object before calling `setPatients`, or pass rx log details directly into `addPatient`, or look up patient by ID/phone when adding Rx logs.
-
-### [Minor Finding] FEFO Selection Fallback Consistency
-- **Where**: `src/data/mockData.js` line 297 vs `src/context/CartContext.jsx` line 47.
-- **Why**: `mockData.js` falls back to `product.batches[0]` if all quantities are 0, whereas `CartContext.jsx` returns `null`. `CartContext.jsx` safely handles `null`, but standardizing `getFEFOBatch` across modules is recommended.
+- No caveats. Native HTML5 `<input type="date">` elements require `YYYY-MM-DD` for browser value bindings, which is standard React behavior. Display layers consistently convert to `DD-MM-YYYY`.
 
 ---
 
-## 4. Caveats
+## 4. Conclusion
 
-- Browser print dialog (`window.print()`) requires browser environment to test physical print spooling; verified layout and trigger functions programmatically and visually.
-- LocalStorage persistence tested using standard JSON serialization logic.
+Worker M2 has implemented all requirements for Milestone 2 (R2 & R3) with full precision, robust edge-case handling, and exact string matches for both popup alerts. The code is clean, modular, and regression-free.
 
----
-
-## 5. Conclusion & Verdict
-
-**Verdict**: **REQUEST_CHANGES**
-
-- **Rationale**: The code quality, design, build output, and feature completeness across POS omni-search, hotkeys (F2, F9, F10), FEFO batching, Rack/Shelf display, financial calculations, payment modes, and GST modals are exceptional. However, `PatientContext.jsx` contains a state updater return bug that silently prevents Schedule H prescription history (`rxLogs`) from being logged upon checkout completion. Fixing this minor logic flaw will ensure full regulatory compliance recording.
+**Final Verdict**: **APPROVE**
 
 ---
 
-## 6. Verification Method
+## 5. Verification Method
 
-To verify the findings:
-1. Run `npm run build` in `d:\Code\Medical Store` — should succeed cleanly.
-2. Inspect `src/context/PatientContext.jsx` lines 27-73 and `src/context/CartContext.jsx` lines 280-291 to verify the `savedPatient` return value behavior.
-3. Test checkout with Schedule H items and check `patients[idx].rxLogs` in state/localStorage to confirm missing Rx logs before the fix.
+1. **Build Verification**:
+   Run in `d:/Code/medical store whole sale/Medical Store Phase 2`:
+   ```powershell
+   npm run build
+   ```
+   Confirm exit code `0` and zero build errors.
+
+2. **Date Utility Verification**:
+   Run via Node in `d:/Code/medical store whole sale/Medical Store Phase 2`:
+   ```powershell
+   node -e "import('./src/utils/dateUtils.js').then(m => { console.log('Formatted:', m.formatDateDDMMYYYY('2026-08-25')); console.log('IsWithin6M:', m.isWithinSixMonths('2026-08-25')); })"
+   ```
+   Expected output: `Formatted: 25-08-2026`, `IsWithin6M: true`.
+
+3. **String Alert Inspection**:
+   Inspect `src/pages/POSPage.jsx` line 120 and `src/components/modals/NewPOModal.jsx` line 78 to confirm exact alert string matches.

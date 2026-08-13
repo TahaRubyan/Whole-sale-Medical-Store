@@ -16,6 +16,7 @@ import A4InvoicePrintModal from '../components/modals/A4InvoicePrintModal';
 import SalesReturnModal from '../components/modals/SalesReturnModal';
 import CustomerDetailsModal from '../components/modals/CustomerDetailsModal';
 import CartItemEditModal from '../components/modals/CartItemEditModal';
+import { formatDateDDMMYYYY, isWithinSixMonths } from '../utils/dateUtils';
 
 export const POSPage = () => {
   const { medicines, batches } = useInventory();
@@ -43,18 +44,18 @@ export const POSPage = () => {
 
   // Wholesale Customer Details State matching reference invoice
   const [customerDetails, setCustomerDetails] = useState({
-    customerName: 'M/S Idrees Pharmacy / 280073',
-    region: 'Jalapur Jattan',
-    address: 'Main Bazar, Near HBL Bank, Jalal Pur Jattan',
-    customerPhone: '053-3724601',
-    customerLicenseNo: '09-342-0139-98309',
-    customerNtn: '34202-0723603-5',
-    customerGst: '34202-0723603-5',
-    fbrStatus: 'FILER As Per FBR On 03-11-2025',
-    bookingMan: 'Naeem Shah',
-    referenceNo: 'Naeem Shah',
-    deliveryMan: 'Awais Ijaz',
-    shipTo: 'Jalal Pur Jattan',
+    customerName: '',
+    region: '',
+    address: '',
+    customerPhone: '',
+    customerLicenseNo: '',
+    customerNtn: '',
+    customerGst: '',
+    fbrStatus: '',
+    bookingMan: '',
+    referenceNo: '',
+    deliveryMan: '',
+    shipTo: '',
   });
 
   const [paymentStatus, setPaymentStatus] = useState('PAID'); // 'PAID' | 'UNPAID_CREDIT'
@@ -74,6 +75,7 @@ export const POSPage = () => {
   const [showReturnModal, setShowReturnModal] = useState(false);
 
   const searchInputRef = useRef(null);
+  const searchContainerRef = useRef(null);
 
   // Sync customerName with customerDetails
   useEffect(() => {
@@ -82,9 +84,20 @@ export const POSPage = () => {
     }
   }, [customerDetails, setCustomerName]);
 
+  // Click outside listener for search dropdown
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Filter Medicines for Live Search Autocomplete Dropdown
   const filteredSuggestions = medicines.filter((m) => {
-    if (!searchQuery.trim()) return false;
+    if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase().trim();
     return (
       (m.id && m.id.toLowerCase().includes(q)) ||
@@ -98,11 +111,6 @@ export const POSPage = () => {
   // Reset highlight index when query changes
   useEffect(() => {
     setHighlightedIndex(0);
-    if (searchQuery.trim().length > 0) {
-      setShowDropdown(true);
-    } else {
-      setShowDropdown(false);
-    }
   }, [searchQuery]);
 
   const handleAddItemToCart = (med) => {
@@ -114,7 +122,13 @@ export const POSPage = () => {
       return;
     }
 
-    addToCart(med, activeBatches[0], 'Box');
+    const targetBatch = activeBatches[0];
+    if (isWithinSixMonths(targetBatch.expiryDate)) {
+      alert("Cannot Add Item: Expiry Date Exceeded (Expires within 6 Months)");
+      return;
+    }
+
+    addToCart(med, targetBatch, 'Box');
     setSearchQuery('');
     setShowDropdown(false);
     if (searchInputRef.current) {
@@ -200,7 +214,7 @@ export const POSPage = () => {
           </button>
 
           <div style={{ fontSize: '0.825rem', color: '#475569', fontWeight: 700 }}>
-            Customer: <strong style={{ color: '#0369A1' }}>{customerDetails.customerName}</strong> ({customerDetails.region})
+            Customer: <strong style={{ color: '#0369A1' }}>{customerDetails.customerName || 'Walk-in / Cash Customer'}</strong> {customerDetails.region ? `(${customerDetails.region})` : ''}
           </div>
         </div>
 
@@ -230,7 +244,7 @@ export const POSPage = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', overflow: 'hidden' }}>
           
           {/* CLEAN KEYBOARD SEARCH INPUT FIELD WITH LIVE DROPDOWN SUGGESTIONS */}
-          <div className="card" style={{ padding: '0.85rem', position: 'relative', overflow: 'visible', zIndex: 100 }}>
+          <div ref={searchContainerRef} className="card" style={{ padding: '0.85rem', position: 'relative', overflow: 'visible', zIndex: 100 }}>
             <div style={{ position: 'relative' }}>
               <input
                 ref={searchInputRef}
@@ -240,7 +254,7 @@ export const POSPage = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
                 onFocus={() => {
-                  if (searchQuery.trim().length > 0) setShowDropdown(true);
+                  setShowDropdown(true);
                 }}
                 style={{
                   width: '100%',
@@ -378,7 +392,7 @@ export const POSPage = () => {
                             {ci.batchNumber}
                           </td>
                           <td style={{ padding: '0.65rem 0.35rem', fontSize: '0.75rem' }}>
-                            {ci.expiryDate}
+                            {formatDateDDMMYYYY(ci.expiryDate)}
                           </td>
                           <td style={{ padding: '0.65rem 0.35rem', textAlign: 'center' }}>
                             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>

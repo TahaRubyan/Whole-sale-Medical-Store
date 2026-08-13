@@ -4,6 +4,7 @@ import { useSales } from '../context/SalesContext';
 import A4InvoicePrintModal from '../components/modals/A4InvoicePrintModal';
 import MarkDebtPaidModal from '../components/modals/MarkDebtPaidModal';
 import AnalyticsReportPrintModal from '../components/modals/AnalyticsReportPrintModal';
+import { formatDateDDMMYYYY } from '../utils/dateUtils';
 
 export const AnalyticsPage = () => {
   const { invoices } = useSales();
@@ -395,7 +396,7 @@ export const AnalyticsPage = () => {
                 {dailySalesSummary.length > 0 ? (
                   dailySalesSummary.map((day, idx) => (
                     <tr key={idx}>
-                      <td style={{ fontWeight: 800, color: '#0284C7' }}>{day.date}</td>
+                      <td style={{ fontWeight: 800, color: '#0284C7' }}>{formatDateDDMMYYYY(day.date)}</td>
                       <td style={{ textAlign: 'center', fontWeight: 800 }}>{day.ordersCount} Orders</td>
                       <td style={{ textAlign: 'right', fontWeight: 900, color: '#1F2937' }}>
                         Rs. {day.totalRevenue.toLocaleString('en-PK', { minimumFractionDigits: 2 })}
@@ -452,7 +453,7 @@ export const AnalyticsPage = () => {
                     return (
                       <tr key={inv.id || inv.invoiceNo} style={{ backgroundColor: isUnpaid ? '#FEF2F2' : 'transparent' }}>
                         <td style={{ fontFamily: 'monospace', fontWeight: 800, color: '#0284C7' }}>{inv.invoiceNo}</td>
-                        <td>{inv.date}</td>
+                        <td>{formatDateDDMMYYYY(inv.date)}</td>
                         <td style={{ fontWeight: 800 }}>{inv.customerName}</td>
                         <td>
                           <span style={{ fontSize: '0.775rem', fontWeight: 600 }}>{inv.paymentMode}</span>

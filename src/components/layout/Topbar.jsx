@@ -13,6 +13,7 @@ const SCREEN_TITLES = {
   pos: 'POS Wholesale Billing & Checkout',
   inventory: 'Pharmaceutical Inventory Catalog',
   expiry: 'Expiry Radar & Batch Audit',
+  'region-ledger': 'Region Delivery & Settlement Ledger',
   suppliers: 'Supplier Directory & Stock Orders',
   analytics: 'Financial & Profit Analytics',
   settings: 'Store Profile & System Settings'

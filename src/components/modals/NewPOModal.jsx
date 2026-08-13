@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useSupplier } from '../../context/SupplierContext';
 import { useInventory } from '../../context/InventoryContext';
 import { Truck, CheckCircle, X, Plus, Trash2, Package } from 'lucide-react';
+import { isWithinSixMonths } from '../../utils/dateUtils';
 
 export const NewPOModal = ({ isOpen, onClose }) => {
   const { createPurchaseOrder, generatePONumber, suppliers, addSupplier } = useSupplier();
@@ -71,6 +72,13 @@ export const NewPOModal = ({ isOpen, onClose }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    for (const item of poItems) {
+      if (isWithinSixMonths(item.expiryDate)) {
+        alert("Cannot Add Batch: Expiry Date Exceeded (Must be > 6 Months)");
+        return;
+      }
+    }
 
     // 1. Check if distributor is registered, if not & checkbox checked, register them with full metadata
     if (registerSupplier && distributorName.trim()) {

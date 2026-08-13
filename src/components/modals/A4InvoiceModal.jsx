@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Printer, X, FileText, Download } from 'lucide-react';
-import { STORE_INFO } from '../../data/mockData';
+import { STORE_INFO, getTaxConfig } from '../../data/mockData';
+import { formatDateDDMMYYYY } from '../../utils/dateUtils';
 
 export const A4InvoiceModal = ({ sale, onClose }) => {
   if (!sale) return null;
@@ -156,9 +157,9 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
 
             {/* COLUMN 2 */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <div><strong>Invoice Date:</strong> {sale.date || '03/08/2026'} &nbsp;|&nbsp; <strong>Customer:</strong> {sale.customerName || 'M/S Idrees Pharmacy / 280073'}</div>
+              <div><strong>Invoice Date:</strong> {formatDateDDMMYYYY(sale.date || '03/08/2026')} &nbsp;|&nbsp; <strong>Customer:</strong> {sale.customerName || 'M/S Idrees Pharmacy / 280073'}</div>
               <div><strong>Sale Order Type:</strong> {sale.saleOrderType || 'REGULAR'} &nbsp;|&nbsp; <strong>Region:</strong> {sale.region || 'Jalapur Jattan'}</div>
-              <div><strong>Due Date:</strong> {sale.dueDate || sale.date || '03/08/2026'} &nbsp;|&nbsp; <strong>Phone:</strong> {sale.customerPhone || '053-3724601'}</div>
+              <div><strong>Due Date:</strong> {formatDateDDMMYYYY(sale.dueDate || sale.date || '03/08/2026')} &nbsp;|&nbsp; <strong>Phone:</strong> {sale.customerPhone || '053-3724601'}</div>
               <div><strong>Address:</strong> {sale.customerAddress || 'Main Bazar, Near HBL Bank, Jalal Pur Jattan'}</div>
               <div><strong>Cust. License #:</strong> {sale.customerLicenseNo || '09-342-0139-98309'} &nbsp;|&nbsp; <strong>Cust. NTN:</strong> {sale.customerNtn || '34202-0723603-5'}</div>
               <div><strong>Delivery Man:</strong> {sale.deliveryMan || 'Awais Ijaz'} &nbsp;|&nbsp; <strong>User:</strong> {sale.cashierName || 'Husnain Ali'}</div>
@@ -218,7 +219,7 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                       {item.itemCode ? `${item.itemCode} / ` : ''}{item.brandName}
                     </td>
                     <td style={{ padding: '0.45rem 0.3rem', fontFamily: 'monospace' }}>{item.batchNumber || '6789'}</td>
-                    <td style={{ padding: '0.45rem 0.3rem' }}>{item.expiryDate || '2028-12-31'}</td>
+                    <td style={{ padding: '0.45rem 0.3rem' }}>{formatDateDDMMYYYY(item.expiryDate || '2028-12-31')}</td>
                     <td style={{ padding: '0.45rem 0.3rem', textAlign: 'center', fontWeight: 'bold' }}>{qty}</td>
                     <td style={{ padding: '0.45rem 0.3rem', textAlign: 'center' }}>{item.bonus || '-'}</td>
                     <td style={{ padding: '0.45rem 0.3rem', textAlign: 'right' }}>{rate.toFixed(2)}</td>

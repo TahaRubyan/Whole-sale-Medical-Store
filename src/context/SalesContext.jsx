@@ -71,7 +71,7 @@ export const SalesProvider = ({ children }) => {
   const recordDebtPayment = (invoiceNo, amountPaid, paymentMode = 'Cash', note = '') => {
     setInvoices((prevInvoices) => {
       return prevInvoices.map((inv) => {
-        if (inv.invoiceNo === invoiceNo) {
+        if (inv.invoiceNo === invoiceNo || inv.id === invoiceNo) {
           const originalNet = Number(inv.netTotal || inv.subtotal || 0);
           const currentDebt = inv.remainingDebt !== undefined ? Number(inv.remainingDebt) : originalNet;
           const paidNum = Number(amountPaid) || 0;
@@ -83,13 +83,13 @@ export const SalesProvider = ({ children }) => {
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             amountPaid: paidNum,
             paymentMode,
-            note,
+            note: note || `Cash Settlement (Rs. ${paidNum})`,
             remainingDebtAfter: newRemaining,
           };
 
           return {
             ...inv,
-            paymentStatus: isFullyCleared ? 'PAID' : 'PARTIAL_CREDIT',
+            paymentStatus: isFullyCleared ? 'PAID' : (newRemaining < originalNet ? 'PARTIAL DEBT' : 'UNPAID_CREDIT'),
             remainingDebt: newRemaining,
             paymentLogs: [...(inv.paymentLogs || []), paymentEntry],
           };

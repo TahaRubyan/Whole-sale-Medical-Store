@@ -1,51 +1,49 @@
-# BRIEFING — 2026-08-01T01:27:35Z
+# BRIEFING — 2026-08-13T00:58:00Z
 
 ## Mission
-Construct the React + Vanilla CSS application foundation for PharmaLink ERP & POS (Milestone 1: Infra & Foundation Setup), including package scaffold, theme design tokens, mock FEFO dataset, AuthContext with RBAC, hotkey engine, shell layout with 8 navigation links, Dashboard page with 4 KPI cards and 7-day sales chart, and 7 placeholder pages, followed by build verification.
+Implement Milestone 1 (R1 & R5) fixes and enhancements for Medical Store Phase 2.
 
 ## 🔒 My Identity
-- Archetype: worker
+- Archetype: implementer, qa, specialist
 - Roles: implementer, qa, specialist
-- Working directory: d:\Code\Medical Store\.agents\teamwork_preview_worker_m1_1
-- Original parent: 0503efc0-e88b-4292-90c8-4cc00508a7fd
-- Milestone: Milestone 1: Infra & Foundation Setup
+- Working directory: d:/Code/medical store whole sale/Medical Store Phase 2/.agents/teamwork_preview_worker_m1_1
+- Original parent: fc045a35-da2b-4a7d-a997-e487c54e74f0
+- Milestone: Milestone 1 (R1 & R5)
 
 ## 🔒 Key Constraints
-- Pure React + Vanilla CSS custom properties (`#0284C7` primary, `#F7F4EF` canvas, `#E0F2FE` tint, Plus Jakarta Sans).
-- No external UI framework (Tailwind/MUI/Bootstrap prohibited).
-- Lucide React allowed for icons.
-- Must execute `npm install` and `npm run build` cleanly.
-- Integrity: Genuine implementation, no hardcoded or fake test results.
+- Modify only assigned files: `src/components/modals/A4InvoiceModal.jsx`, `src/components/modals/A4InvoicePrintModal.jsx`, `src/components/layout/Sidebar.jsx`.
+- Follow minimal change principle.
+- Write handoff report and notify parent when complete.
 
 ## Current Parent
-- Conversation ID: 0503efc0-e88b-4292-90c8-4cc00508a7fd
-- Updated: 2026-08-01T01:27:35Z
+- Conversation ID: fc045a35-da2b-4a7d-a997-e487c54e74f0
+- Updated: 2026-08-13T00:58:00Z
 
 ## Task Summary
-- **What to build**: Full scaffold, styling tokens, dataset, AuthContext, hotkey hook, Sidebar, Topbar, Layout, DashboardPage, 7 placeholder pages, Vite build configuration.
-- **Success criteria**: All 8 pages render without errors, F1-F4 hotkeys navigate screens, Admin ↔ Cashier role toggle masks Net Profit KPI, `npm run build` produces dist output.
-- **Interface contracts**: `d:\Code\Medical Store\.agents\orchestrator\PROJECT.md`
-- **Code layout**: `d:\Code\Medical Store\src\`
-
-## Key Decisions Made
-- Use standard Vite + React setup with `@vitejs/plugin-react` and `lucide-react`.
-- State-driven screen switching (`currentScreen` in Layout) for instant zero-latency F1-F4 key switching.
-- LocalStorage persistence in `AuthContext` for active role.
-- Fully implemented F9 Thermal Receipt & F10 A4 Tax Invoice preview modals in `Layout.jsx`.
-
-## Artifact Index
-- `handoff.md` — Final handoff report containing observations, logic chain, caveats, conclusion, and verification method.
-- `progress.md` — Heartbeat progress tracking file.
+- **What to build**: Fix `ReferenceError: getTaxConfig is not defined` in invoice modals and update Sidebar NAV_ITEMS labels.
+- **Success criteria**: Clean compilation with `npm run build`, verified labels and imports.
 
 ## Change Tracker
-- **Files modified**: 18 files created in `d:\Code\Medical Store\` (`package.json`, `vite.config.js`, `index.html`, `src/index.css`, `src/styles/theme.css`, `src/styles/global.css`, `src/data/mockData.js`, `src/context/AuthContext.jsx`, `src/hooks/useHotkeys.js`, `src/components/layout/Sidebar.jsx`, `Topbar.jsx`, `Layout.jsx`, `src/pages/DashboardPage.jsx`, `POSPage.jsx`, `InventoryPage.jsx`, `ExpiryRadarPage.jsx`, `SuppliersPage.jsx`, `PatientsPage.jsx`, `AnalyticsPage.jsx`, `SettingsPage.jsx`, `src/App.jsx`, `src/main.jsx`).
-- **Build status**: PASSED (`npm run build` succeeded, built in 4.00s, output dist/index.html, dist/assets/index-*.js, dist/assets/index-*.css).
-- **Pending issues**: None.
+- **Files modified**:
+  - `src/components/modals/A4InvoiceModal.jsx`: Added `getTaxConfig` import from `../../data/mockData`
+  - `src/components/modals/A4InvoicePrintModal.jsx`: Added `getTaxConfig` import from `../../data/mockData`
+  - `src/components/layout/Sidebar.jsx`: Updated NAV_ITEMS labels to simplified user-friendly terms
+- **Build status**: SUCCESS (0 errors, built in 6.06s)
+- **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: PASS (Vite 5.4.21 bundle successfully compiled 1484 modules into dist/).
-- **Lint status**: Clean JSX formatting.
-- **Tests added/modified**: Verified via Vite build production bundler.
+- **Build/test result**: PASS (`npm run build` succeeded)
+- **Lint status**: Clean (no build or lint errors)
+- **Tests added/modified**: N/A (Build verification pass)
 
 ## Loaded Skills
-- None loaded.
+- None
+
+## Key Decisions Made
+- Imported `getTaxConfig` alongside `STORE_INFO` in both invoice modals.
+- Updated all 8 navigation labels in `NAV_ITEMS` in `Sidebar.jsx` as requested in R5.
+
+## Artifact Index
+- `.agents/teamwork_preview_worker_m1_1/DISPATCH.md` — Prompt assignment record
+- `.agents/teamwork_preview_worker_m1_1/progress.md` — Progress tracker
+- `.agents/teamwork_preview_worker_m1_1/handoff.md` — Final handoff report

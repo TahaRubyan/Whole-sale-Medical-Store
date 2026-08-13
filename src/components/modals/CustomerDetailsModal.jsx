@@ -3,18 +3,18 @@ import { UserCheck, X, CheckCircle } from 'lucide-react';
 
 export const CustomerDetailsModal = ({ customerDetails, onSave, onClose }) => {
   const [formData, setFormData] = useState({
-    customerName: customerDetails?.customerName || 'M/S Idrees Pharmacy / 280073',
-    region: customerDetails?.region || 'Jalapur Jattan',
-    address: customerDetails?.address || 'Main Bazar, Near HBL Bank, Jalal Pur Jattan',
-    customerPhone: customerDetails?.customerPhone || '053-3724601',
-    customerLicenseNo: customerDetails?.customerLicenseNo || '09-342-0139-98309',
-    customerNtn: customerDetails?.customerNtn || '34202-0723603-5',
-    customerGst: customerDetails?.customerGst || '34202-0723603-5',
-    fbrStatus: customerDetails?.fbrStatus || 'FILER As Per FBR On 03-11-2025',
-    bookingMan: customerDetails?.bookingMan || 'Naeem Shah',
-    referenceNo: customerDetails?.referenceNo || 'Naeem Shah',
-    deliveryMan: customerDetails?.deliveryMan || 'Awais Ijaz',
-    shipTo: customerDetails?.shipTo || 'Jalal Pur Jattan',
+    customerName: customerDetails?.customerName || '',
+    region: customerDetails?.region || '',
+    address: customerDetails?.address || '',
+    customerPhone: customerDetails?.customerPhone || '',
+    customerLicenseNo: customerDetails?.customerLicenseNo || '',
+    customerNtn: customerDetails?.customerNtn || '',
+    customerGst: customerDetails?.customerGst || '',
+    fbrStatus: customerDetails?.fbrStatus || '',
+    bookingMan: customerDetails?.bookingMan || '',
+    referenceNo: customerDetails?.referenceNo || '',
+    deliveryMan: customerDetails?.deliveryMan || '',
+    shipTo: customerDetails?.shipTo || '',
   });
 
   const handleChange = (e) => {
@@ -59,7 +59,7 @@ export const CustomerDetailsModal = ({ customerDetails, onSave, onClose }) => {
                 name="customerName"
                 value={formData.customerName}
                 onChange={handleChange}
-                placeholder="e.g. M/S Idrees Pharmacy / 280073"
+                placeholder="Enter Shop / Business Name (e.g. Al-Razi Pharmacy)"
                 style={{ width: '100%', padding: '0.45rem', fontSize: '0.85rem', fontWeight: 700, borderRadius: '4px', border: '1px solid #CBD5E1' }}
                 required
               />
@@ -74,7 +74,7 @@ export const CustomerDetailsModal = ({ customerDetails, onSave, onClose }) => {
                 name="region"
                 value={formData.region}
                 onChange={handleChange}
-                placeholder="e.g. Jalapur Jattan"
+                placeholder="Enter Region / Territory (e.g. Karianwala, Gujrat)"
                 style={{ width: '100%', padding: '0.45rem', fontSize: '0.85rem', borderRadius: '4px', border: '1px solid #CBD5E1' }}
               />
             </div>
@@ -90,7 +90,7 @@ export const CustomerDetailsModal = ({ customerDetails, onSave, onClose }) => {
               name="address"
               value={formData.address}
               onChange={handleChange}
-              placeholder="e.g. Main Bazar, Near HBL Bank, Jalal Pur Jattan"
+              placeholder="Enter Business / Shop Address"
               style={{ width: '100%', padding: '0.45rem', fontSize: '0.85rem', borderRadius: '4px', border: '1px solid #CBD5E1' }}
             />
           </div>
@@ -106,6 +106,7 @@ export const CustomerDetailsModal = ({ customerDetails, onSave, onClose }) => {
                 name="customerLicenseNo"
                 value={formData.customerLicenseNo}
                 onChange={handleChange}
+                placeholder="e.g. 09-342-0139"
                 style={{ width: '100%', padding: '0.45rem', fontSize: '0.8rem', fontFamily: 'monospace', borderRadius: '4px', border: '1px solid #CBD5E1' }}
               />
             </div>
@@ -119,6 +120,7 @@ export const CustomerDetailsModal = ({ customerDetails, onSave, onClose }) => {
                 name="customerNtn"
                 value={formData.customerNtn}
                 onChange={handleChange}
+                placeholder="Enter NTN #"
                 style={{ width: '100%', padding: '0.45rem', fontSize: '0.8rem', fontFamily: 'monospace', borderRadius: '4px', border: '1px solid #CBD5E1' }}
               />
             </div>
@@ -132,6 +134,7 @@ export const CustomerDetailsModal = ({ customerDetails, onSave, onClose }) => {
                 name="customerGst"
                 value={formData.customerGst}
                 onChange={handleChange}
+                placeholder="Enter GST #"
                 style={{ width: '100%', padding: '0.45rem', fontSize: '0.8rem', fontFamily: 'monospace', borderRadius: '4px', border: '1px solid #CBD5E1' }}
               />
             </div>
@@ -148,7 +151,7 @@ export const CustomerDetailsModal = ({ customerDetails, onSave, onClose }) => {
                 name="fbrStatus"
                 value={formData.fbrStatus}
                 onChange={handleChange}
-                placeholder="FILER As Per FBR On 03-11-2025"
+                placeholder="Enter FBR Status (e.g. FILER / NON-FILER)"
                 style={{ width: '100%', padding: '0.45rem', fontSize: '0.8rem', fontWeight: 700, borderRadius: '4px', border: '1px solid #CBD5E1' }}
               />
             </div>
@@ -162,7 +165,7 @@ export const CustomerDetailsModal = ({ customerDetails, onSave, onClose }) => {
                 name="customerPhone"
                 value={formData.customerPhone}
                 onChange={handleChange}
-                placeholder="053-3724601"
+                placeholder="Enter Contact Phone (e.g. 053-3724601)"
                 style={{ width: '100%', padding: '0.45rem', fontSize: '0.85rem', borderRadius: '4px', border: '1px solid #CBD5E1' }}
               />
             </div>
@@ -179,6 +182,7 @@ export const CustomerDetailsModal = ({ customerDetails, onSave, onClose }) => {
                 name="bookingMan"
                 value={formData.bookingMan}
                 onChange={handleChange}
+                placeholder="Enter Booking Agent Name"
                 style={{ width: '100%', padding: '0.45rem', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid #CBD5E1' }}
               />
             </div>
@@ -192,6 +196,7 @@ export const CustomerDetailsModal = ({ customerDetails, onSave, onClose }) => {
                 name="referenceNo"
                 value={formData.referenceNo}
                 onChange={handleChange}
+                placeholder="Enter Reference No"
                 style={{ width: '100%', padding: '0.45rem', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid #CBD5E1' }}
               />
             </div>
@@ -205,6 +210,7 @@ export const CustomerDetailsModal = ({ customerDetails, onSave, onClose }) => {
                 name="deliveryMan"
                 value={formData.deliveryMan}
                 onChange={handleChange}
+                placeholder="Enter Delivery Driver Name"
                 style={{ width: '100%', padding: '0.45rem', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid #CBD5E1' }}
               />
             </div>

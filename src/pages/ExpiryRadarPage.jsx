@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AlertTriangle, Clock, ShieldAlert, FileText } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
+import { formatDateDDMMYYYY } from '../utils/dateUtils';
 
 export const ExpiryRadarPage = () => {
   const { medicines, batches } = useInventory();
@@ -126,7 +127,7 @@ export const ExpiryRadarPage = () => {
                   <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{item.batchNumber}</td>
                   <td><span style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', backgroundColor: '#E0F2FE', color: '#0369A1', borderRadius: '4px', fontWeight: 700 }}>{item.rackLocation}</span></td>
                   <td style={{ fontSize: '0.8rem', fontWeight: 600 }}>{item.distributorName}</td>
-                  <td style={{ fontWeight: 700, color: item.diffDays <= 0 ? '#EF4444' : '#D97706' }}>{item.expiryDate}</td>
+                  <td style={{ fontWeight: 700, color: item.diffDays <= 0 ? '#EF4444' : '#D97706' }}>{formatDateDDMMYYYY(item.expiryDate)}</td>
                   <td>
                     {item.diffDays <= 0 ? (
                       <span className="badge badge-danger">EXPIRED</span>

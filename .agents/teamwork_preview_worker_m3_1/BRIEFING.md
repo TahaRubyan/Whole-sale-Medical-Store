@@ -1,70 +1,43 @@
-# BRIEFING — 2026-08-01T01:42:00Z
+# BRIEFING — 2026-08-13T01:10:45Z
 
 ## Mission
-Implement Milestone 3 (Inventory, Expiry Radar & Supplier Management) for PharmaLink ERP & POS, including context providers, modals, page updates, and verification via build command.
+Implement Milestone 3 (R4: Supplier Debt Payment Modal & R6: Fresh Customer POS Workflow & Search Dropdown) in Medical Store Phase 2.
 
 ## 🔒 My Identity
-- Archetype: implementer
+- Archetype: implementer, qa, specialist
 - Roles: implementer, qa, specialist
-- Working directory: d:\Code\Medical Store\.agents\teamwork_preview_worker_m3_1
-- Original parent: 0503efc0-e88b-4292-90c8-4cc00508a7fd
-- Milestone: Milestone 3 - Inventory, Expiry Radar & Supplier Management
+- Working directory: d:/Code/medical store whole sale/Medical Store Phase 2/.agents/teamwork_preview_worker_m3_1
+- Original parent: fc045a35-da2b-4a7d-a997-e487c54e74f0
+- Milestone: Milestone 3
 
 ## 🔒 Key Constraints
-- Minimal changes principle, do not perform unrelated refactoring.
-- RBAC permissions must be strictly respected (canOverrideStock, canCreatePurchaseOrder, isAdmin).
-- Genuine implementations only, no cheating or hardcoding test outputs.
-- Execute `npm run build` to verify zero errors.
+- Strictly implement requirements without cheating or hardcoding.
+- Modifying only owned files.
+- Run `npm run build` and ensure clean build with 0 errors.
 
 ## Current Parent
-- Conversation ID: 0503efc0-e88b-4292-90c8-4cc00508a7fd
-- Updated: 2026-08-01T01:42:00Z
+- Conversation ID: fc045a35-da2b-4a7d-a997-e487c54e74f0
+- Updated: 2026-08-13T01:10:45Z
 
 ## Task Summary
-- **What to build**: 
-  - `src/context/SupplierContext.jsx` with `addSupplier` and `createPurchaseOrder`
-  - Update `src/context/InventoryContext.jsx` with `addOrUpdateBatch`
-  - Update `src/App.jsx` with `SupplierProvider`
-  - Modals: `BatchDetailDrawer.jsx`, `StockOverrideModal.jsx`, `ReturnNoteModal.jsx`, `NewPOModal.jsx`
-  - Page updates: `InventoryPage.jsx`, `ExpiryRadarPage.jsx`, `SuppliersPage.jsx`
-- **Success criteria**: Clean `npm run build` with zero errors, full RBAC compliance, persistence in localStorage, all interactive features functional.
-- **Interface contracts**: `analysis.md` and `handoff.md` from explorer m3_1.
-- **Code layout**: Standard React structure in `src/`.
-
-## Key Decisions Made
-- `SupplierContext` persists supplier records under `pharmalink_suppliers` and purchase orders under `pharmalink_purchase_orders`.
-- `addOrUpdateBatch` in `InventoryContext` allows both appending batches to existing products and adding new medicine catalog entries.
-- `BatchDetailDrawer` presents FEFO-sorted batches with RBAC masking for purchase prices.
-- `StockOverrideModal` checks `permissions.canOverrideStock` and triggers `updateBatchStock` + toast notification.
-- `ReturnNoteModal` provides dual-mode view: return detail form and printable Debit Note layout.
-- `NewPOModal` builds dynamic line items, creates PO, updates inventory stock, and handles supplier selection.
-- All RBAC cashier constraints (`canOverrideStock`, `canCreatePurchaseOrder`, purchase price visibility) are strictly enforced.
+- **What to build**: R4 (Supplier Payment Modal, Context function recordSupplierPayment, button in SuppliersPage) & R6 (Fresh customer defaults in POSPage/CustomerDetailsModal, empty searchQuery showing all products on search bar focus in POSPage with keyboard nav).
+- **Success criteria**: Functional supplier debt payment, correct customer state initialization with placeholders, seamless POS search dropdown on focus with arrow key navigation, 0 build errors.
 
 ## Change Tracker
-- **Files modified/created**:
-  - `src/context/SupplierContext.jsx` (New)
-  - `src/context/InventoryContext.jsx` (Modified)
-  - `src/App.jsx` (Modified)
-  - `src/components/modals/BatchDetailDrawer.jsx` (New)
-  - `src/components/modals/StockOverrideModal.jsx` (New)
-  - `src/components/modals/ReturnNoteModal.jsx` (New)
-  - `src/components/modals/NewPOModal.jsx` (New)
-  - `src/pages/InventoryPage.jsx` (Modified)
-  - `src/pages/ExpiryRadarPage.jsx` (Modified)
-  - `src/pages/SuppliersPage.jsx` (Modified)
-- **Build status**: SUCCESS (`npm run build` passed with zero errors, built in 4.17s)
+- **Files modified**:
+  - `src/components/modals/PaySupplierModal.jsx`: Created new modal for recording supplier payment with input validation, payment mode selector, reference note, and success confirmation.
+  - `src/context/SupplierContext.jsx`: Added `recordSupplierPayment` function to update pending balance and append timestamped `paymentLogs`. Exposed `recordSupplierPayment` in provider value.
+  - `src/pages/SuppliersPage.jsx`: Added `[💵 Record Payment / Pay Balance]` button in Actions column and integrated `PaySupplierModal`.
+  - `src/pages/POSPage.jsx`: Defaulted `customerDetails` state to empty strings `''`, updated `filteredSuggestions` to return full inventory when `searchQuery` is empty, updated search input `onFocus` to open dropdown immediately, added click-outside handler to close dropdown.
+  - `src/components/modals/CustomerDetailsModal.jsx`: Set default `formData` state object fields to empty strings and supplied clear user placeholders for all text input fields.
+  - `src/context/CartContext.jsx`: Updated `processCheckout` to preserve empty customer details passed from POS without falling back to hardcoded mock strings.
+- **Build status**: PASS (Vite build completed with 0 errors)
 - **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: Pass (Vite build dist generated cleanly)
-- **Lint status**: Pass
-- **Tests added/modified**: Verified via clean build compilation
+- **Build/test result**: PASS
+- **Lint status**: Clean
+- **Tests added/modified**: Verified via Vite production build
 
 ## Loaded Skills
 - None
-
-## Artifact Index
-- `d:\Code\Medical Store\.agents\teamwork_preview_worker_m3_1\ORIGINAL_REQUEST.md` — Original prompt text
-- `d:\Code\Medical Store\.agents\teamwork_preview_worker_m3_1\BRIEFING.md` — Briefing file
-- `d:\Code\Medical Store\.agents\teamwork_preview_worker_m3_1\progress.md` — Progress tracker
-- `d:\Code\Medical Store\.agents\teamwork_preview_worker_m3_1\handoff.md` — Final Handoff Report

@@ -13,6 +13,7 @@ import ExpiryRadarPage from './pages/ExpiryRadarPage';
 import SuppliersPage from './pages/SuppliersPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import SettingsPage from './pages/SettingsPage';
+import RegionLedgerPage from './pages/RegionLedgerPage';
 
 // Fallback Error Boundary to prevent Blank White Screen on unexpected runtime errors
 class ErrorBoundary extends Component {
@@ -110,6 +111,9 @@ export function App() {
         return <InventoryPage />;
       case 'expiry':
         return <ExpiryRadarPage />;
+      case 'region-ledger':
+      case '/region-ledger':
+        return <RegionLedgerPage />;
       case 'suppliers':
         return <SuppliersPage />;
       case 'analytics':

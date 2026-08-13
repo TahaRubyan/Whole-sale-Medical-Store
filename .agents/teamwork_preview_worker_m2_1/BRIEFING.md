@@ -1,31 +1,62 @@
-# BRIEFING — 2026-08-01T01:31:09Z
+# BRIEFING — 2026-08-13T01:04:40Z
 
 ## Mission
-Implement Milestone 2: POS & FEFO Billing Checkout + Modals for PharmaLink ERP & POS, verify build, document in handoff.md, and send complete message to parent agent.
+Implement Milestone 2 requirements: R2 (6-Month Expiry Rejection & Warnings in POS and New PO) and R3 (Date Standardization DD-MM-YYYY across all components).
 
 ## 🔒 My Identity
-- Archetype: worker / implementer / qa / specialist
+- Archetype: implementer / qa / specialist
 - Roles: implementer, qa, specialist
-- Working directory: d:\Code\Medical Store\.agents\teamwork_preview_worker_m2_1
-- Original parent: 0503efc0-e88b-4292-90c8-4cc00508a7fd
-- Milestone: Milestone 2 - POS & FEFO Billing Checkout + Modals
+- Working directory: d:/Code/medical store whole sale/Medical Store Phase 2/.agents/teamwork_preview_worker_m2_1
+- Original parent: fc045a35-da2b-4a7d-a997-e487c54e74f0
+- Milestone: Milestone 2 (R2 & R3)
 
 ## 🔒 Key Constraints
-- CODE_ONLY network mode. No external network requests.
-- DO NOT CHEAT: genuine implementation, no fake or hardcoded values.
-- Minimal change principle when editing.
-- Verify build with `npm run build`.
+- Minimal changes principle: modify only what is necessary.
+- Do not hardcode test results or fabricate logic.
+- Verify build with `npm run build` with 0 errors.
 
 ## Current Parent
-- Conversation ID: 0503efc0-e88b-4292-90c8-4cc00508a7fd
-- Updated: 2026-08-01T01:31:09Z
+- Conversation ID: fc045a35-da2b-4a7d-a997-e487c54e74f0
+- Updated: 2026-08-13T01:04:40Z
 
 ## Task Summary
-- **What to build**: State context providers (Inventory, Patient, Sales, Cart), UI components (Badge, Modal, NotificationToast, PatientRxDrawer, ThermalReceiptModal, A4InvoiceModal), POS page with Omni-search, category tabs, cart, calculations, hotkeys F2/F9/F10, Layout update, and provider wrapping in App.jsx.
-- **Success criteria**: Zero build errors on `npm run build`, fully connected state and modals, FEFO calculation, prescription validation, thermal receipt and A4 invoice generation.
+- **What to build**:
+  - R2: 6-Month Expiry Rejection in `POSPage.jsx` (`handleAddItemToCart`) with alert `"Cannot Add Item: Expiry Date Exceeded (Expires within 6 Months)"`.
+  - R2: 6-Month Expiry Rejection in `NewPOModal.jsx` (`handleSubmit`) with alert `"Cannot Add Batch: Expiry Date Exceeded (Must be > 6 Months)"`.
+  - R3: `src/utils/dateUtils.js` helper `formatDateDDMMYYYY(dateInput)` formatting any date into `DD-MM-YYYY`.
+  - R3: Standardize all displayed dates across POS, Invoices, POs, Inventory, Region Ledger, Financial Reports/Analytics, Expiry Radar, and Suppliers.
+- **Success criteria**: Clean build with `npm run build`, exact alert messages matching requirement, date formatting verified.
+
+## Change Tracker
+- **Files modified**:
+  - `src/utils/dateUtils.js`: Created helper module with `formatDateDDMMYYYY` and `isWithinSixMonths`.
+  - `src/pages/POSPage.jsx`: Added 6-month expiry block in `handleAddItemToCart` and date formatting in cart table.
+  - `src/components/modals/NewPOModal.jsx`: Added 6-month expiry block in `handleSubmit`.
+  - `src/components/modals/A4InvoiceModal.jsx`: Formatted invoice date, due date, item expiry date.
+  - `src/components/modals/A4InvoicePrintModal.jsx`: Formatted invoice date, due date, item expiry date.
+  - `src/components/inventory/StockSummaryReportModal.jsx`: Formatted report generation date.
+  - `src/components/region/PaymentHistoryModal.jsx`: Formatted payment log date.
+  - `src/components/region/RegionalDeliveryManifestModal.jsx`: Formatted manifest date.
+  - `src/pages/AnalyticsPage.jsx`: Formatted daily summary dates and transaction log dates.
+  - `src/components/modals/AnalyticsReportPrintModal.jsx`: Formatted audit log dates, report generated date, and custom period dates.
+  - `src/pages/ExpiryRadarPage.jsx`: Formatted batch expiry date column.
+  - `src/pages/SuppliersPage.jsx`: Formatted purchase order inward date column.
+- **Build status**: `npm run build` PASSED cleanly (0 errors, exit code 0).
+- **Pending issues**: None.
+
+## Quality Status
+- **Build/test result**: PASS (`npm run build` succeeded, Node dateUtils unit tests passed).
+- **Lint status**: PASS.
+- **Tests added/modified**: Node unit validation script verified date formatting & 6-month cutoff logic.
+
+## Loaded Skills
+- None loaded.
 
 ## Key Decisions Made
-- Reading Explorer's analysis and plan first to align with existing architecture and initial mock data structures.
+- Used `Date.prototype.setMonth(today.getMonth() + 6)` for calendar 6-month threshold calculation.
+- Kept native `<input type="date">` inputs in `YYYY-MM-DD` for HTML5 browser compatibility while rendering formatted `DD-MM-YYYY` strings across all display locations.
 
 ## Artifact Index
-- `.agents/teamwork_preview_worker_m2_1/handoff.md` — Final worker handoff report
+- DISPATCH.md — Dispatch prompt
+- BRIEFING.md — Working memory index
+- handoff.md — Final handoff report

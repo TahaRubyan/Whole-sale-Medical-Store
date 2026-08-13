@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Truck, Lock, Plus, CheckCircle } from 'lucide-react';
+import { Truck, Lock, Plus, CheckCircle, DollarSign } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSupplier } from '../context/SupplierContext';
 import NewPOModal from '../components/modals/NewPOModal';
+import PaySupplierModal from '../components/modals/PaySupplierModal';
+import { formatDateDDMMYYYY } from '../utils/dateUtils';
 
 export const SuppliersPage = () => {
   const { permissions } = useAuth();
@@ -11,9 +13,17 @@ export const SuppliersPage = () => {
   const [isPoModalOpen, setIsPoModalOpen] = useState(false);
   const [selectedSupplierForPo, setSelectedSupplierForPo] = useState(null);
 
+  const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+  const [selectedSupplierForPay, setSelectedSupplierForPay] = useState(null);
+
   const handleOpenPoModal = (supplierId = null) => {
     setSelectedSupplierForPo(supplierId);
     setIsPoModalOpen(true);
+  };
+
+  const handleOpenPayModal = (supplier) => {
+    setSelectedSupplierForPay(supplier);
+    setIsPayModalOpen(true);
   };
 
   return (
@@ -113,20 +123,38 @@ export const SuppliersPage = () => {
                         </span>
                       </td>
                       <td>
-                        <button
-                          className="btn btn-outline"
-                          onClick={() => handleOpenPoModal(sup.id)}
-                          disabled={!permissions.canCreatePurchaseOrder}
-                          style={{
-                            fontSize: '0.725rem',
-                            padding: '0.25rem 0.5rem',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.3rem'
-                          }}
-                        >
-                          {!permissions.canCreatePurchaseOrder ? <Lock size={12} /> : <Plus size={12} />} New PO
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                          <button
+                            className="btn btn-outline"
+                            onClick={() => handleOpenPoModal(sup.id)}
+                            disabled={!permissions.canCreatePurchaseOrder}
+                            style={{
+                              fontSize: '0.725rem',
+                              padding: '0.25rem 0.5rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.3rem'
+                            }}
+                          >
+                            {!permissions.canCreatePurchaseOrder ? <Lock size={12} /> : <Plus size={12} />} New PO
+                          </button>
+                          <button
+                            className="btn btn-outline"
+                            onClick={() => handleOpenPayModal(sup)}
+                            disabled={!permissions.canCreatePurchaseOrder}
+                            style={{
+                              fontSize: '0.725rem',
+                              padding: '0.25rem 0.5rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.3rem',
+                              borderColor: curBal > 0 ? '#059669' : '#CBD5E1',
+                              color: curBal > 0 ? '#059669' : '#94A3B8',
+                            }}
+                          >
+                            {!permissions.canCreatePurchaseOrder ? <Lock size={12} /> : <DollarSign size={12} />} 💵 Record Payment / Pay Balance
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -170,7 +198,7 @@ export const SuppliersPage = () => {
                         {po.poNumber || po.id}
                       </td>
                       <td style={{ fontWeight: 700 }}>{po.distributorName || po.supplierName}</td>
-                      <td style={{ fontWeight: 600 }}>{po.inwardDate || po.date}</td>
+                      <td style={{ fontWeight: 600 }}>{formatDateDDMMYYYY(po.inwardDate || po.date)}</td>
                       <td>
                         <span style={{ fontWeight: 700 }}>{po.brandName ? `${po.brandName} (${po.quantity} Tabs)` : `${po.itemCount} item(s)`}</span>
                       </td>
@@ -197,6 +225,15 @@ export const SuppliersPage = () => {
           isOpen={isPoModalOpen}
           onClose={() => setIsPoModalOpen(false)}
           initialSupplierId={selectedSupplierForPo}
+        />
+      )}
+
+      {/* Pay Supplier Debt Modal */}
+      {isPayModalOpen && (
+        <PaySupplierModal
+          isOpen={isPayModalOpen}
+          supplier={selectedSupplierForPay}
+          onClose={() => setIsPayModalOpen(false)}
         />
       )}
     </div>

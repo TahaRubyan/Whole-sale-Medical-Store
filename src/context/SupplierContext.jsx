@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { INITIAL_SUPPLIERS } from '../data/mockData';
+import { formatDateDDMMYYYY } from '../utils/dateUtils';
 
 const SupplierContext = createContext();
 
@@ -84,22 +85,40 @@ export const SupplierProvider = ({ children }) => {
     return newSupplier;
   };
 
-  const clearSupplierBalance = (supplierId, paymentAmount) => {
-    const amountPaid = Number(paymentAmount) || 0;
+  const recordSupplierPayment = (supplierId, amountPaid, paymentMode = 'Cash', note = 'Supplier Debt Payment') => {
+    const amount = Number(amountPaid) || 0;
+    if (amount <= 0) return;
+
     setSuppliers((prev) =>
       prev.map((s) => {
         if (s.id === supplierId || s.companyName === supplierId || s.name === supplierId) {
           const currentBal = s.pendingBalance !== undefined ? s.pendingBalance : (s.outstandingBalance || 0);
-          const newBal = Math.max(0, currentBal - amountPaid);
+          const newBal = Math.max(0, currentBal - amount);
+          const now = new Date();
+          const newLog = {
+            id: `PAY-SUP-${Date.now()}`,
+            date: formatDateDDMMYYYY(now),
+            time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+            amountPaid: amount,
+            paymentMode: paymentMode || 'Cash',
+            note: note || 'Supplier Debt Payment',
+            remainingBalanceAfter: newBal,
+          };
           return {
             ...s,
             pendingBalance: newBal,
             outstandingBalance: newBal,
+            paymentLogs: [newLog, ...(Array.isArray(s.paymentLogs) ? s.paymentLogs : [])],
           };
         }
         return s;
       })
     );
+  };
+
+  const clearSupplierBalance = (supplierId, paymentAmount) => {
+    const amountPaid = Number(paymentAmount) || 0;
+    recordSupplierPayment(supplierId, amountPaid, 'Cash', 'Full Balance Settlement');
   };
 
   const createPurchaseOrder = (poData) => {
@@ -127,6 +146,7 @@ export const SupplierProvider = ({ children }) => {
         purchaseOrders,
         addSupplier,
         clearSupplierBalance,
+        recordSupplierPayment,
         createPurchaseOrder,
         generatePONumber,
       }}
