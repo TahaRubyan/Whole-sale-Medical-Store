@@ -3,7 +3,10 @@ import { Printer, X, FileText, Download } from 'lucide-react';
 import { STORE_INFO, getTaxConfig } from '../../data/mockData';
 import { formatDateDDMMYYYY } from '../../utils/dateUtils';
 
+import { useAuth } from '../../context/AuthContext';
+
 export const A4InvoicePrintModal = ({ invoice, onClose }) => {
+  const { user } = useAuth();
   if (!invoice) return null;
 
   // DUAL SEPARATE WARRANTY CHECKBOXES ON PRINT PREVIEW
@@ -162,7 +165,7 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
               <div><strong>Due Date:</strong> {formatDateDDMMYYYY(invoice.dueDate || invoice.date || '03/08/2026')} &nbsp;|&nbsp; <strong>Phone:</strong> {invoice.customerPhone || '053-3724601'}</div>
               <div><strong>Address:</strong> {invoice.customerAddress || 'Main Bazar, Near HBL Bank, Jalal Pur Jattan'}</div>
               <div><strong>Cust. License #:</strong> {invoice.customerLicenseNo || '09-342-0139-98309'} &nbsp;|&nbsp; <strong>Cust. NTN:</strong> {invoice.customerNtn || '34202-0723603-5'}</div>
-              <div><strong>Delivery Man:</strong> {invoice.deliveryMan || 'Awais Ijaz'} &nbsp;|&nbsp; <strong>User:</strong> {invoice.cashierName || 'Husnain Ali'}</div>
+              <div><strong>Delivery Man:</strong> {invoice.deliveryMan || 'Awais Ijaz'} &nbsp;|&nbsp; <strong>User:</strong> {user?.name || invoice.cashierName || 'Hassan (Admin)'}</div>
             </div>
 
             {/* COLUMN 3: STORE OWNER SECTION */}
@@ -170,10 +173,17 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
               <div style={{ fontWeight: '900', textDecoration: 'underline', marginBottom: '0.15rem', letterSpacing: '0.02em' }}>STORE OWNER SECTION:</div>
               <div><strong>Owner Name:</strong> {STORE_INFO.ownerName || 'Mr Idrees'}</div>
               <div><strong>Store DSL #:</strong> <span style={{ fontFamily: 'monospace' }}>{STORE_INFO.dslNumber}</span></div>
-              <div><strong>Store STN #:</strong> <span style={{ fontFamily: 'monospace' }}>{STORE_INFO.stnNumber}</span></div>
-              <div><strong>Store NTN #:</strong> <span style={{ fontFamily: 'monospace' }}>{STORE_INFO.ntnNumber}</span></div>
               <div style={{ marginTop: '0.2rem' }}>
-                <strong>Cust. FBR Status:</strong> <span style={{ border: '1.5px solid #000000', padding: '0.1rem 0.45rem', fontWeight: 'bold' }}>{invoice.fbrStatus || 'FILER As Per FBR On 03-11-2025'}</span>
+                <strong>Payment Status:</strong>{' '}
+                {Number(invoice.remainingDebt) > 0 ? (
+                  <span style={{ border: '1.5px solid #DC2626', color: '#DC2626', padding: '0.1rem 0.45rem', fontWeight: '900' }}>
+                    ⚠️ DEBT DUE (Rs. {Number(invoice.remainingDebt).toFixed(2)})
+                  </span>
+                ) : (
+                  <span style={{ border: '1.5px solid #059669', color: '#059669', padding: '0.1rem 0.45rem', fontWeight: '900' }}>
+                    ✅ PAID FULL
+                  </span>
+                )}
               </div>
             </div>
           </div>

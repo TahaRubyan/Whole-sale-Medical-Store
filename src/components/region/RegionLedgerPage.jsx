@@ -22,6 +22,7 @@ import { useSales } from '../../context/SalesContext';
 import PaymentHistoryModal from './PaymentHistoryModal';
 import RegionalDeliveryManifestModal from './RegionalDeliveryManifestModal';
 import AddRegionModal from '../modals/AddRegionModal';
+import CustomerLedgerStatementModal from '../modals/CustomerLedgerStatementModal';
 
 export const RegionLedgerPage = () => {
   const { invoices = [], recordDebtPayment } = useSales();
@@ -56,9 +57,11 @@ export const RegionLedgerPage = () => {
     const exists = customRegions.some((r) => r.toLowerCase() === newRegionName.toLowerCase());
     if (!exists) {
       setCustomRegions((prev) => [...prev, newRegionName]);
+      setSelectedRegion(newRegionName); // Instant region dropdown selection
       showNotification(`Region "${newRegionName}" added successfully!`);
     } else {
-      showNotification(`Region "${newRegionName}" already exists!`, 'error');
+      setSelectedRegion(newRegionName);
+      showNotification(`Region "${newRegionName}" selected!`);
     }
   };
 
@@ -74,14 +77,23 @@ export const RegionLedgerPage = () => {
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [isManifestModalOpen, setIsManifestModalOpen] = useState(false);
 
-  // Notification message for user feedback
+  // Customer Ledger Statement Modal State
+  const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
+  const [selectedCustomerForStatement, setSelectedCustomerForStatement] = useState(null);
+
+  const handleOpenStatement = (shopName, regionName) => {
+    setSelectedCustomerForStatement({ shopName, regionName });
+    setIsStatementModalOpen(true);
+  };
+
+  // Notification message for user feedback with smooth 1.5s transition
   const [notification, setNotification] = useState(null);
 
   const showNotification = (msg, type = 'success') => {
     setNotification({ msg, type });
     setTimeout(() => {
       setNotification(null);
-    }, 4000);
+    }, 1500); // 1.5s toast timeout as requested
   };
 
   // 1. Dynamic Region Sync: Extract unique region names normalized with shop counts
@@ -818,17 +830,20 @@ export const RegionLedgerPage = () => {
                   let statusBorder = '#FCA5A5';
 
                   if (isPaid) {
-                    statusLabel = 'PAID';
+                    statusLabel = '🟢 FULLY PAID';
                     statusBg = '#D1FAE5';
                     statusColor = '#065F46';
                     statusBorder = '#6EE7B7';
                   } else if (currentDebt < originalNet) {
-                    statusLabel = 'PARTIAL DEBT';
+                    statusLabel = '🟡 PARTIAL PAID';
                     statusBg = '#FEF3C7';
                     statusColor = '#B45309';
                     statusBorder = '#FCD34D';
-                  } else if (inv.paymentStatus) {
-                    statusLabel = inv.paymentStatus;
+                  } else {
+                    statusLabel = '🔴 NOT PAID';
+                    statusBg = '#FEE2E2';
+                    statusColor = '#991B1B';
+                    statusBorder = '#FCA5A5';
                   }
 
                   const currentCashInput = cashInputs[inv.invoiceNo] || '';
@@ -1006,6 +1021,27 @@ export const RegionLedgerPage = () => {
                           >
                             <History size={14} /> Logs
                           </button>
+
+                          <button
+                            onClick={() => handleOpenStatement(inv.shopName || inv.customerName, inv.region)}
+                            className="btn btn-outline"
+                            style={{
+                              borderColor: '#059669',
+                              color: '#059669',
+                              padding: '0.45rem 0.7rem',
+                              fontSize: '0.775rem',
+                              fontWeight: 800,
+                              borderRadius: '6px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.3rem',
+                              backgroundColor: '#FFFFFF',
+                              transition: 'all 0.15s ease',
+                            }}
+                            title="Generate Shareable Customer Ledger Statement A4 PDF"
+                          >
+                            <FileText size={14} /> Statement
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1074,6 +1110,20 @@ export const RegionLedgerPage = () => {
         onClose={() => setIsAddRegionOpen(false)}
         onAddRegion={handleAddRegion}
       />
+
+      {/* Shareable Customer Ledger Statement A4 PDF Modal */}
+      {isStatementModalOpen && selectedCustomerForStatement && (
+        <CustomerLedgerStatementModal
+          isOpen={isStatementModalOpen}
+          onClose={() => {
+            setIsStatementModalOpen(false);
+            setSelectedCustomerForStatement(null);
+          }}
+          customerName={selectedCustomerForStatement.shopName}
+          region={selectedCustomerForStatement.regionName}
+          invoices={invoices}
+        />
+      )}
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSupplier } from '../context/SupplierContext';
 import NewPOModal from '../components/modals/NewPOModal';
 import PaySupplierModal from '../components/modals/PaySupplierModal';
+import SupplierHistoryModal from '../components/modals/SupplierHistoryModal';
 import { formatDateDDMMYYYY } from '../utils/dateUtils';
 
 export const SuppliersPage = () => {
@@ -16,6 +17,9 @@ export const SuppliersPage = () => {
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [selectedSupplierForPay, setSelectedSupplierForPay] = useState(null);
 
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [selectedSupplierForHistory, setSelectedSupplierForHistory] = useState(null);
+
   const handleOpenPoModal = (supplierId = null) => {
     setSelectedSupplierForPo(supplierId);
     setIsPoModalOpen(true);
@@ -24,6 +28,16 @@ export const SuppliersPage = () => {
   const handleOpenPayModal = (supplier) => {
     setSelectedSupplierForPay(supplier);
     setIsPayModalOpen(true);
+  };
+
+  const handleOpenHistoryModal = (supplier) => {
+    // Attach matching PO history to supplier object for modal
+    const pos = purchaseOrders.filter((po) => (po.distributorName || po.supplierName || '').toLowerCase() === (supplier.name || supplier.companyName || '').toLowerCase());
+    setSelectedSupplierForHistory({
+      ...supplier,
+      poHistory: pos
+    });
+    setIsHistoryModalOpen(true);
   };
 
   return (
@@ -126,6 +140,23 @@ export const SuppliersPage = () => {
                         <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                           <button
                             className="btn btn-outline"
+                            onClick={() => handleOpenHistoryModal(sup)}
+                            style={{
+                              fontSize: '0.725rem',
+                              padding: '0.25rem 0.5rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.3rem',
+                              borderColor: '#0284C7',
+                              color: '#0284C7',
+                              fontWeight: 700
+                            }}
+                            title="View full ledger & inward PO logs"
+                          >
+                            📜 History Log
+                          </button>
+                          <button
+                            className="btn btn-outline"
                             onClick={() => handleOpenPoModal(sup.id)}
                             disabled={!permissions.canCreatePurchaseOrder}
                             style={{
@@ -152,7 +183,7 @@ export const SuppliersPage = () => {
                               color: curBal > 0 ? '#059669' : '#94A3B8',
                             }}
                           >
-                            {!permissions.canCreatePurchaseOrder ? <Lock size={12} /> : <DollarSign size={12} />} 💵 Record Payment / Pay Balance
+                            {!permissions.canCreatePurchaseOrder ? <Lock size={12} /> : <DollarSign size={12} />} Pay Balance
                           </button>
                         </div>
                       </td>
@@ -234,6 +265,15 @@ export const SuppliersPage = () => {
           isOpen={isPayModalOpen}
           supplier={selectedSupplierForPay}
           onClose={() => setIsPayModalOpen(false)}
+        />
+      )}
+
+      {/* Supplier History & Ledger Log Modal */}
+      {isHistoryModalOpen && (
+        <SupplierHistoryModal
+          isOpen={isHistoryModalOpen}
+          supplier={selectedSupplierForHistory}
+          onClose={() => setIsHistoryModalOpen(false)}
         />
       )}
     </div>

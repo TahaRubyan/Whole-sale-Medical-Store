@@ -8,10 +8,13 @@ export const getTaxConfig = () => {
     } catch (e) {}
   }
   return {
+    enableSaleTax: true,
     saleTaxPercent: 18,
     saleTaxName: 'Sale Tax 18%',
+    enableAdTax: true,
     adTaxPercent: 4,
     adTaxName: 'AdTax 4%',
+    enableAdvTax: true,
     advTaxPercent: 0.5,
     advTaxName: 'Adv Tax 0.5%',
   };

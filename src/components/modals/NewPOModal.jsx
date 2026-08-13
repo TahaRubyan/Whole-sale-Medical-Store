@@ -11,12 +11,12 @@ export const NewPOModal = ({ isOpen, onClose }) => {
 
   // Generated PO Reference Code
   const [poNumber] = useState(generatePONumber());
-  const [distributorName, setDistributorName] = useState('Muller & Phipps Pakistan');
-  const [supplierLicenseNo, setSupplierLicenseNo] = useState('09-342-0139-045748D');
-  const [supplierNtn, setSupplierNtn] = useState('3277876174544');
-  const [supplierGst, setSupplierGst] = useState('3277876174544');
-  const [supplierFbrStatus, setSupplierFbrStatus] = useState('FILER As Per FBR On 03-11-2025');
-  const [supplierPhone, setSupplierPhone] = useState('+92 300 1234567');
+  const [distributorName, setDistributorName] = useState('');
+  const [supplierLicenseNo, setSupplierLicenseNo] = useState('');
+  const [supplierNtn, setSupplierNtn] = useState('');
+  const [supplierGst, setSupplierGst] = useState('');
+  const [supplierFbrStatus, setSupplierFbrStatus] = useState('');
+  const [supplierPhone, setSupplierPhone] = useState('');
   const [registerSupplier, setRegisterSupplier] = useState(true);
   const [inwardDate, setInwardDate] = useState(() => new Date().toISOString().split('T')[0]);
 
@@ -24,13 +24,13 @@ export const NewPOModal = ({ isOpen, onClose }) => {
   const [poItems, setPoItems] = useState([
     {
       id: 1,
-      brandName: 'Panadol Extra',
-      genericFormula: 'Paracetamol 500mg + Caffeine 65mg',
-      batchNumber: `B26-${Math.floor(1000 + Math.random() * 9000)}`,
-      expiryDate: '2028-12-31',
-      boxes: 20,
-      purchasePriceBox: 480,
-      boxPrice: 600,
+      brandName: '',
+      genericFormula: '',
+      batchNumber: '',
+      expiryDate: '',
+      boxes: 1,
+      purchasePriceBox: '',
+      boxPrice: '',
     }
   ]);
 

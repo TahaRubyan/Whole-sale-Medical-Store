@@ -121,6 +121,20 @@ export const POSPage = () => {
     ).sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
 
     if (activeBatches.length === 0) {
+      setWarningMsg(`No active stock available for "${med.brandName}"!`);
+      return;
+    }
+
+    const totalAvailableBoxes = activeBatches.reduce(
+      (sum, b) => sum + (b.totalBoxesAvailable !== undefined ? b.totalBoxesAvailable : Math.floor((b.totalTabletsAvailable || 0) / (med.tabletsPerBox || 20))),
+      0
+    );
+
+    const existingCartItem = cart.find((i) => i.medicineId === med.id);
+    const existingQty = existingCartItem ? existingCartItem.quantity : 0;
+
+    if (existingQty + 1 > totalAvailableBoxes) {
+      setWarningMsg(`Stock Limit Exceeded: Only ${totalAvailableBoxes} Box(es) available in stock for "${med.brandName}". Cannot add more!`);
       return;
     }
 
@@ -406,7 +420,19 @@ export const POSPage = () => {
                               </button>
                               <span style={{ fontWeight: 900, minWidth: '22px', textAlign: 'center' }}>{ci.quantity}</span>
                               <button
-                                onClick={(e) => { e.stopPropagation(); updateCartQuantity(idx, ci.quantity + 1); }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const medBatches = batches.filter((b) => b.medicineId === ci.medicineId && b.status !== 'Quarantined');
+                                  const totalAvailableBoxes = medBatches.reduce(
+                                    (sum, b) => sum + (b.totalBoxesAvailable !== undefined ? b.totalBoxesAvailable : Math.floor((b.totalTabletsAvailable || 0) / (ci.tabletsPerBox || 20))),
+                                    0
+                                  );
+                                  if (ci.quantity + 1 > totalAvailableBoxes) {
+                                    setWarningMsg(`Stock Limit Exceeded: Only ${totalAvailableBoxes} Box(es) available in stock for "${ci.brandName}".`);
+                                    return;
+                                  }
+                                  updateCartQuantity(idx, ci.quantity + 1);
+                                }}
                                 style={{ width: '20px', height: '20px', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', borderRadius: '3px' }}
                               >
                                 <Plus size={10} />

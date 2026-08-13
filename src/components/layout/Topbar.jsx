@@ -20,8 +20,11 @@ const SCREEN_TITLES = {
   settings: 'Store Profile & System Settings'
 };
 
+import { getRandomQuote } from '../../utils/quoteUtils';
+
 export const Topbar = ({ currentScreen }) => {
   const { user, toggleRole, isAdmin, logout } = useAuth();
+  const [welcomeQuote] = React.useState(() => getRandomQuote());
 
   return (
     <header style={{
@@ -38,14 +41,11 @@ export const Topbar = ({ currentScreen }) => {
       {/* Active Screen Info */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-text-main)' }}>
+          <h2 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-text-main)', margin: 0 }}>
             {SCREEN_TITLES[currentScreen] || 'Executive Dashboard'}
           </h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-            <Store size={12} />
-            <span>{STORE_INFO.name}</span>
-            <span>•</span>
-            <span style={{ fontWeight: 600 }}>DSL: {STORE_INFO.dslNumber}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: '#0369A1', fontWeight: 700, marginTop: '0.15rem' }}>
+            <span>💡 "{welcomeQuote}"</span>
           </div>
         </div>
       </div>

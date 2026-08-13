@@ -112,11 +112,20 @@ export const InventoryProvider = ({ children }) => {
       return prevBatches.map((b) => {
         const match = cartItems.find((ci) => ci.batchNumber === b.batchNumber);
         if (match) {
+          const boxesDeducted = match.unitSelection === 'Box' ? match.quantity : Math.ceil(match.quantity / (match.tabletsPerBox || 20));
           const tabletsToDeduct = match.unitSelection === 'Box' 
-            ? match.quantity * (match.tabletsPerBox || 1) 
+            ? match.quantity * (match.tabletsPerBox || 20) 
             : match.quantity;
-          const newQty = Math.max(0, b.totalTabletsAvailable - tabletsToDeduct);
-          return { ...b, totalTabletsAvailable: newQty };
+
+          const currentBoxes = b.totalBoxesAvailable !== undefined ? b.totalBoxesAvailable : Math.floor((b.totalTabletsAvailable || 0) / (match.tabletsPerBox || 20));
+          const newBoxQty = Math.max(0, currentBoxes - boxesDeducted);
+          const newTabletQty = Math.max(0, (b.totalTabletsAvailable || 0) - tabletsToDeduct);
+
+          return {
+            ...b,
+            totalBoxesAvailable: newBoxQty,
+            totalTabletsAvailable: newTabletQty,
+          };
         }
         return b;
       });

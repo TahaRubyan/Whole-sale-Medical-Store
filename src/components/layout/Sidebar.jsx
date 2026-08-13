@@ -17,7 +17,7 @@ export const NAV_ITEMS = [
   { id: 'pos', label: 'POS Sale', icon: ShoppingCart, requiresAdmin: false },
   { id: 'inventory', label: 'Stock', icon: Package, requiresAdmin: false },
   { id: 'expiry', label: 'Expiry', icon: AlertTriangle, requiresAdmin: false },
-  { id: 'region-ledger', label: 'Region Cash', icon: MapPin, requiresAdmin: false },
+  { id: 'region-ledger', label: 'Ledger', icon: MapPin, requiresAdmin: false },
   { id: 'suppliers', label: 'Suppliers', icon: Truck, requiresAdmin: false },
   { id: 'analytics', label: 'Analytics', icon: TrendingUp, requiresAdmin: true },
   { id: 'settings', label: 'Settings', icon: Settings, requiresAdmin: true },
