@@ -124,10 +124,14 @@ export const SupplierProvider = ({ children }) => {
   };
 
   const createPurchaseOrder = (poData) => {
+    const now = new Date();
+    const formattedTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
     const newPo = {
-      poNumber: generatePONumber(),
+      poNumber: poData.poNumber || generatePONumber(),
       distributorName: poData.distributorName || 'Muller & Phipps Pakistan',
       inwardDate: poData.inwardDate || new Date().toISOString().split('T')[0],
+      createdAt: poData.createdAt || `${formatDateDDMMYYYY(now)} ${formattedTime}`,
+      createdBy: poData.createdBy || 'Husnain Ali',
       brandName: poData.brandName || 'Medicine',
       genericFormula: poData.genericFormula || 'Formula',
       batchNumber: poData.batchNumber || `BAT-${Date.now().toString().slice(-4)}`,

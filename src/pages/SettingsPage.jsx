@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Store, Printer, Users, Save, ShieldCheck, Calculator, CheckCircle, Plus, UserPlus } from 'lucide-react';
+import { Settings, Store, Printer, Users, Save, ShieldCheck, Calculator, CheckCircle, Plus, UserPlus, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getTaxConfig, getWarrantyConfig } from '../data/mockData';
 
@@ -30,6 +30,8 @@ export const SettingsPage = () => {
 
   // Warranty & Invoice Notes State
   const initialWarranty = getWarrantyConfig();
+  const [enableDrugActWarrantySetting, setEnableDrugActWarrantySetting] = useState(initialWarranty.enableDrugActWarranty !== false);
+  const [enableDrapWarrantySetting, setEnableDrapWarrantySetting] = useState(initialWarranty.enableDrapWarranty !== false);
   const [drugActWarranty, setDrugActWarranty] = useState(initialWarranty.drugActWarranty);
   const [drapWarranty, setDrapWarranty] = useState(initialWarranty.drapWarranty);
   const [note1, setNote1] = useState(initialWarranty.noteItems[0] || '');
@@ -77,12 +79,14 @@ export const SettingsPage = () => {
   const handleSaveWarranty = (e) => {
     e.preventDefault();
     const warrantyConfig = {
+      enableDrugActWarranty: enableDrugActWarrantySetting,
+      enableDrapWarranty: enableDrapWarrantySetting,
       drugActWarranty,
       drapWarranty,
       noteItems: [note1, note2, note3, note4].filter(Boolean),
     };
     localStorage.setItem('pharmalink_warranty_config', JSON.stringify(warrantyConfig));
-    showSaveSuccess('Legal Warranty & Invoice Notes updated successfully!');
+    showSaveSuccess('Legal Warranty Checkboxes & Invoice Notes updated successfully!');
   };
 
   const handleAddStaffAccount = (e) => {
@@ -104,6 +108,19 @@ export const SettingsPage = () => {
     setNewStaffName('');
     setNewStaffPhone('');
     showSaveSuccess(`New ${newStaffRole} account created successfully!`);
+  };
+
+  const handleDeleteStaff = (staffId, staffName, role) => {
+    if (role === 'Admin') {
+      alert("Security Error: Admin account cannot be deleted.");
+      return;
+    }
+    if (window.confirm(`Are you sure you want to delete staff account "${staffName}"?`)) {
+      if (setStaffAccounts) {
+        setStaffAccounts((prev) => (prev || []).filter((s) => s.id !== staffId));
+      }
+      showSaveSuccess(`Staff account "${staffName}" deleted successfully!`);
+    }
   };
 
   return (
@@ -357,21 +374,52 @@ export const SettingsPage = () => {
             </p>
           </div>
 
-          <div>
-            <label style={{ fontSize: '0.825rem', fontWeight: 800, display: 'block', marginBottom: '0.25rem', color: '#1F2937' }}>
-              Section 23 Drug Act 1976 Warranty Text (Form 2A):
+          {/* Warranty 1: Section 23 Drug Act 1976 */}
+          <div style={{ backgroundColor: '#F8FAFC', padding: '1rem', borderRadius: '8px', border: '1px solid #CBD5E1' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginBottom: '0.5rem' }}>
+              <input
+                type="checkbox"
+                checked={enableDrugActWarrantySetting}
+                onChange={(e) => setEnableDrugActWarrantySetting(e.target.checked)}
+                style={{ width: '18px', height: '18px', accentColor: '#0284C7', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: '0.9rem', fontWeight: 900, color: '#0F172A' }}>
+                Enable Section 23 Drug Act 1976 Warranty (Form 2A) on Invoices
+              </span>
             </label>
             <textarea
-              rows={4}
+              rows={3}
               value={drugActWarranty}
               onChange={(e) => setDrugActWarranty(e.target.value)}
               style={{ width: '100%', padding: '0.6rem', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '0.85rem', lineHeight: 1.5 }}
-              required
+              disabled={!enableDrugActWarrantySetting}
+            />
+          </div>
+
+          {/* Warranty 2: DRAP Rules 2014 Alternative Medicines */}
+          <div style={{ backgroundColor: '#F8FAFC', padding: '1rem', borderRadius: '8px', border: '1px solid #CBD5E1' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginBottom: '0.5rem' }}>
+              <input
+                type="checkbox"
+                checked={enableDrapWarrantySetting}
+                onChange={(e) => setEnableDrapWarrantySetting(e.target.checked)}
+                style={{ width: '18px', height: '18px', accentColor: '#0284C7', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: '0.9rem', fontWeight: 900, color: '#0F172A' }}>
+                Enable DRAP Rules 2014 Alternative Medicines Warranty on Invoices
+              </span>
+            </label>
+            <textarea
+              rows={3}
+              value={drapWarranty}
+              onChange={(e) => setDrapWarranty(e.target.value)}
+              style={{ width: '100%', padding: '0.6rem', borderRadius: '4px', border: '1px solid #CBD5E1', fontSize: '0.85rem', lineHeight: 1.5 }}
+              disabled={!enableDrapWarrantySetting}
             />
           </div>
 
           <button type="submit" className="btn btn-primary" style={{ width: '280px', padding: '0.75rem', fontWeight: 900, backgroundColor: '#0284C7', color: '#FFF' }}>
-            <Save size={16} /> [Save Warranty & Invoice Notes]
+            <Save size={16} /> [Save Legal Warranty Configurations]
           </button>
         </form>
       )}
@@ -449,6 +497,7 @@ export const SettingsPage = () => {
                     <th>Phone</th>
                     <th>Role</th>
                     <th>Status</th>
+                    <th style={{ textAlign: 'center' }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -463,6 +512,20 @@ export const SettingsPage = () => {
                         </span>
                       </td>
                       <td><span className="badge badge-success">Active</span></td>
+                      <td style={{ textAlign: 'center' }}>
+                        {staff.role !== 'Admin' ? (
+                          <button
+                            onClick={() => handleDeleteStaff(staff.id, staff.name, staff.role)}
+                            className="btn btn-outline"
+                            style={{ padding: '0.25rem 0.55rem', fontSize: '0.725rem', fontWeight: 800, borderColor: '#DC2626', color: '#DC2626', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                            title={`Delete ${staff.name} account`}
+                          >
+                            <Trash2 size={14} /> Delete
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: '0.7rem', color: '#94A3B8', fontWeight: 700 }}>Protected Admin</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

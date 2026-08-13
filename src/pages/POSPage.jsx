@@ -61,9 +61,10 @@ export const POSPage = () => {
 
   const [paymentStatus, setPaymentStatus] = useState('UNPAID_CREDIT'); // 'PAID' | 'UNPAID_CREDIT'
   
-  // DUAL SEPARATE WARRANTY CHECKBOXES FOR INVOICE
-  const [includeDrugActWarranty, setIncludeDrugActWarranty] = useState(true);
-  const [includeDrapWarranty, setIncludeDrapWarranty] = useState(true);
+  // DUAL SEPARATE WARRANTY CHECKBOXES FOR INVOICE INITIALIZED FROM SETTINGS
+  const initialWarrantyConfig = getWarrantyConfig();
+  const [includeDrugActWarranty, setIncludeDrugActWarranty] = useState(initialWarrantyConfig.enableDrugActWarranty !== false);
+  const [includeDrapWarranty, setIncludeDrapWarranty] = useState(initialWarrantyConfig.enableDrapWarranty !== false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [highlightedIndex, setHighlightedIndex] = useState(0);

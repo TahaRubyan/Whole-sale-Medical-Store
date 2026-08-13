@@ -28,6 +28,8 @@ export const getWarrantyConfig = () => {
     } catch (e) {}
   }
   return {
+    enableDrugActWarranty: true,
+    enableDrapWarranty: true,
     drugActWarranty: 'I, M. Idrees being a person resident in Pakistan carrying on business at Jalal Pur Jattan under the name of Idrees Medical Store and being authorized distributor of the manufacturers / Principals, do hereby give this warranty that the drugs here above described as sold by me, and contained in this invoice prescribing the goods referred to herein do not contravene in any way the provisions of Section 23 of the Drug Act, 1976.',
     drapWarranty: 'Warranty under Alternative Medicines and Health Products (Enlistment) Rules 2014 [See Rules 10(3) and (5)]: We, as the authorized distributors/agents and on behalf of the principals/manufacturers/importers hereby give warranty that the supplied alternative medicines and health products mentioned herein do not contravene any provision of the prevailing DRAP Act 2012 and rules framed thereunder.',
     urduNotice: 'برائے مہربانی انوائس پر اپنا این-ٹی-این اور شناختی کارڈ نمبر چیک کر لیں غلط ٹیکس جمع ہونے کی صورت میں کمپنی ذمہ دار نہیں ہوگی',

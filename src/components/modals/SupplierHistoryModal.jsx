@@ -106,6 +106,7 @@ export const SupplierHistoryModal = ({ isOpen, onClose, supplier }) => {
                 <tr style={{ backgroundColor: '#F8FAFC' }}>
                   <th>PO Reference #</th>
                   <th>Inward Date</th>
+                  <th>Created By & Time</th>
                   <th style={{ textAlign: 'center' }}>Total Items / Batches</th>
                   <th style={{ textAlign: 'right' }}>Total PO Amount (Rs.)</th>
                   <th style={{ textAlign: 'center' }}>Status</th>
@@ -116,7 +117,10 @@ export const SupplierHistoryModal = ({ isOpen, onClose, supplier }) => {
                   poHistory.map((po) => (
                     <tr key={po.poNumber}>
                       <td style={{ fontFamily: 'monospace', fontWeight: 800, color: '#0284C7' }}>{po.poNumber}</td>
-                      <td style={{ fontWeight: 700 }}>{formatDateDDMMYYYY(po.date)}</td>
+                      <td style={{ fontWeight: 700 }}>{formatDateDDMMYYYY(po.inwardDate || po.date)}</td>
+                      <td style={{ fontWeight: 700, color: '#0F172A' }}>
+                        {po.createdBy || 'Dr. Idrees'} <span style={{ fontSize: '0.725rem', color: '#64748B', display: 'block' }}>{po.createdAt || po.time || '10:00 AM'}</span>
+                      </td>
                       <td style={{ textAlign: 'center', fontWeight: 700 }}>{po.itemsCount || (po.items ? po.items.length : 1)} Items</td>
                       <td style={{ textAlign: 'right', fontWeight: 900, color: '#0F172A' }}>Rs. {Number(po.totalAmount || 0).toFixed(2)}</td>
                       <td style={{ textAlign: 'center' }}>
@@ -128,7 +132,7 @@ export const SupplierHistoryModal = ({ isOpen, onClose, supplier }) => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="5" style={{ textAlign: 'center', padding: '1.25rem', color: '#64748B' }}>
+                    <td colSpan="6" style={{ textAlign: 'center', padding: '1.25rem', color: '#64748B' }}>
                       No purchase order receipts recorded yet.
                     </td>
                   </tr>

@@ -323,13 +323,18 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
             </div>
           )}
 
-          {/* DIGITAL SIGNATURE BOX & METADATA FOOTER */}
+          {/* FOOTER SIGNATURES: LEFT SIDE (DELIVERY / RECEIVER SIGNATURE) & RIGHT SIDE (DIGITAL STAMP SIGNATURE) */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '2px solid #000000', paddingTop: '0.85rem', marginTop: '1.5rem', fontSize: '0.775rem', lineHeight: '1.5', pageBreakInside: 'avoid' }}>
-            <div>
+            {/* LEFT BOTTOM: DELIVERY MAN & CUSTOMER RECEIVER SIGNATURE */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', minWidth: '220px' }}>
               <div>Printed By: <strong>{sale.cashierName || 'Husnain Ali'}</strong></div>
+              <div>Delivery Driver: <strong>{sale.deliveryMan || 'Awais Ijaz'}</strong></div>
+              <div style={{ borderTop: '1px solid #000000', marginTop: '1.25rem', paddingTop: '0.2rem', fontWeight: 'bold', fontSize: '0.725rem' }}>
+                Delivery Driver / Customer Receiver Sign
+              </div>
             </div>
 
-            {/* DIGITAL SIGNATURE & STAMP SEAL BOX */}
+            {/* RIGHT BOTTOM: OFFICIAL DIGITAL STAMP SEAL & SIGNATURE */}
             <div style={{ position: 'relative', textAlign: 'center', minWidth: '220px', padding: '0.45rem 0.85rem' }}>
               <div style={{ border: '2px dashed #0284C7', borderRadius: '50%', width: '80px', height: '80px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'absolute', top: '-45px', left: '-25px', opacity: 0.8, color: '#0284C7', fontSize: '0.55rem', fontWeight: 900, transform: 'rotate(-15deg)', pointerEvents: 'none' }}>
                 <div>IDREES MED</div>
