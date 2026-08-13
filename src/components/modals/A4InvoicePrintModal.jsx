@@ -202,9 +202,15 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
                 <th style={{ padding: '0.6rem 0.3rem', textAlign: 'right' }}>Gross</th>
                 <th style={{ padding: '0.6rem 0.3rem', textAlign: 'right' }}>Disc %</th>
                 <th style={{ padding: '0.6rem 0.3rem', textAlign: 'right' }}>Disc Amt</th>
-                <th style={{ padding: '0.6rem 0.3rem', textAlign: 'right' }}>{STORE_INFO ? (getTaxConfig().saleTaxName || 'Sale Tax 18%') : 'Sale Tax 18%'}</th>
-                <th style={{ padding: '0.6rem 0.3rem', textAlign: 'right' }}>{STORE_INFO ? (getTaxConfig().adTaxName || 'AdTax 4%') : 'AdTax 4%'}</th>
-                <th style={{ padding: '0.6rem 0.3rem', textAlign: 'right' }}>{STORE_INFO ? (getTaxConfig().advTaxName || 'Adv Tax 0.5%') : 'Adv Tax'}</th>
+                {getTaxConfig().enableSaleTax !== false && (
+                  <th style={{ padding: '0.6rem 0.3rem', textAlign: 'right' }}>{getTaxConfig().saleTaxName || 'Sale Tax 18%'}</th>
+                )}
+                {getTaxConfig().enableAdTax !== false && (
+                  <th style={{ padding: '0.6rem 0.3rem', textAlign: 'right' }}>{getTaxConfig().adTaxName || 'AdTax 4%'}</th>
+                )}
+                {getTaxConfig().enableAdvTax !== false && (
+                  <th style={{ padding: '0.6rem 0.3rem', textAlign: 'right' }}>{getTaxConfig().advTaxName || 'Adv Tax 0.5%'}</th>
+                )}
                 <th style={{ padding: '0.6rem 0.3rem', textAlign: 'right' }}>Net Amount</th>
               </tr>
             </thead>
@@ -217,9 +223,10 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
                 const discAmt = item.discAmount || (gross * (discP / 100));
                 const discountedGross = gross - discAmt;
 
-                const stAmt = item.saleTaxAmt !== undefined ? item.saleTaxAmt : (discountedGross * 0.18);
-                const adtAmt = item.adTaxAmt !== undefined ? item.adTaxAmt : (discountedGross * 0.04);
-                const advtAmt = item.advTaxAmt !== undefined ? item.advTaxAmt : (discountedGross * 0.005);
+                const taxCfg = getTaxConfig();
+                const stAmt = taxCfg.enableSaleTax !== false ? (item.saleTaxAmt !== undefined ? item.saleTaxAmt : (discountedGross * 0.18)) : 0;
+                const adtAmt = taxCfg.enableAdTax !== false ? (item.adTaxAmt !== undefined ? item.adTaxAmt : (discountedGross * 0.04)) : 0;
+                const advtAmt = taxCfg.enableAdvTax !== false ? (item.advTaxAmt !== undefined ? item.advTaxAmt : (discountedGross * 0.005)) : 0;
                 const netAmt = item.total || (discountedGross + stAmt + adtAmt + advtAmt);
 
                 return (
@@ -236,9 +243,15 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
                     <td style={{ padding: '0.45rem 0.3rem', textAlign: 'right' }}>{gross.toFixed(2)}</td>
                     <td style={{ padding: '0.45rem 0.3rem', textAlign: 'right' }}>{discP.toFixed(2)}</td>
                     <td style={{ padding: '0.45rem 0.3rem', textAlign: 'right' }}>{discAmt.toFixed(2)}</td>
-                    <td style={{ padding: '0.45rem 0.3rem', textAlign: 'right' }}>{stAmt.toFixed(2)}</td>
-                    <td style={{ padding: '0.45rem 0.3rem', textAlign: 'right' }}>{adtAmt.toFixed(2)}</td>
-                    <td style={{ padding: '0.45rem 0.3rem', textAlign: 'right' }}>{advtAmt.toFixed(2)}</td>
+                    {taxCfg.enableSaleTax !== false && (
+                      <td style={{ padding: '0.45rem 0.3rem', textAlign: 'right' }}>{stAmt.toFixed(2)}</td>
+                    )}
+                    {taxCfg.enableAdTax !== false && (
+                      <td style={{ padding: '0.45rem 0.3rem', textAlign: 'right' }}>{adtAmt.toFixed(2)}</td>
+                    )}
+                    {taxCfg.enableAdvTax !== false && (
+                      <td style={{ padding: '0.45rem 0.3rem', textAlign: 'right' }}>{advtAmt.toFixed(2)}</td>
+                    )}
                     <td style={{ padding: '0.45rem 0.3rem', textAlign: 'right', fontWeight: 'bold' }}>{netAmt.toFixed(2)}</td>
                   </tr>
                 );
@@ -316,20 +329,21 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
               <div>Printed By: <strong>{invoice.cashierName || 'Husnain Ali'}</strong></div>
             </div>
 
-            {/* DIGITAL SIGNATURE BOX */}
-            <div style={{ border: '1px solid #000000', padding: '0.45rem 0.85rem', textAlign: 'center', minWidth: '200px' }}>
-              {STORE_INFO.signatureImage ? (
-                <img src={STORE_INFO.signatureImage} alt="Authorized Signature" style={{ maxHeight: '46px', objectFit: 'contain', display: 'block', margin: '0 auto' }} />
-              ) : (
-                <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 'bold' }}>
-                  {STORE_INFO.signatoryName}
-                </div>
-              )}
-              <div style={{ borderTop: '1px solid #000000', marginTop: '0.3rem', paddingTop: '0.15rem', fontWeight: 'bold' }}>
-                {STORE_INFO.signatoryName || 'M. Idrees'}
+            {/* DIGITAL SIGNATURE & STAMP SEAL BOX */}
+            <div style={{ position: 'relative', textAlign: 'center', minWidth: '220px', padding: '0.45rem 0.85rem' }}>
+              <div style={{ border: '2px dashed #0284C7', borderRadius: '50%', width: '80px', height: '80px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'absolute', top: '-45px', left: '-25px', opacity: 0.8, color: '#0284C7', fontSize: '0.55rem', fontWeight: 900, transform: 'rotate(-15deg)', pointerEvents: 'none' }}>
+                <div>IDREES MED</div>
+                <div>SEAL / STAMP</div>
+                <div style={{ fontSize: '0.5rem' }}>OFFICIAL</div>
               </div>
-              <div style={{ fontSize: '0.675rem' }}>
-                Authorized Signatory
+              <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '1.2rem', fontWeight: 'bold', color: '#0F172A' }}>
+                M. Idrees
+              </div>
+              <div style={{ borderTop: '1.5px solid #000000', marginTop: '0.2rem', paddingTop: '0.15rem', fontWeight: 'bold', fontSize: '0.775rem' }}>
+                {STORE_INFO.signatoryName || 'M. Idrees'} (Managing Director)
+              </div>
+              <div style={{ fontSize: '0.65rem', color: '#0284C7', fontWeight: 700 }}>
+                ✔ VERIFIED DIGITAL SIGNATURE
               </div>
             </div>
           </div>

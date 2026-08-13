@@ -481,17 +481,6 @@ export const AnalyticsPage = () => {
                         </td>
                         <td style={{ textAlign: 'right' }}>
                           <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'flex-end' }}>
-                            {isUnpaid && (
-                              <button
-                                onClick={() => setSelectedDebtInvoiceForPayment(inv)}
-                                className="btn btn-primary"
-                                style={{ fontSize: '0.725rem', padding: '0.25rem 0.55rem', fontWeight: 800, backgroundColor: '#059669', color: '#FFF' }}
-                                title="Collect debt payment & update remaining balance"
-                              >
-                                <CheckCircle size={13} /> Collect Debt
-                              </button>
-                            )}
-
                             <button
                               onClick={() => setSelectedInvoice(inv)}
                               className="btn btn-outline"

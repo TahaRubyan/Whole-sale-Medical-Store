@@ -43,7 +43,7 @@ export const RegionLedgerPage = () => {
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch (e) {}
     }
-    return ['Karianwala', 'Gujrat', 'Tanda', 'Jalalpur Jattan', 'Lalamusa', 'Dingha'];
+    return ['Karianwala', 'Gujrat', 'Tanda'];
   });
 
   const [isAddRegionOpen, setIsAddRegionOpen] = useState(false);
@@ -199,7 +199,8 @@ export const RegionLedgerPage = () => {
 
   // 3. Calculate Summary KPI Cards metrics for active selection
   const regionKPIs = useMemo(() => {
-    let totalShops = filteredInvoices.length;
+    const uniqueShops = new Set(filteredInvoices.map(inv => (inv.shopName || inv.customerName || '').trim().toLowerCase()));
+    let totalShops = uniqueShops.size;
     let totalSalesNet = 0;
     let totalOutstandingDebt = 0;
     let totalCashSettledToday = 0;
@@ -979,66 +980,50 @@ export const RegionLedgerPage = () => {
                       {/* Actions Buttons */}
                       <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem' }}>
-                          <button
-                            onClick={() => handleSettleCash(inv)}
-                            disabled={isPaid}
-                            className="btn btn-primary"
-                            style={{
-                              backgroundColor: isPaid ? '#CBD5E1' : '#059669',
-                              color: '#FFFFFF',
-                              padding: '0.45rem 0.75rem',
-                              fontSize: '0.775rem',
-                              fontWeight: 800,
-                              borderRadius: '6px',
-                              cursor: isPaid ? 'not-allowed' : 'pointer',
-                              border: 'none',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.35rem',
-                              transition: 'all 0.15s ease',
-                            }}
-                          >
-                            <DollarSign size={14} /> Settle Cash
-                          </button>
-
-                          <button
-                            onClick={() => handleOpenLogs(inv)}
-                            className="btn btn-outline"
-                            style={{
-                              borderColor: '#0284C7',
-                              color: '#0284C7',
-                              padding: '0.45rem 0.7rem',
-                              fontSize: '0.775rem',
-                              fontWeight: 800,
-                              borderRadius: '6px',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.3rem',
-                              backgroundColor: '#FFFFFF',
-                              transition: 'all 0.15s ease',
-                            }}
-                            title="View Payment Logs & Audit History"
-                          >
-                            <History size={14} /> Logs
-                          </button>
+                          {!isPaid ? (
+                            <button
+                              onClick={() => handleSettleCash(inv)}
+                              className="btn btn-primary"
+                              style={{
+                                backgroundColor: '#059669',
+                                color: '#FFFFFF',
+                                padding: '0.45rem 0.75rem',
+                                fontSize: '0.775rem',
+                                fontWeight: 800,
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                border: 'none',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.35rem',
+                                transition: 'all 0.15s ease',
+                              }}
+                            >
+                              <DollarSign size={14} /> Settle Cash
+                            </button>
+                          ) : (
+                            <span style={{ fontSize: '0.775rem', fontWeight: 900, color: '#059669', backgroundColor: '#D1FAE5', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid #6EE7B7' }}>
+                              ✔ Settled
+                            </span>
+                          )}
 
                           <button
                             onClick={() => handleOpenStatement(inv.shopName || inv.customerName, inv.region)}
                             className="btn btn-outline"
                             style={{
-                              borderColor: '#059669',
-                              color: '#059669',
-                              padding: '0.45rem 0.7rem',
+                              borderColor: '#0284C7',
+                              color: '#0284C7',
+                              padding: '0.45rem 0.75rem',
                               fontSize: '0.775rem',
                               fontWeight: 800,
                               borderRadius: '6px',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '0.3rem',
+                              gap: '0.35rem',
                               backgroundColor: '#FFFFFF',
                               transition: 'all 0.15s ease',
                             }}
-                            title="Generate Shareable Customer Ledger Statement A4 PDF"
+                            title="Generate Shareable Customer Ledger Statement A4 PDF & View Logs"
                           >
                             <FileText size={14} /> Statement
                           </button>

@@ -101,8 +101,14 @@ export const Sidebar = ({ currentScreen, onNavigate }) => {
                 fontSize: '0.85rem',
                 cursor: 'pointer',
                 textAlign: 'left',
-                transition: 'all var(--transition-fast)',
+                transition: 'all 0.15s ease',
                 boxShadow: isActive ? 'inset 0 1px 0 rgba(255,255,255,0.2)' : 'none'
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
               }}
             >
               <Icon size={18} opacity={isActive ? 1 : 0.85} />

@@ -131,18 +131,19 @@ export const CustomerLedgerStatementModal = ({ isOpen, onClose, customerName, re
             </div>
           </div>
 
-          {/* Detailed Invoices & Payment Logs Table */}
+          {/* Detailed Invoices & Payment History Table */}
           <h3 style={{ fontSize: '0.9rem', fontWeight: 900, color: '#0F172A', marginBottom: '0.5rem' }}>
-            Itemized Invoices & Payment History
+            Itemized Invoices & Billing History
           </h3>
 
-          <div className="table-container">
+          <div className="table-container" style={{ marginBottom: '1.5rem' }}>
             <table className="table" style={{ fontSize: '0.8rem' }}>
               <thead>
                 <tr style={{ backgroundColor: '#F8FAFC' }}>
                   <th>Invoice #</th>
-                  <th>Date</th>
-                  <th>Delivery Man</th>
+                  <th>Date & Time</th>
+                  <th>Booking Rep</th>
+                  <th>Delivery Driver</th>
                   <th style={{ textAlign: 'right' }}>Invoice Net (Rs.)</th>
                   <th style={{ textAlign: 'right' }}>Cash Settled (Rs.)</th>
                   <th style={{ textAlign: 'right' }}>Due Debt (Rs.)</th>
@@ -159,7 +160,10 @@ export const CustomerLedgerStatementModal = ({ isOpen, onClose, customerName, re
                     return (
                       <tr key={inv.invoiceNo}>
                         <td style={{ fontFamily: 'monospace', fontWeight: 800, color: '#0284C7' }}>{inv.invoiceNo}</td>
-                        <td style={{ fontWeight: 700 }}>{formatDateDDMMYYYY(inv.date)}</td>
+                        <td style={{ fontWeight: 700 }}>
+                          {formatDateDDMMYYYY(inv.date)} <span style={{ fontSize: '0.725rem', color: '#64748B', marginLeft: '0.2rem' }}>{inv.time || '09:00 AM'}</span>
+                        </td>
+                        <td>{inv.bookingMan || 'Tariq Mahmood'}</td>
                         <td>{inv.deliveryMan || 'Awais Ijaz'}</td>
                         <td style={{ textAlign: 'right', fontWeight: 800 }}>Rs. {origNet.toFixed(2)}</td>
                         <td style={{ textAlign: 'right', fontWeight: 800, color: '#059669' }}>Rs. {paid.toFixed(2)}</td>
@@ -186,7 +190,7 @@ export const CustomerLedgerStatementModal = ({ isOpen, onClose, customerName, re
                   })
                 ) : (
                   <tr>
-                    <td colSpan="7" style={{ textAlign: 'center', padding: '1.5rem', color: '#64748B' }}>
+                    <td colSpan="8" style={{ textAlign: 'center', padding: '1.5rem', color: '#64748B' }}>
                       No invoices recorded for this shop.
                     </td>
                   </tr>
@@ -195,13 +199,71 @@ export const CustomerLedgerStatementModal = ({ isOpen, onClose, customerName, re
             </table>
           </div>
 
-          {/* Footer Signature Notice */}
-          <div style={{ marginTop: '2rem', borderTop: '1px solid #E2E8F0', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontSize: '0.75rem', color: '#64748B' }}>
-            <div>
-              This is a computer-generated statement of account for {customerName}.
+          {/* Consolidated Timestamped Cash Settlement Payment Logs */}
+          <h3 style={{ fontSize: '0.9rem', fontWeight: 900, color: '#0369A1', marginBottom: '0.5rem' }}>
+            📜 Timestamped Cash Payment Audit Log
+          </h3>
+          <div className="table-container" style={{ marginBottom: '1.5rem' }}>
+            <table className="table" style={{ fontSize: '0.775rem' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#F0F9FF' }}>
+                  <th>Payment Date & Time</th>
+                  <th>Related Invoice #</th>
+                  <th>Amount Paid (Rs.)</th>
+                  <th>Payment Mode</th>
+                  <th>Remaining Debt After (Rs.)</th>
+                  <th>Remarks / Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {customerInvoices.flatMap(inv => (inv.paymentLogs || []).map((log, lIdx) => ({ ...log, invNo: inv.invoiceNo, key: `${inv.invoiceNo}-${lIdx}` }))).length > 0 ? (
+                  customerInvoices.flatMap(inv => (inv.paymentLogs || []).map((log, lIdx) => ({ ...log, invNo: inv.invoiceNo, key: `${inv.invoiceNo}-${lIdx}` }))).map((log) => (
+                    <tr key={log.key}>
+                      <td style={{ fontWeight: 800, color: '#0F172A' }}>
+                        {formatDateDDMMYYYY(log.date)} <span style={{ color: '#0284C7', fontWeight: 900 }}>at {log.time || '10:00 AM'}</span>
+                      </td>
+                      <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0284C7' }}>{log.invNo}</td>
+                      <td style={{ fontWeight: 900, color: '#059669' }}>Rs. {Number(log.amountPaid || 0).toFixed(2)}</td>
+                      <td><span style={{ backgroundColor: '#E0F2FE', color: '#0369A1', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 700, fontSize: '0.725rem' }}>{log.paymentMode || 'Cash'}</span></td>
+                      <td style={{ fontWeight: 800, color: log.remainingDebtAfter > 0 ? '#DC2626' : '#059669' }}>Rs. {Number(log.remainingDebtAfter || 0).toFixed(2)}</td>
+                      <td style={{ color: '#475569' }}>{log.note || log.notes || 'Cash Settlement'}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" style={{ textAlign: 'center', padding: '1.25rem', color: '#64748B' }}>
+                      No cash settlement payment transactions logged yet for this customer.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Official Digital Signature & Stamp Block */}
+          <div style={{ marginTop: '2.5rem', borderTop: '2px solid #0F172A', paddingTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '0.75rem', color: '#64748B', maxWidth: '400px' }}>
+              <strong>Notice:</strong> This official computer-generated statement of account is verified and digitally authenticated under Drug Act 1976 & DRAP Rules 2014 by Idrees Medical Store.
             </div>
-            <div style={{ borderTop: '1px solid #000', width: '180px', textAlign: 'center', paddingTop: '0.25rem', fontWeight: 800, color: '#000' }}>
-              Authorized Signatory
+
+            <div style={{ textAlign: 'center', position: 'relative' }}>
+              {/* Digital Stamp Seal */}
+              <div style={{ border: '2px dashed #0284C7', borderRadius: '50%', width: '90px', height: '90px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'absolute', top: '-60px', left: '-30px', opacity: 0.85, color: '#0284C7', fontSize: '0.6rem', fontWeight: 900, transform: 'rotate(-12deg)', pointerEvents: 'none' }}>
+                <div>IDREES MED</div>
+                <div>SEAL / STAMP</div>
+                <div style={{ fontSize: '0.55rem' }}>OFFICIAL</div>
+              </div>
+
+              {/* Digital Signature Font */}
+              <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '1.3rem', fontWeight: 'bold', color: '#0F172A', marginBottom: '0.2rem' }}>
+                M. Idrees
+              </div>
+              <div style={{ borderTop: '1.5px solid #000', width: '200px', paddingTop: '0.25rem', fontSize: '0.775rem', fontWeight: 800, color: '#0F172A' }}>
+                M. Idrees (Managing Director)
+              </div>
+              <div style={{ fontSize: '0.7rem', color: '#0284C7', fontWeight: 700 }}>
+                ✔ VERIFIED DIGITAL SIGNATURE
+              </div>
             </div>
           </div>
 

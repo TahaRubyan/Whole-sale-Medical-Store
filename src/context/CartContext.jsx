@@ -42,6 +42,10 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (medicine, batch, unitSelection = 'Box') => {
     const currentGlobalTaxes = getTaxConfig();
+    const isSaleTaxEnabled = currentGlobalTaxes.enableSaleTax !== false;
+    const isAdTaxEnabled = currentGlobalTaxes.enableAdTax !== false;
+    const isAdvTaxEnabled = currentGlobalTaxes.enableAdvTax !== false;
+
     setCart((prev) => {
       const existing = prev.find((i) => i.medicineId === medicine.id && i.batchNumber === batch.batchNumber);
       const unitPrice = Number(batch.boxPrice || medicine.boxPrice || 600);
@@ -53,9 +57,9 @@ export const CartProvider = ({ children }) => {
         const discAmt = gross * (discP / 100);
         const discountedGross = gross - discAmt;
 
-        const stP = existing.saleTaxPercent !== undefined ? existing.saleTaxPercent : Number(currentGlobalTaxes.saleTaxPercent || 18);
-        const adtP = existing.adTaxPercent !== undefined ? existing.adTaxPercent : Number(currentGlobalTaxes.adTaxPercent || 4);
-        const advtP = existing.advTaxPercent !== undefined ? existing.advTaxPercent : Number(currentGlobalTaxes.advTaxPercent || 0.5);
+        const stP = isSaleTaxEnabled ? (existing.saleTaxPercent !== undefined ? existing.saleTaxPercent : Number(currentGlobalTaxes.saleTaxPercent || 18)) : 0;
+        const adtP = isAdTaxEnabled ? (existing.adTaxPercent !== undefined ? existing.adTaxPercent : Number(currentGlobalTaxes.adTaxPercent || 4)) : 0;
+        const advtP = isAdvTaxEnabled ? (existing.advTaxPercent !== undefined ? existing.advTaxPercent : Number(currentGlobalTaxes.advTaxPercent || 0.5)) : 0;
 
         const stAmt = discountedGross * (stP / 100);
         const adtAmt = discountedGross * (adtP / 100);
@@ -69,8 +73,11 @@ export const CartProvider = ({ children }) => {
                 quantity: nextQty,
                 gross,
                 discAmount: discAmt,
+                saleTaxPercent: stP,
                 saleTaxAmt: stAmt,
+                adTaxPercent: adtP,
                 adTaxAmt: adtAmt,
+                advTaxPercent: advtP,
                 advTaxAmt: advtAmt,
                 total: lineTotal
               }
@@ -83,9 +90,9 @@ export const CartProvider = ({ children }) => {
         const discAmt = 0;
         const discountedGross = gross;
 
-        const stP = Number(currentGlobalTaxes.saleTaxPercent || 18);
-        const adtP = Number(currentGlobalTaxes.adTaxPercent || 4);
-        const advtP = Number(currentGlobalTaxes.advTaxPercent || 0.5);
+        const stP = isSaleTaxEnabled ? Number(currentGlobalTaxes.saleTaxPercent || 18) : 0;
+        const adtP = isAdTaxEnabled ? Number(currentGlobalTaxes.adTaxPercent || 4) : 0;
+        const advtP = isAdvTaxEnabled ? Number(currentGlobalTaxes.advTaxPercent || 0.5) : 0;
 
         const stAmt = discountedGross * (stP / 100);
         const adtAmt = discountedGross * (adtP / 100);
@@ -123,6 +130,11 @@ export const CartProvider = ({ children }) => {
   };
 
   const updateCartQuantity = (index, qty) => {
+    const currentGlobalTaxes = getTaxConfig();
+    const isSaleTaxEnabled = currentGlobalTaxes.enableSaleTax !== false;
+    const isAdTaxEnabled = currentGlobalTaxes.enableAdTax !== false;
+    const isAdvTaxEnabled = currentGlobalTaxes.enableAdvTax !== false;
+
     const q = Math.max(1, Number(qty) || 1);
     setCart((prev) =>
       prev.map((item, i) => {
@@ -133,9 +145,9 @@ export const CartProvider = ({ children }) => {
         const discAmt = gross * (discP / 100);
         const discountedGross = gross - discAmt;
 
-        const stP = item.saleTaxPercent !== undefined ? item.saleTaxPercent : 18;
-        const adtP = item.adTaxPercent !== undefined ? item.adTaxPercent : 4;
-        const advtP = item.advTaxPercent !== undefined ? item.advTaxPercent : 0.5;
+        const stP = isSaleTaxEnabled ? (item.saleTaxPercent !== undefined ? item.saleTaxPercent : 18) : 0;
+        const adtP = isAdTaxEnabled ? (item.adTaxPercent !== undefined ? item.adTaxPercent : 4) : 0;
+        const advtP = isAdvTaxEnabled ? (item.advTaxPercent !== undefined ? item.advTaxPercent : 0.5) : 0;
 
         const stAmt = discountedGross * (stP / 100);
         const adtAmt = discountedGross * (adtP / 100);
@@ -147,8 +159,11 @@ export const CartProvider = ({ children }) => {
           quantity: q,
           gross,
           discAmount: discAmt,
+          saleTaxPercent: stP,
           saleTaxAmt: stAmt,
+          adTaxPercent: adtP,
           adTaxAmt: adtAmt,
+          advTaxPercent: advtP,
           advTaxAmt: advtAmt,
           total: lineTotal
         };
@@ -171,15 +186,20 @@ export const CartProvider = ({ children }) => {
     localStorage.removeItem('pharmalink_pos_doc');
   };
 
-  // Comprehensive calculations including Gross Subtotal, Line Taxes (18% ST, 4% AdTax, 0.5% Adv Tax) & Final Net Bill
+  // Comprehensive calculations including Gross Subtotal, Line Taxes & Final Net Bill
   const calculations = useMemo(() => {
+    const taxCfg = getTaxConfig();
+    const isSaleTaxEnabled = taxCfg.enableSaleTax !== false;
+    const isAdTaxEnabled = taxCfg.enableAdTax !== false;
+    const isAdvTaxEnabled = taxCfg.enableAdvTax !== false;
+
     const grossSubtotal = cart.reduce((sum, item) => sum + (item.gross || item.total), 0);
     const lineDiscounts = cart.reduce((sum, item) => sum + (item.discAmount || 0), 0);
     const subtotalAfterLineDiscounts = grossSubtotal - lineDiscounts;
 
-    const totalSaleTax = cart.reduce((sum, item) => sum + (item.saleTaxAmt !== undefined ? item.saleTaxAmt : (item.total * 0.18)), 0);
-    const totalAdTax = cart.reduce((sum, item) => sum + (item.adTaxAmt !== undefined ? item.adTaxAmt : (item.total * 0.04)), 0);
-    const totalAdvTax = cart.reduce((sum, item) => sum + (item.advTaxAmt !== undefined ? item.advTaxAmt : (item.total * 0.005)), 0);
+    const totalSaleTax = isSaleTaxEnabled ? cart.reduce((sum, item) => sum + (item.saleTaxAmt || 0), 0) : 0;
+    const totalAdTax = isAdTaxEnabled ? cart.reduce((sum, item) => sum + (item.adTaxAmt || 0), 0) : 0;
+    const totalAdvTax = isAdvTaxEnabled ? cart.reduce((sum, item) => sum + (item.advTaxAmt || 0), 0) : 0;
     const totalTaxes = totalSaleTax + totalAdTax + totalAdvTax;
 
     let extraOrderDiscount = 0;

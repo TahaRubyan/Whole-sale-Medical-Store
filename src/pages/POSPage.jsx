@@ -372,9 +372,15 @@ export const POSPage = () => {
                     <th style={{ padding: '0.65rem 0.35rem', textAlign: 'right' }}>Rate</th>
                     <th style={{ padding: '0.65rem 0.35rem', textAlign: 'right' }}>Gross</th>
                     <th style={{ padding: '0.65rem 0.35rem', textAlign: 'right' }}>Disc %</th>
-                    <th style={{ padding: '0.65rem 0.35rem', textAlign: 'right' }}>{getTaxConfig().saleTaxName || 'Sale Tax 18%'}</th>
-                    <th style={{ padding: '0.65rem 0.35rem', textAlign: 'right' }}>{getTaxConfig().adTaxName || 'AdTax 4%'}</th>
-                    <th style={{ padding: '0.65rem 0.35rem', textAlign: 'right' }}>{getTaxConfig().advTaxName || 'Adv Tax 0.5%'}</th>
+                    {getTaxConfig().enableSaleTax !== false && (
+                      <th style={{ padding: '0.65rem 0.35rem', textAlign: 'right' }}>{getTaxConfig().saleTaxName || 'Sale Tax 18%'}</th>
+                    )}
+                    {getTaxConfig().enableAdTax !== false && (
+                      <th style={{ padding: '0.65rem 0.35rem', textAlign: 'right' }}>{getTaxConfig().adTaxName || 'AdTax 4%'}</th>
+                    )}
+                    {getTaxConfig().enableAdvTax !== false && (
+                      <th style={{ padding: '0.65rem 0.35rem', textAlign: 'right' }}>{getTaxConfig().advTaxName || 'Adv Tax 0.5%'}</th>
+                    )}
                     <th style={{ padding: '0.65rem 0.35rem', textAlign: 'right' }}>Net Amount</th>
                     <th style={{ padding: '0.65rem 0.35rem', textAlign: 'center' }}>Edit / Del</th>
                   </tr>
@@ -389,9 +395,10 @@ export const POSPage = () => {
                       const discAmt = ci.discAmount || (gross * (discP / 100));
                       const discountedGross = gross - discAmt;
 
-                      const stAmt = ci.saleTaxAmt !== undefined ? ci.saleTaxAmt : (discountedGross * 0.18);
-                      const adtAmt = ci.adTaxAmt !== undefined ? ci.adTaxAmt : (discountedGross * 0.04);
-                      const advtAmt = ci.advTaxAmt !== undefined ? ci.advTaxAmt : (discountedGross * 0.005);
+                      const taxCfg = getTaxConfig();
+                      const stAmt = taxCfg.enableSaleTax !== false ? (ci.saleTaxAmt !== undefined ? ci.saleTaxAmt : (discountedGross * 0.18)) : 0;
+                      const adtAmt = taxCfg.enableAdTax !== false ? (ci.adTaxAmt !== undefined ? ci.adTaxAmt : (discountedGross * 0.04)) : 0;
+                      const advtAmt = taxCfg.enableAdvTax !== false ? (ci.advTaxAmt !== undefined ? ci.advTaxAmt : (discountedGross * 0.005)) : 0;
                       const netAmt = ci.total || (discountedGross + stAmt + adtAmt + advtAmt);
 
                       return (
@@ -444,9 +451,15 @@ export const POSPage = () => {
                           <td style={{ padding: '0.65rem 0.35rem', textAlign: 'right', color: discP > 0 ? '#059669' : '#64748B' }}>
                             {discP.toFixed(1)}%
                           </td>
-                          <td style={{ padding: '0.65rem 0.35rem', textAlign: 'right', fontSize: '0.75rem' }}>{stAmt.toFixed(2)}</td>
-                          <td style={{ padding: '0.65rem 0.35rem', textAlign: 'right', fontSize: '0.75rem' }}>{adtAmt.toFixed(2)}</td>
-                          <td style={{ padding: '0.65rem 0.35rem', textAlign: 'right', fontSize: '0.75rem' }}>{advtAmt.toFixed(2)}</td>
+                          {taxCfg.enableSaleTax !== false && (
+                            <td style={{ padding: '0.65rem 0.35rem', textAlign: 'right', fontSize: '0.75rem' }}>{stAmt.toFixed(2)}</td>
+                          )}
+                          {taxCfg.enableAdTax !== false && (
+                            <td style={{ padding: '0.65rem 0.35rem', textAlign: 'right', fontSize: '0.75rem' }}>{adtAmt.toFixed(2)}</td>
+                          )}
+                          {taxCfg.enableAdvTax !== false && (
+                            <td style={{ padding: '0.65rem 0.35rem', textAlign: 'right', fontSize: '0.75rem' }}>{advtAmt.toFixed(2)}</td>
+                          )}
                           <td style={{ padding: '0.65rem 0.35rem', textAlign: 'right', fontWeight: 900, color: '#059669' }}>
                             {netAmt.toFixed(2)}
                           </td>
@@ -499,40 +512,8 @@ export const POSPage = () => {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: '#0369A1' }}>
-              <span>Total Taxes (18% ST + 4% AdT + 0.5% AdvT):</span>
+              <span>Total Taxes:</span>
               <span style={{ fontWeight: 800 }}>+ Rs. {calculations.totalTaxes.toFixed(2)}</span>
-            </div>
-
-            {/* Payment Method Selector */}
-            <div>
-              <label style={{ fontSize: '0.775rem', fontWeight: 800, color: '#0369A1', display: 'block', marginBottom: '0.2rem' }}>
-                Payment Method:
-              </label>
-              <select
-                value={paymentMode}
-                onChange={(e) => setPaymentMode(e.target.value)}
-                style={{ width: '100%', padding: '0.45rem', fontSize: '0.9rem', borderRadius: '6px', border: '1.5px solid #0284C7', fontWeight: 800 }}
-              >
-                <option value="Cash">💵 Cash Counter</option>
-                <option value="Card">💳 Credit / Debit Card</option>
-                <option value="Mobile Banking">📱 Mobile Banking (EasyPaisa / JazzCash)</option>
-                <option value="Bank Transfer">🏦 Direct Bank Transfer</option>
-              </select>
-            </div>
-
-            {/* Payment Status (Paid vs Debt) */}
-            <div>
-              <label style={{ fontSize: '0.775rem', fontWeight: 800, color: '#0369A1', display: 'block', marginBottom: '0.2rem' }}>
-                Payment Status:
-              </label>
-              <select
-                value={paymentStatus}
-                onChange={(e) => setPaymentStatus(e.target.value)}
-                style={{ width: '100%', padding: '0.45rem', fontSize: '0.85rem', borderRadius: '6px', border: paymentStatus === 'UNPAID_CREDIT' ? '2px solid #EF4444' : '1px solid #CBD5E1', fontWeight: 800 }}
-              >
-                <option value="PAID">✅ CASH PAID (FULL SETTLEMENT)</option>
-                <option value="UNPAID_CREDIT">📖 UNPAID CREDIT (CUSTOMER DEBT)</option>
-              </select>
             </div>
 
             {/* Overall Order Discount Selector */}
@@ -559,37 +540,10 @@ export const POSPage = () => {
             {/* PROMINENT NET TOTAL BADGE INCLUDING TAXES */}
             <div style={{ backgroundColor: '#0284C7', color: '#FFFFFF', padding: '0.75rem 1rem', borderRadius: '8px', boxShadow: '0 4px 10px rgba(2, 132, 199, 0.25)', margin: '0.35rem 0' }}>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', opacity: 0.9 }}>
-                FINAL BILL INCLUDING TAXES (18% ST + 4% AdT + 0.5% AdvT)
+                FINAL BILL INCLUDING APPLIED TAXES
               </div>
               <div style={{ fontSize: '1.65rem', fontWeight: 900, color: '#E0F2FE' }}>Rs. {calculations.netTotal.toFixed(2)}</div>
             </div>
-
-            {/* CONDITIONAL CASH RECEIVED & CHANGE RETURN (ONLY SHOWN FOR CASH PAYMENT METHOD) */}
-            {isCashPayment ? (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', backgroundColor: '#FFFFFF', padding: '0.6rem', borderRadius: '6px', border: '1px solid #CBD5E1' }}>
-                <div>
-                  <label style={{ fontSize: '0.725rem', fontWeight: 800, color: '#475569', display: 'block', marginBottom: '0.15rem' }}>Cash Received (Rs.):</label>
-                  <input
-                    type="number"
-                    placeholder="0.00"
-                    value={cashTendered}
-                    onChange={(e) => setCashTendered(e.target.value)}
-                    style={{ width: '100%', padding: '0.35rem', fontSize: '1rem', fontWeight: 900, textAlign: 'right', borderRadius: '4px', border: '2px solid #0284C7' }}
-                  />
-                </div>
-
-                <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748B' }}>Change Return:</span>
-                  <strong style={{ fontSize: '1.15rem', color: calculations.change > 0 ? '#059669' : '#1F2937', fontWeight: 900 }}>
-                    Rs. {calculations.change.toFixed(2)}
-                  </strong>
-                </div>
-              </div>
-            ) : (
-              <div style={{ backgroundColor: '#E0F2FE', color: '#0369A1', padding: '0.55rem', borderRadius: '6px', fontSize: '0.775rem', fontWeight: 700, textAlign: 'center' }}>
-                💳 Payment Method Selected: {paymentMode} (Cash tendered calculation bypassed)
-              </div>
-            )}
 
             {/* DUAL SEPARATE WARRANTY CHECKBOXES FOR INVOICE */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', backgroundColor: '#FFFFFF', padding: '0.55rem 0.75rem', borderRadius: '6px', border: '1.5px solid #0284C7', marginTop: '0.2rem' }}>
