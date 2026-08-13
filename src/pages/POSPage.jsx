@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useInventory } from '../context/InventoryContext';
 import { useCart } from '../context/CartContext';
-import { getTaxConfig } from '../data/mockData';
+import { getTaxConfig, getWarrantyConfig } from '../data/mockData';
 import {
   Search,
   Plus,
