@@ -436,7 +436,7 @@ export const SettingsPage = () => {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', backgroundColor: '#F0F9FF', padding: '1rem', borderRadius: '8px', border: '1.5px solid #0284C7' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', backgroundColor: '#F0F9FF', padding: '1rem', borderRadius: '8px', border: '1.5px solid #0284C7' }}>
             {/* SALE TAX CONFIG WITH CHECKBOX */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: '#FFFFFF', padding: '0.85rem', borderRadius: '6px', border: '1px solid #CBD5E1' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 800, color: '#0369A1', cursor: 'pointer' }}>
@@ -469,42 +469,6 @@ export const SettingsPage = () => {
                   onChange={(e) => setSaleTaxPercent(e.target.value)}
                   style={{ width: '100%', padding: '0.35rem', fontSize: '0.95rem', fontWeight: 900, borderRadius: '4px', border: '1.5px solid #0284C7' }}
                   disabled={!enableSaleTax}
-                />
-              </div>
-            </div>
-
-            {/* AD TAX CONFIG WITH CHECKBOX */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: '#FFFFFF', padding: '0.85rem', borderRadius: '6px', border: '1px solid #CBD5E1' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 800, color: '#0369A1', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={enableAdTax}
-                  onChange={(e) => setEnableAdTax(e.target.checked)}
-                  style={{ width: '16px', height: '16px', accentColor: '#0284C7' }}
-                />
-                <span>Enable Additional Tax (AdTax) 4%</span>
-              </label>
-
-              <div>
-                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '0.15rem' }}>Tax Heading Name:</label>
-                <input
-                  type="text"
-                  value={adTaxName}
-                  onChange={(e) => setAdTaxName(e.target.value)}
-                  style={{ width: '100%', padding: '0.35rem', fontSize: '0.8rem', fontWeight: 700, borderRadius: '4px', border: '1px solid #CBD5E1' }}
-                  disabled={!enableAdTax}
-                />
-              </div>
-
-              <div>
-                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '0.15rem' }}>Percentage (%):</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={adTaxPercent}
-                  onChange={(e) => setAdTaxPercent(e.target.value)}
-                  style={{ width: '100%', padding: '0.35rem', fontSize: '0.95rem', fontWeight: 900, borderRadius: '4px', border: '1.5px solid #0284C7' }}
-                  disabled={!enableAdTax}
                 />
               </div>
             </div>
