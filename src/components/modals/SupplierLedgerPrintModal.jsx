@@ -1,15 +1,28 @@
 import React from 'react';
 import { Printer, X, FileText, Download } from 'lucide-react';
-import { STORE_INFO } from '../../data/mockData';
+import { STORE_INFO, getStoreInfo } from '../../data/mockData';
 import { useSupplier } from '../../context/SupplierContext';
+import { printElementById } from '../../utils/printUtils';
 
 export const SupplierLedgerPrintModal = ({ isOpen, onClose, supplier }) => {
   const { purchaseOrders, paymentsLog, rtvNotes } = useSupplier();
+  const [, setSettingTick] = React.useState(0);
+  React.useEffect(() => {
+    const handleSettingUpdate = () => setSettingTick((t) => t + 1);
+    window.addEventListener('store_info_updated', handleSettingUpdate);
+    window.addEventListener('warranty_config_updated', handleSettingUpdate);
+    window.addEventListener('tax_config_updated', handleSettingUpdate);
+    return () => {
+      window.removeEventListener('store_info_updated', handleSettingUpdate);
+      window.removeEventListener('warranty_config_updated', handleSettingUpdate);
+      window.removeEventListener('tax_config_updated', handleSettingUpdate);
+    };
+  }, []);
 
   if (!isOpen || !supplier) return null;
 
   const handlePrint = () => {
-    window.print();
+    printElementById('supplier-ledger-print', `Supplier Ledger Statement - ${supplier.companyName || 'Supplier'}`);
   };
 
   // Filter supplier transaction history
@@ -60,28 +73,20 @@ export const SupplierLedgerPrintModal = ({ isOpen, onClose, supplier }) => {
           @media print {
             @page {
               size: A4 portrait;
-              margin: 6mm 8mm;
+              margin: 5mm 6mm;
             }
             html, body {
-              width: 100% !important;
-              height: 100% !important;
               margin: 0 !important;
               padding: 0 !important;
+              height: auto !important;
               background: #FFFFFF !important;
-              font-size: 11pt !important;
+              color: #000000 !important;
+              font-family: Arial, sans-serif !important;
+              font-size: 9.5pt !important;
+              line-height: 1.35 !important;
             }
             body * {
               visibility: hidden !important;
-            }
-            .modal-overlay, .modal-card, div {
-              position: static !important;
-              max-height: none !important;
-              overflow: visible !important;
-              background: none !important;
-              box-shadow: none !important;
-              padding: 0 !important;
-              margin: 0 !important;
-              border: none !important;
             }
             #supplier-ledger-print, #supplier-ledger-print * {
               visibility: visible !important;
@@ -91,11 +96,13 @@ export const SupplierLedgerPrintModal = ({ isOpen, onClose, supplier }) => {
               top: 0 !important;
               left: 0 !important;
               width: 100% !important;
-              min-height: 98vh !important;
+              height: auto !important;
               margin: 0 !important;
-              padding: 1.5rem !important;
-              border: 2px solid #000000 !important;
+              padding: 0.65rem !important;
               box-sizing: border-box !important;
+              border: 2px solid #000000 !important;
+              background: #FFFFFF !important;
+              color: #000000 !important;
             }
             .no-print, button, .btn {
               display: none !important;
@@ -130,10 +137,10 @@ export const SupplierLedgerPrintModal = ({ isOpen, onClose, supplier }) => {
           {/* STORE BRANDING HEADER */}
           <div style={{ textAlign: 'center', marginBottom: '1.1rem', borderBottom: '2px solid #000000', paddingBottom: '0.65rem' }}>
             <h2 style={{ fontSize: '1.75rem', fontWeight: 900, margin: 0, textTransform: 'uppercase', letterSpacing: '-0.02em' }}>
-              {STORE_INFO.name}
+              {getStoreInfo().name}
             </h2>
-            <div style={{ fontSize: '0.85rem', fontWeight: 'bold', marginTop: '0.15rem' }}>{STORE_INFO.address}</div>
-            <div style={{ fontSize: '0.8rem', marginTop: '0.1rem' }}>Phone: {STORE_INFO.phone} | STN: {STORE_INFO.stnNumber}</div>
+            <div style={{ fontSize: '0.85rem', fontWeight: 'bold', marginTop: '0.15rem' }}>{getStoreInfo().address}</div>
+            <div style={{ fontSize: '0.8rem', marginTop: '0.1rem' }}>Phone: {getStoreInfo().phone} | STN: {getStoreInfo().stnNumber}</div>
             <div style={{ display: 'inline-block', border: '2px solid #000000', padding: '0.25rem 1.5rem', marginTop: '0.65rem', fontWeight: 900, fontSize: '1.15rem', letterSpacing: '0.03em' }}>
               DISTRIBUTOR LEDGER ACCOUNT STATEMENT
             </div>
@@ -188,6 +195,33 @@ export const SupplierLedgerPrintModal = ({ isOpen, onClose, supplier }) => {
           {/* NET BALANCE FOOTER SUMMARY */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '2px solid #000000', borderBottom: '2px solid #000000', padding: '0.65rem', fontWeight: 'bold', fontSize: '0.95rem' }}>
             <span>NET OUTSTANDING PAYABLE BALANCE: Rs. {Number(supplier.pendingBalance || 0).toLocaleString()}</span>
+          </div>
+
+          {/* OFFICIAL DIGITAL SIGNATURE FOOTER */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '1.5rem', paddingTop: '0.85rem', borderTop: '1px solid #000000', fontSize: '0.75rem' }}>
+            <div>
+              <div>Verified By: <strong>{getStoreInfo().name}</strong></div>
+              <div>Account Statement Date: {new Date().toLocaleDateString('en-PK')}</div>
+            </div>
+            <div style={{ textAlign: 'center', minWidth: '180px' }}>
+              {getStoreInfo().signatureImage ? (
+                <img
+                  src={getStoreInfo().signatureImage}
+                  alt="Digital Signature"
+                  style={{ height: '48px', maxHeight: '55px', maxWidth: '170px', objectFit: 'contain', display: 'block', margin: '0 auto 0.2rem auto' }}
+                />
+              ) : (
+                <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 'bold', fontSize: '1.1rem' }}>
+                  {getStoreInfo().signatoryName || 'M. Idrees'}
+                </div>
+              )}
+              <div style={{ borderTop: '1.5px solid #000000', marginTop: '0.2rem', paddingTop: '0.15rem', fontWeight: 'bold', fontSize: '0.75rem' }}>
+                {getStoreInfo().signatoryName || 'M. Idrees'} ({getStoreInfo().signatoryTitle || 'Managing Director'})
+              </div>
+              <div style={{ fontSize: '0.65rem', color: '#0284C7', fontWeight: 700 }}>
+                ✔ VERIFIED DIGITAL SIGNATURE
+              </div>
+            </div>
           </div>
         </div>
 

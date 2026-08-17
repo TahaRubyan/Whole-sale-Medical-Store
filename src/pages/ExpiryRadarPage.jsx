@@ -2,11 +2,24 @@ import React, { useState } from 'react';
 import { AlertTriangle, Clock, ShieldAlert, FileText, Printer } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
 import { formatDateDDMMYYYY } from '../utils/dateUtils';
-import { STORE_INFO } from '../data/mockData';
+import { getStoreInfo } from '../data/mockData';
 
 export const ExpiryRadarPage = () => {
   const { medicines, batches } = useInventory();
   const [activeTab, setActiveTab] = useState('all'); // 'all' | 'expired' | 'sixMonths'
+
+  const [, setSettingTick] = React.useState(0);
+  React.useEffect(() => {
+    const handleSettingUpdate = () => setSettingTick((t) => t + 1);
+    window.addEventListener('store_info_updated', handleSettingUpdate);
+    window.addEventListener('warranty_config_updated', handleSettingUpdate);
+    window.addEventListener('tax_config_updated', handleSettingUpdate);
+    return () => {
+      window.removeEventListener('store_info_updated', handleSettingUpdate);
+      window.removeEventListener('warranty_config_updated', handleSettingUpdate);
+      window.removeEventListener('tax_config_updated', handleSettingUpdate);
+    };
+  }, []);
 
   const today = new Date();
 
@@ -134,10 +147,10 @@ export const ExpiryRadarPage = () => {
         <div style={{ marginBottom: '1rem', borderBottom: '2px solid #0F172A', paddingBottom: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h2 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0284C7', margin: 0 }}>
-              {STORE_INFO.name} — Medicines Expiry & Audit Report (≤ 6 Months)
+              {getStoreInfo().name} — Medicines Expiry & Audit Report (≤ 6 Months)
             </h2>
             <p style={{ fontSize: '0.775rem', color: '#64748B', margin: '0.2rem 0 0 0' }}>
-              DSL #: {STORE_INFO.dslNumber} | Date Generated: {formatDateDDMMYYYY(new Date())}
+              DSL #: {getStoreInfo().dslNumber} | Date Generated: {formatDateDDMMYYYY(new Date())}
             </p>
           </div>
           <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#DC2626', border: '1px solid #DC2626', padding: '0.35rem 0.65rem', borderRadius: '4px' }}>

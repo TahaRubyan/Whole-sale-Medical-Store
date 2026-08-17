@@ -271,3 +271,72 @@ button, input, select, textarea {
 .table tr:hover td {
   background-color: var(--color-surface-hover);
 }
+
+/* ==========================================================================
+   OFFICIAL A4 PRINT ENGINE CSS (FOR INVOICES, STATEMENTS & EXECUTIVE REPORTS)
+   ========================================================================== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+
+  html, body, #root, .app-container, .main-viewport, .content-area {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Hide non-printable navigation, sidebar, topbar, buttons */
+  .no-print, nav, aside, header, .sidebar, .topbar, button {
+    display: none !important;
+  }
+
+  /* When a print modal is open, hide all background page viewports */
+  body:has(.modal-overlay) .main-viewport > *:not(.modal-overlay),
+  body:has(.modal-overlay) .app-container > *:not(.main-viewport),
+  body:has(.modal-overlay) .content-area > *:not(.modal-overlay) {
+    display: none !important;
+  }
+
+  /* Reset modal overlay flexbox centering to static top-to-bottom page flow */
+  .modal-overlay {
+    position: static !important;
+    background: transparent !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    box-shadow: none !important;
+    z-index: auto !important;
+  }
+
+  .modal-overlay > .card, 
+  .modal-overlay > div {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+  }
+
+  .table-container {
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+  }
+
+  .table th, .table td {
+    color: #000000 !important;
+    border-bottom: 1px solid #000000 !important;
+  }
+}

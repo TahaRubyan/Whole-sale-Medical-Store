@@ -1,11 +1,51 @@
 import React, { useState } from 'react';
 import { useSupplier } from '../../context/SupplierContext';
 import { useInventory } from '../../context/InventoryContext';
+import { useAuth } from '../../context/AuthContext';
 import { Truck, CheckCircle, X, Plus, Trash2, Package } from 'lucide-react';
 import { isWithinSixMonths } from '../../utils/dateUtils';
 import AlertWarningModal from './AlertWarningModal';
 
-export const NewPOModal = ({ isOpen, onClose }) => {
+const PRESET_DISTRIBUTORS = {
+  'SUP-101': {
+    name: 'Muller & Phipps Pakistan',
+    phone: '+92 300 8451122',
+    licenseNo: '09-342-0139-045748D',
+    ntn: '4442705-7',
+    gst: 'PK-1234567-8',
+    fbrStatus: 'ACTIVE FILER',
+    items: [
+      { id: 1, brandName: 'Panadol 500mg Tablet', genericFormula: 'Paracetamol 500mg', batchNumber: 'B26-8841', expiryDate: '2028-12-31', boxes: 10, purchasePriceBox: 480, boxPrice: 600 },
+      { id: 2, brandName: 'Amoxil 500mg Capsule', genericFormula: 'Amoxicillin 500mg', batchNumber: 'B26-9912', expiryDate: '2028-10-30', boxes: 5, purchasePriceBox: 920, boxPrice: 1150 }
+    ]
+  },
+  'SUP-102': {
+    name: 'Premier Agencies Lahore',
+    phone: '+92 321 4455667',
+    licenseNo: '09-342-0139-088912P',
+    ntn: '3277876174544',
+    gst: 'PK-9876543-2',
+    fbrStatus: 'ACTIVE FILER',
+    items: [
+      { id: 1, brandName: 'Augmentin 625mg Tablet', genericFormula: 'Co-Amoxiclav 625mg', batchNumber: 'AUG-2026-44', expiryDate: '2028-11-15', boxes: 8, purchasePriceBox: 1450, boxPrice: 1800 },
+      { id: 2, brandName: 'Arinac Forte Tablet', genericFormula: 'Ibuprofen + Pseudoephedrine', batchNumber: 'ARN-9011', expiryDate: '2028-09-30', boxes: 12, purchasePriceBox: 650, boxPrice: 800 }
+    ]
+  },
+  'SUP-103': {
+    name: 'Fazal Din & Sons Distributors',
+    phone: '+92 333 5566778',
+    licenseNo: '09-342-0139-011245F',
+    ntn: '1123456-9',
+    gst: 'PK-4567890-1',
+    fbrStatus: 'ACTIVE FILER',
+    items: [
+      { id: 1, brandName: 'Brufen 400mg Tablet', genericFormula: 'Ibuprofen 400mg', batchNumber: 'BRF-7741', expiryDate: '2028-08-20', boxes: 15, purchasePriceBox: 380, boxPrice: 480 },
+      { id: 2, brandName: 'Cefim 400mg Capsule', genericFormula: 'Cefixime 400mg', batchNumber: 'CFM-3321', expiryDate: '2028-12-01', boxes: 6, purchasePriceBox: 1600, boxPrice: 2000 }
+    ]
+  }
+};
+
+export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
   const { createPurchaseOrder, generatePONumber, suppliers, addSupplier } = useSupplier();
   const { medicines, setMedicines, setBatches } = useInventory();
 
@@ -33,6 +73,38 @@ export const NewPOModal = ({ isOpen, onClose }) => {
       boxPrice: '',
     }
   ]);
+
+  const loadSupplierPreset = (supId) => {
+    if (!supId) return;
+    const preset = PRESET_DISTRIBUTORS[supId];
+    if (preset) {
+      setDistributorName(preset.name);
+      setSupplierPhone(preset.phone);
+      setSupplierLicenseNo(preset.licenseNo);
+      setSupplierNtn(preset.ntn);
+      setSupplierGst(preset.gst);
+      setSupplierFbrStatus(preset.fbrStatus);
+      if (preset.items && preset.items.length > 0) {
+        setPoItems(preset.items);
+      }
+    } else {
+      const found = suppliers.find((s) => s.id === supId);
+      if (found) {
+        setDistributorName(found.name || found.companyName || '');
+        setSupplierPhone(found.phone || '');
+        setSupplierLicenseNo(found.licenseNo || '09-342-0139-045748D');
+        setSupplierNtn(found.ntn || '3277876174544');
+        setSupplierGst(found.gstin || 'PK-1234567-8');
+        setSupplierFbrStatus(found.fbrStatus || 'ACTIVE FILER');
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    if (isOpen && initialSupplierId) {
+      loadSupplierPreset(initialSupplierId);
+    }
+  }, [isOpen, initialSupplierId]);
 
   if (!isOpen) return null;
 
@@ -71,7 +143,17 @@ export const NewPOModal = ({ isOpen, onClose }) => {
     return sum + (qty * cost);
   }, 0);
 
+  // Warning modal state
   const [warningMsg, setWarningMsg] = useState('');
+
+  // PO Payment Settlement & Supplier Debt Tagging State
+  const [paymentStatusTag, setPaymentStatusTag] = useState('PAID_IN_FULL'); // 'PAID_IN_FULL' | 'DEBT_OWING'
+  const [customAmountPaid, setCustomAmountPaid] = useState('');
+
+  const amountPaidNum = paymentStatusTag === 'PAID_IN_FULL'
+    ? totalOrderValuation
+    : (customAmountPaid !== '' ? Number(customAmountPaid) : 0);
+  const remainingDebtNum = Math.max(0, totalOrderValuation - amountPaidNum);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -103,7 +185,37 @@ export const NewPOModal = ({ isOpen, onClose }) => {
       }
     }
 
-    // 2. Process each inward line item into InventoryContext & SupplierContext
+    // 2. Record Consolidated PO Order in SupplierContext with payment status tag & debt
+    const primaryItem = poItems[0] || {};
+    const poData = {
+      poNumber,
+      distributorName: distributorName.trim(),
+      supplierLicenseNo: supplierLicenseNo.trim(),
+      supplierNtn: supplierNtn.trim(),
+      supplierGst: supplierGst.trim(),
+      supplierFbrStatus: supplierFbrStatus.trim(),
+      supplierPhone: supplierPhone.trim(),
+      inwardDate,
+      brandName: poItems.length === 1 ? primaryItem.brandName : `${primaryItem.brandName} (+${poItems.length - 1} items)`,
+      genericFormula: primaryItem.genericFormula || '',
+      batchNumber: primaryItem.batchNumber || '',
+      expiryDate: primaryItem.expiryDate || '',
+      quantity: poItems.reduce((sum, i) => sum + (Number(i.boxes) || 0), 0),
+      boxPrice: Number(primaryItem.boxPrice) || 0,
+      purchasePriceBox: Number(primaryItem.purchasePriceBox) || 0,
+      totalAmount: totalOrderValuation,
+      amountPaid: amountPaidNum,
+      remainingDebt: remainingDebtNum,
+      paymentStatus: paymentStatusTag,
+      items: poItems,
+      createdBy: user?.name || 'Hassan (Admin)',
+      createdByRole: user?.role || 'Admin',
+      createdAt: new Date().toISOString(),
+    };
+
+    createPurchaseOrder(poData);
+
+    // 3. Stock inward each line item into InventoryContext
     poItems.forEach((item) => {
       const nameStr = (item.brandName || 'Medicine Item').trim();
       const formulaStr = (item.genericFormula || 'Generic Formula').trim();
@@ -113,11 +225,9 @@ export const NewPOModal = ({ isOpen, onClose }) => {
       const costBox = Number(item.purchasePriceBox) || 480;
       const mrpBox = Number(item.boxPrice) || 600;
 
-      // Find or create linked medicine
       let targetMedicine = medicines.find(
         (m) => m.brandName.toLowerCase().trim() === nameStr.toLowerCase()
       );
-
       let targetMedicineId = targetMedicine ? targetMedicine.id : `MED-${Date.now().toString().slice(-4)}`;
 
       if (!targetMedicine) {
@@ -137,35 +247,11 @@ export const NewPOModal = ({ isOpen, onClose }) => {
           requiresPrescription: false,
           barcode: `890${Date.now().toString().slice(-10)}`,
         };
-
         setMedicines((prevMeds) => [targetMedicine, ...prevMeds]);
       }
 
-      // Record PO in SupplierContext
-      const poData = {
-        poNumber,
-        distributorName: distributorName.trim(),
-        supplierLicenseNo: supplierLicenseNo.trim(),
-        supplierNtn: supplierNtn.trim(),
-        supplierGst: supplierGst.trim(),
-        supplierFbrStatus: supplierFbrStatus.trim(),
-        supplierPhone: supplierPhone.trim(),
-        inwardDate,
-        brandName: nameStr,
-        genericFormula: formulaStr,
-        batchNumber: batchStr,
-        expiryDate: expStr,
-        quantity: boxQty,
-        boxPrice: mrpBox,
-        purchasePriceBox: costBox,
-        totalAmount: boxQty * costBox,
-      };
-
-      createPurchaseOrder(poData);
-
-      // Stock inward new batch into InventoryContext
       const newBatch = {
-        id: `BAT-${Date.now().toString().slice(-6)}-${Math.floor(Math.random()*100)}`,
+        id: `BAT-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 100)}`,
         medicineId: targetMedicineId,
         batchNumber: batchStr,
         mfgDate: inwardDate,
@@ -208,8 +294,26 @@ export const NewPOModal = ({ isOpen, onClose }) => {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
           {/* TOP DISTRIBUTOR METADATA & LEGAL TAX REGISTRATION DETAILS */}
           <div style={{ backgroundColor: '#F8FAFC', padding: '0.85rem', borderRadius: '6px', border: '1px solid #CBD5E1', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div style={{ fontSize: '0.825rem', fontWeight: 900, color: '#0369A1' }}>
-              🚚 Distributor / Supplier Legal & Contact Metadata
+            <div style={{ fontSize: '0.825rem', fontWeight: 900, color: '#0369A1', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>🚚 Distributor / Supplier Legal & Contact Metadata</span>
+            </div>
+
+            {/* QUICK SELECT TRUSTED DISTRIBUTOR DROPDOWN */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: '#F0F9FF', padding: '0.65rem 0.85rem', borderRadius: '6px', border: '1.5px solid #0284C7' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0369A1', whiteSpace: 'nowrap' }}>
+                ⭐ Select Trusted Distributor:
+              </span>
+              <select
+                onChange={(e) => loadSupplierPreset(e.target.value)}
+                style={{ flex: 1, padding: '0.4rem', fontSize: '0.85rem', fontWeight: 800, borderRadius: '4px', border: '1px solid #0284C7', backgroundColor: '#FFFFFF', color: '#0F172A', cursor: 'pointer' }}
+              >
+                <option value="">-- Choose Trusted Distributor to Auto-PreFill Details & Stock Items --</option>
+                {Object.keys(PRESET_DISTRIBUTORS).map((supId) => (
+                  <option key={supId} value={supId}>
+                    {PRESET_DISTRIBUTORS[supId].name} ({PRESET_DISTRIBUTORS[supId].phone}) - [Auto Pre-Add License, NTN & Items]
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr 1fr', gap: '0.85rem' }}>
@@ -445,6 +549,62 @@ export const NewPOModal = ({ isOpen, onClose }) => {
                   })}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          {/* PO PAYMENT SETTLEMENT & SUPPLIER DEBT TAGGING CARD */}
+          <div style={{ backgroundColor: '#F0F9FF', border: '1.5px solid #0284C7', padding: '0.85rem 1rem', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <h4 style={{ fontSize: '0.9rem', fontWeight: 900, color: '#0369A1', margin: 0 }}>
+                💳 PO Payment Settlement & Supplier Debt Tagging
+              </h4>
+              <span style={{ fontSize: '0.725rem', color: '#64748B', fontWeight: 700 }}>
+                Tag order as Paid in Full or specify cash deposit & debt owed to distributor
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', alignItems: 'center' }}>
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#334155', display: 'block', marginBottom: '0.2rem' }}>
+                  Payment Status Tag *:
+                </label>
+                <select
+                  value={paymentStatusTag}
+                  onChange={(e) => {
+                    setPaymentStatusTag(e.target.value);
+                    if (e.target.value === 'PAID_IN_FULL') setCustomAmountPaid('');
+                  }}
+                  style={{ width: '100%', padding: '0.45rem', fontSize: '0.825rem', fontWeight: 900, borderRadius: '6px', border: '1.5px solid #0284C7', backgroundColor: '#FFFFFF', color: paymentStatusTag === 'PAID_IN_FULL' ? '#059669' : '#DC2626', cursor: 'pointer' }}
+                >
+                  <option value="PAID_IN_FULL">🟢 Paid in Full (Zero Debt)</option>
+                  <option value="DEBT_OWING">🔴 Debt / Credit (Partial / Unpaid)</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#334155', display: 'block', marginBottom: '0.2rem' }}>
+                  Amount Paid (Rs.) *:
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  disabled={paymentStatusTag === 'PAID_IN_FULL'}
+                  value={paymentStatusTag === 'PAID_IN_FULL' ? totalOrderValuation : customAmountPaid}
+                  onChange={(e) => setCustomAmountPaid(e.target.value)}
+                  placeholder={paymentStatusTag === 'PAID_IN_FULL' ? String(totalOrderValuation) : 'Enter paid amount...'}
+                  style={{ width: '100%', padding: '0.45rem', fontSize: '0.825rem', fontWeight: 900, borderRadius: '6px', border: '1px solid #CBD5E1', backgroundColor: paymentStatusTag === 'PAID_IN_FULL' ? '#F1F5F9' : '#FFFFFF' }}
+                />
+              </div>
+
+              <div style={{ backgroundColor: remainingDebtNum > 0 ? '#FEF2F2' : '#ECFDF5', padding: '0.45rem 0.75rem', borderRadius: '6px', border: remainingDebtNum > 0 ? '1.5px solid #FCA5A5' : '1.5px solid #6EE7B7', textAlign: 'center' }}>
+                <span style={{ fontSize: '0.675rem', fontWeight: 800, color: remainingDebtNum > 0 ? '#991B1B' : '#047857', display: 'block', textTransform: 'uppercase' }}>
+                  {remainingDebtNum > 0 ? 'Debt Added to Supplier' : 'Full Settlement Verified'}
+                </span>
+                <span style={{ fontSize: '1.05rem', fontWeight: 900, color: remainingDebtNum > 0 ? '#DC2626' : '#059669' }}>
+                  Rs. {remainingDebtNum.toLocaleString('en-PK', { minimumFractionDigits: 2 })}
+                </span>
+              </div>
             </div>
           </div>
 

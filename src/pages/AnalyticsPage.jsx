@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { TrendingUp, Search, FileText, CheckCircle, Calendar, Award, ListFilter } from 'lucide-react';
+import { TrendingUp, Search, FileText, CheckCircle, Calendar, Award, ListFilter, ShieldCheck, Download, Printer } from 'lucide-react';
 import { useSales } from '../context/SalesContext';
 import A4InvoicePrintModal from '../components/modals/A4InvoicePrintModal';
 import MarkDebtPaidModal from '../components/modals/MarkDebtPaidModal';
 import AnalyticsReportPrintModal from '../components/modals/AnalyticsReportPrintModal';
+import FbrTaxAuditPrintModal from '../components/modals/FbrTaxAuditPrintModal';
 import { formatDateDDMMYYYY } from '../utils/dateUtils';
 
 export const AnalyticsPage = () => {
@@ -21,6 +22,7 @@ export const AnalyticsPage = () => {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [selectedDebtInvoiceForPayment, setSelectedDebtInvoiceForPayment] = useState(null);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isFbrModalOpen, setIsFbrModalOpen] = useState(false);
 
   const todayStr = new Date().toISOString().split('T')[0];
 
@@ -148,13 +150,67 @@ export const AnalyticsPage = () => {
       dailyMap[dateKey].ordersCount += 1;
       dailyMap[dateKey].totalRevenue += net;
       dailyMap[dateKey].netProfit += (net * 0.25);
-      
       const debtAmount = inv.remainingDebt !== undefined ? Number(inv.remainingDebt) : (inv.paymentStatus === 'UNPAID_CREDIT' ? net : 0);
       dailyMap[dateKey].unpaidDebt += debtAmount;
     });
 
     return Object.values(dailyMap).sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [filteredInvoices]);
+
+  // Compute Redefined FBR Sales Tax Data for Selected Date Period
+  const fbrTaxAuditData = useMemo(() => {
+    const itemMap = {};
+    let totalTaxableSales = 0;
+    let totalSalesTax = 0;
+
+    filteredInvoices.forEach((inv) => {
+      if (inv.items && Array.isArray(inv.items)) {
+        inv.items.forEach((item) => {
+          const brand = item.brandName || 'Medicine Item';
+          const key = brand.toLowerCase().trim();
+          const qty = Number(item.quantity) || 1;
+          const lineTaxable = Number(item.total) || (qty * (item.unitPrice || 480));
+          const lineTax = lineTaxable * 0.18; // Standard 18% FBR Sales Tax
+
+          if (!itemMap[key]) {
+            itemMap[key] = {
+              brandName: brand,
+              genericFormula: item.genericFormula || 'Generic Formula',
+              category: item.category || 'Tablets',
+              quantitySold: 0,
+              taxableSales: 0,
+              salesTax: 0,
+            };
+          }
+
+          itemMap[key].quantitySold += qty;
+          itemMap[key].taxableSales += lineTaxable;
+          itemMap[key].salesTax += lineTax;
+
+          totalTaxableSales += lineTaxable;
+          totalSalesTax += lineTax;
+        });
+      }
+    });
+
+    const itemList = Object.values(itemMap);
+
+    let periodLabel = 'Custom Selected Date Period';
+    if (dateRangePreset === '30DAYS') periodLabel = 'Current Month (30 Days Log)';
+    else if (dateRangePreset === '7DAYS') periodLabel = 'Last 7 Days Sales Tax Log';
+    else if (dateRangePreset === 'TODAY') periodLabel = 'Today Sales Tax Audit';
+    else if (startDate && endDate) periodLabel = `Custom Period (${startDate} to ${endDate})`;
+
+    return {
+      periodLabel,
+      startDate: startDate || '2026-08-01',
+      endDate: endDate || todayStr,
+      items: itemList,
+      totalInvoicesCount: filteredInvoices.length,
+      totalTaxableSales,
+      totalSalesTax,
+    };
+  }, [filteredInvoices, dateRangePreset, startDate, endDate, todayStr]);
 
   const financialSummary = {
     grossSales: totalGrossSales,
@@ -165,56 +221,79 @@ export const AnalyticsPage = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       
-      {/* 1. TOP NAVBAR FOR LOG NAVIGATION TABS (PROMINENT FOR BOOSTED ACCESSIBILITY) */}
-      <div className="card" style={{ padding: '0.65rem 1.25rem', backgroundColor: '#FFFFFF', border: '2px solid #0284C7', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
-        <div style={{ display: 'flex', gap: '0.55rem' }}>
+      {/* 1. TOP NAVBAR FOR ANALYTICS SCREEN TABS */}
+      <div className="card" style={{ padding: '0.5rem 0.85rem', backgroundColor: '#FFFFFF', border: '2px solid #0284C7', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'nowrap', overflowX: 'auto', flex: 1 }}>
           <button
             onClick={() => setActiveTab('DAILY_SUMMARY')}
             style={{
-              padding: '0.55rem 1.25rem',
+              padding: '0.4rem 0.75rem',
               borderRadius: '6px',
               border: 'none',
               backgroundColor: activeTab === 'DAILY_SUMMARY' ? '#0284C7' : '#F1F5F9',
               color: activeTab === 'DAILY_SUMMARY' ? '#FFF' : '#475569',
-              fontWeight: 900,
-              fontSize: '0.9rem',
+              fontWeight: 800,
+              fontSize: '0.775rem',
+              whiteSpace: 'nowrap',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.45rem',
-              boxShadow: activeTab === 'DAILY_SUMMARY' ? '0 2px 6px rgba(2,132,199,0.25)' : 'none'
+              gap: '0.35rem',
+              boxShadow: activeTab === 'DAILY_SUMMARY' ? '0 2px 4px rgba(2,132,199,0.2)' : 'none'
             }}
           >
-            <Calendar size={18} /> Daily Sales Log Summary ({dailySalesSummary.length} Days)
+            <Calendar size={15} /> Daily Sales Log Summary ({dailySalesSummary.length} Days)
           </button>
 
           <button
             onClick={() => setActiveTab('DETAILED_LOG')}
             style={{
-              padding: '0.55rem 1.25rem',
+              padding: '0.4rem 0.75rem',
               borderRadius: '6px',
               border: 'none',
               backgroundColor: activeTab === 'DETAILED_LOG' ? '#0284C7' : '#F1F5F9',
               color: activeTab === 'DETAILED_LOG' ? '#FFF' : '#475569',
-              fontWeight: 900,
-              fontSize: '0.9rem',
+              fontWeight: 800,
+              fontSize: '0.775rem',
+              whiteSpace: 'nowrap',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.45rem',
-              boxShadow: activeTab === 'DETAILED_LOG' ? '0 2px 6px rgba(2,132,199,0.25)' : 'none'
+              gap: '0.35rem',
+              boxShadow: activeTab === 'DETAILED_LOG' ? '0 2px 4px rgba(2,132,199,0.2)' : 'none'
             }}
           >
-            <ListFilter size={18} /> Detailed Sales Transactions Log ({filteredInvoices.length} Invoices)
+            <ListFilter size={15} /> Detailed Sales Transaction Logs ({searchedInvoices.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('FBR_TAX_AUDIT')}
+            style={{
+              padding: '0.4rem 0.75rem',
+              borderRadius: '6px',
+              border: 'none',
+              backgroundColor: activeTab === 'FBR_TAX_AUDIT' ? '#0369A1' : '#F1F5F9',
+              color: activeTab === 'FBR_TAX_AUDIT' ? '#FFF' : '#475569',
+              fontWeight: 800,
+              fontSize: '0.775rem',
+              whiteSpace: 'nowrap',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              boxShadow: activeTab === 'FBR_TAX_AUDIT' ? '0 2px 4px rgba(3,105,161,0.2)' : 'none'
+            }}
+          >
+            <ShieldCheck size={15} /> 🏛️ FBR Sales Tax Audit & Lawyer Report
           </button>
         </div>
 
         <button
           onClick={() => setIsReportModalOpen(true)}
           className="btn btn-primary"
-          style={{ backgroundColor: '#000000', color: '#FFF', fontWeight: 900, fontSize: '0.85rem', padding: '0.55rem 1rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+          style={{ backgroundColor: '#000000', color: '#FFF', fontWeight: 800, fontSize: '0.775rem', padding: '0.4rem 0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}
         >
-          <FileText size={16} /> Export Analytics PDF Report
+          <FileText size={15} /> Export Analytics PDF Report
         </button>
       </div>
 
@@ -504,6 +583,124 @@ export const AnalyticsPage = () => {
             </table>
           </div>
         )}
+
+        {/* TAB 3: REDEFINED FBR SALES TAX AUDIT & LAWYER REPORT */}
+        {activeTab === 'FBR_TAX_AUDIT' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div style={{ backgroundColor: '#F0F9FF', padding: '1.25rem', borderRadius: '8px', border: '1.5px solid #0284C7', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0369A1', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <ShieldCheck size={22} /> Official FBR Sales Tax Audit & Lawyer Report
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: '#475569', margin: '0.2rem 0 0 0' }}>
+                  Itemized sales tax audit schedule and net tax collection totals for tax lawyer submission & FBR filing.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setIsFbrModalOpen(true)}
+                className="btn btn-primary"
+                style={{ backgroundColor: '#0284C7', color: '#FFF', fontWeight: 900, padding: '0.65rem 1.25rem', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.45rem', borderRadius: '6px', border: 'none', boxShadow: '0 4px 6px -1px rgba(2,132,199,0.3)', cursor: 'pointer' }}
+              >
+                <Printer size={16} /> Generate FBR Sales Tax PDF
+              </button>
+            </div>
+
+            {/* FBR TAX SUMMARY CARDS */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.2fr', gap: '1rem' }}>
+              <div className="card" style={{ padding: '1.1rem', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748B' }}>TOTAL INVOICES IN PERIOD</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0F172A', marginTop: '0.25rem' }}>
+                  {fbrTaxAuditData.totalInvoicesCount} Invoice(s)
+                </div>
+                <div style={{ fontSize: '0.725rem', color: '#0284C7', marginTop: '0.35rem', fontWeight: 700 }}>
+                  Period: {fbrTaxAuditData.periodLabel}
+                </div>
+              </div>
+
+              <div className="card" style={{ padding: '1.1rem', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748B' }}>TOTAL TAXABLE SALES REVENUE</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#059669', marginTop: '0.25rem' }}>
+                  Rs. {fbrTaxAuditData.totalTaxableSales.toLocaleString('en-PK', { minimumFractionDigits: 2 })}
+                </div>
+                <div style={{ fontSize: '0.725rem', color: '#475569', marginTop: '0.35rem', fontWeight: 700 }}>
+                  Net sales before tax levy
+                </div>
+              </div>
+
+              <div className="card" style={{ padding: '1.1rem', backgroundColor: '#F0F9FF', border: '2px solid #0284C7' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 900, color: '#0369A1' }}>NET TOTAL SALES TAX COLLECTED (18%)</div>
+                <div style={{ fontSize: '1.65rem', fontWeight: 900, color: '#0284C7', marginTop: '0.25rem' }}>
+                  Rs. {fbrTaxAuditData.totalSalesTax.toLocaleString('en-PK', { minimumFractionDigits: 2 })}
+                </div>
+                <div style={{ fontSize: '0.725rem', color: '#0369A1', marginTop: '0.35rem', fontWeight: 800 }}>
+                  ✔ FBR Sales Tax Return Net Total
+                </div>
+              </div>
+            </div>
+
+            {/* ITEMIZED SALES TAX TABLE */}
+            <div className="card" style={{ padding: '1.25rem', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <h4 style={{ fontSize: '0.95rem', fontWeight: 900, color: '#0F172A', margin: 0 }}>
+                  📋 Itemized Medicine Sales & Sales Tax Breakdown
+                </h4>
+                <div style={{ fontSize: '0.775rem', color: '#64748B', fontWeight: 700 }}>
+                  Items Count: <strong>{fbrTaxAuditData.items.length} Medicine(s)</strong>
+                </div>
+              </div>
+
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.825rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid #CBD5E1', backgroundColor: '#F8FAFC', textAlign: 'left' }}>
+                    <th style={{ padding: '0.6rem 0.5rem' }}>#</th>
+                    <th style={{ padding: '0.6rem 0.5rem' }}>Medicine Brand Name</th>
+                    <th style={{ padding: '0.6rem 0.5rem' }}>Category / Formula</th>
+                    <th style={{ padding: '0.6rem 0.5rem', textAlign: 'center' }}>Sold Quantity (Units)</th>
+                    <th style={{ padding: '0.6rem 0.5rem', textAlign: 'right' }}>Taxable Sales Value</th>
+                    <th style={{ padding: '0.6rem 0.5rem', textAlign: 'right' }}>Sales Tax 18%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {fbrTaxAuditData.items.length > 0 ? (
+                    fbrTaxAuditData.items.map((item, idx) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid #E2E8F0' }}>
+                        <td style={{ padding: '0.55rem 0.5rem', fontWeight: 'bold' }}>{idx + 1}</td>
+                        <td style={{ padding: '0.55rem 0.5rem', fontWeight: 800, color: '#0F172A' }}>{item.brandName}</td>
+                        <td style={{ padding: '0.55rem 0.5rem', color: '#64748B' }}>{item.genericFormula}</td>
+                        <td style={{ padding: '0.55rem 0.5rem', textAlign: 'center', fontWeight: 800, color: '#0284C7' }}>{item.quantitySold}</td>
+                        <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', fontWeight: 700 }}>Rs. {item.taxableSales.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
+                        <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', fontWeight: 900, color: '#0369A1' }}>Rs. {item.salesTax.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#94A3B8' }}>
+                        No items sold during the selected date period.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+                {fbrTaxAuditData.items.length > 0 && (
+                  <tfoot>
+                    <tr style={{ borderTop: '2px solid #0F172A', fontWeight: 900, backgroundColor: '#F1F5F9' }}>
+                      <td colSpan="3" style={{ padding: '0.75rem 0.5rem' }}>GRAND TOTAL PERIOD SALES TAX:</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'center', color: '#0284C7' }}>
+                        {fbrTaxAuditData.items.reduce((sum, i) => sum + i.quantitySold, 0)} Units
+                      </td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>
+                        Rs. {fbrTaxAuditData.totalTaxableSales.toLocaleString('en-PK', { minimumFractionDigits: 2 })}
+                      </td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', color: '#0284C7', fontSize: '0.95rem' }}>
+                        Rs. {fbrTaxAuditData.totalSalesTax.toLocaleString('en-PK', { minimumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* A4 Invoice Modal */}
@@ -533,6 +730,15 @@ export const AnalyticsPage = () => {
           endDate={endDate}
           topSellingMedicines={top5SellingMedicines}
           financialSummary={financialSummary}
+        />
+      )}
+
+      {/* FBR Tax Audit Printable PDF Modal */}
+      {isFbrModalOpen && (
+        <FbrTaxAuditPrintModal
+          isOpen={isFbrModalOpen}
+          onClose={() => setIsFbrModalOpen(false)}
+          auditData={fbrTaxAuditData}
         />
       )}
     </div>

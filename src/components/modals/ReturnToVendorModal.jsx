@@ -1,243 +1,251 @@
 import React, { useState } from 'react';
 import { useSupplier } from '../../context/SupplierContext';
 import { useInventory } from '../../context/InventoryContext';
-import { RotateCcw, Plus, Trash2, X, CheckCircle, AlertTriangle } from 'lucide-react';
+import { RotateCcw, X, CheckCircle, Package, AlertTriangle } from 'lucide-react';
+import { formatDateDDMMYYYY } from '../../utils/dateUtils';
 
-export const ReturnToVendorModal = ({ isOpen, supplier, onClose }) => {
-  const { createReturnToVendor, generateRTVNumber } = useSupplier();
-  const { medicines, batches } = useInventory();
+export const ReturnToVendorModal = ({ isOpen, onClose, initialSupplier, onSuccessPrint }) => {
+  const { suppliers, createRtvNote, generateRTVNumber } = useSupplier();
+  const { medicines, batches, setBatches } = useInventory();
 
   const [rtvNumber] = useState(generateRTVNumber());
-  const [date] = useState(new Date().toISOString().split('T')[0]);
-  const [reason, setReason] = useState('Damaged / Near Expiry Return');
-  const [items, setItems] = useState([]);
-  
-  const [selectedMedicineId, setSelectedMedicineId] = useState(medicines[0]?.id || '');
-  const [selectedBatchNumber, setSelectedBatchNumber] = useState('');
-  const [quantity, setQuantity] = useState(1);
+  const [selectedSupplierId, setSelectedSupplierId] = useState(initialSupplier?.id || '');
+  const [selectedBatchId, setSelectedBatchId] = useState('');
+  const [returnedBoxes, setReturnedBoxes] = useState(1);
+  const [customRefundAmount, setCustomRefundAmount] = useState('');
+  const [reason, setReason] = useState('Near Expiry Stock Return to Distributor');
 
-  const [message, setMessage] = useState(null);
+  if (!isOpen) return null;
 
-  if (!isOpen || !supplier) return null;
+  // Selected Supplier
+  const selectedSupplier = suppliers.find((s) => s.id === selectedSupplierId) || initialSupplier || suppliers[0];
 
-  const currentMedicineBatches = batches.filter((b) => b.medicineId === selectedMedicineId && b.totalTabletsAvailable > 0);
-
-  const handleAddItem = () => {
-    if (!selectedBatchNumber) {
-      setMessage({ type: 'error', text: 'Please select an active batch to return' });
-      return;
+  // Filter batches for selected supplier (or all active batches)
+  const availableBatches = batches.filter((b) => {
+    if (b.status === 'Quarantined' || (b.totalBoxesAvailable <= 0 && b.totalTabletsAvailable <= 0)) return false;
+    if (selectedSupplier) {
+      const sName = (selectedSupplier.companyName || selectedSupplier.name || '').toLowerCase().trim();
+      const bDist = (b.distributorName || '').toLowerCase().trim();
+      return bDist.includes(sName) || sName.includes(bDist) || true; // Fallback to all batches
     }
-    const med = medicines.find((m) => m.id === selectedMedicineId);
-    const bat = batches.find((b) => b.medicineId === selectedMedicineId && b.batchNumber === selectedBatchNumber);
+    return true;
+  });
 
-    const qty = Number(quantity);
-    const unitPrice = bat ? bat.boxPrice : 500;
+  const selectedBatch = batches.find((b) => b.id === selectedBatchId) || availableBatches[0];
+  const linkedMedicine = selectedBatch ? medicines.find((m) => m.id === selectedBatch.medicineId) : null;
 
-    const newItem = {
-      id: Date.now(),
-      medicineId: selectedMedicineId,
-      brandName: med ? med.brandName : 'Medicine',
-      batchNumber: selectedBatchNumber,
-      expiryDate: bat ? bat.expiryDate : '2028-12-31',
-      quantity: qty,
-      unitPrice,
-      totalAmount: qty * unitPrice,
-    };
+  const maxBoxesAvailable = selectedBatch ? (selectedBatch.totalBoxesAvailable || Math.floor((selectedBatch.totalTabletsAvailable || 0) / (linkedMedicine?.tabletsPerBox || 20))) : 0;
+  const suggestedRefund = selectedBatch ? (Number(returnedBoxes) * (Number(selectedBatch.purchasePriceBox) || 480)) : 0;
+  const finalRefundAmount = customRefundAmount !== '' ? Number(customRefundAmount) : suggestedRefund;
 
-    setItems([...items, newItem]);
-    setMessage(null);
-  };
-
-  const handleRemoveItem = (id) => {
-    setItems(items.filter((i) => i.id !== id));
-  };
-
-  const totalDeduction = items.reduce((sum, i) => sum + i.totalAmount, 0);
-
-  const handleSubmitRTV = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (items.length === 0) {
-      setMessage({ type: 'error', text: 'An RTV Note must have at least 1 item to return' });
+    if (!selectedBatch) return;
+
+    const qty = Number(returnedBoxes) || 1;
+    if (qty > maxBoxesAvailable) {
+      alert(`Cannot return ${qty} boxes. Only ${maxBoxesAvailable} boxes available in batch stock!`);
       return;
     }
 
-    createReturnToVendor({
+    const brandName = linkedMedicine?.brandName || selectedBatch.medicineName || 'Medicine';
+    const genericFormula = linkedMedicine?.genericFormula || '';
+    const distName = selectedSupplier?.companyName || selectedSupplier?.name || selectedBatch.distributorName || 'Pharma Distributor';
+
+    // 1. Record RTV Debit Note in SupplierContext (Reduces supplier balance & logs credit)
+    const rtvRecord = createRtvNote({
       rtvNumber,
-      supplierId: supplier.id,
-      supplierName: supplier.companyName,
-      date,
+      distributorName: distName,
+      supplierId: selectedSupplier?.id || '',
+      brandName,
+      genericFormula,
+      batchNumber: selectedBatch.batchNumber,
+      expiryDate: selectedBatch.expiryDate,
+      returnedBoxes: qty,
+      agreedRefundAmount: finalRefundAmount,
       reason,
-      items,
-      totalDeduction,
     });
 
-    setMessage({
-      type: 'success',
-      text: `RTV Debit Note ${rtvNumber} generated! Amount logged to Vendor Refund Ledger.`
-    });
-    setTimeout(() => {
-      onClose();
-    }, 1200);
+    // 2. Deduct returned stock from InventoryContext batch
+    setBatches((prevBatches) =>
+      prevBatches.map((b) => {
+        if (b.id === selectedBatch.id) {
+          const newBoxes = Math.max(0, (b.totalBoxesAvailable || 0) - qty);
+          const tblsPerBox = linkedMedicine?.tabletsPerBox || 200;
+          const newTablets = Math.max(0, (b.totalTabletsAvailable || 0) - (qty * tblsPerBox));
+          return {
+            ...b,
+            totalBoxesAvailable: newBoxes,
+            totalTabletsAvailable: newTablets,
+            status: newBoxes === 0 ? 'Depleted' : b.status,
+          };
+        }
+        return b;
+      })
+    );
+
+    onClose();
+
+    // 3. Trigger printable A4 RTV Debit Note Invoice Modal
+    if (onSuccessPrint) {
+      onSuccessPrint(rtvRecord);
+    }
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-      <div className="card" style={{ width: '92%', maxWidth: '850px', maxHeight: '90vh', overflowY: 'auto', padding: '1.5rem', position: 'relative', backgroundColor: '#FFFFFF', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
-        <button onClick={onClose} style={{ position: 'absolute', right: '1rem', top: '1rem', background: 'none', border: 'none', cursor: 'pointer' }}>
-          <X size={20} />
-        </button>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-          <RotateCcw size={24} color="#EF4444" />
-          <div>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#1F2937', margin: 0 }}>
-              Return to Vendor (RTV) Debit Note Generator
-            </h2>
-            <div style={{ fontSize: '0.8rem', color: '#64748B' }}>
-              Distributor: <strong>{supplier.companyName}</strong> | RTV Note #: <span style={{ fontFamily: 'monospace', fontWeight: 'bold', color: '#EF4444' }}>{rtvNumber}</span>
+    <div className="modal-overlay" style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+      <div className="card" style={{ width: '680px', maxWidth: '94vw', maxHeight: '90vh', overflowY: 'auto', padding: '1.5rem', backgroundColor: '#FFFFFF', borderRadius: '12px' }}>
+        
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '2px solid #E2E8F0', paddingBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ width: '42px', height: '42px', borderRadius: '10px', backgroundColor: '#FEF2F2', color: '#DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <RotateCcw size={24} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0F172A', margin: 0 }}>
+                Return Near-Expiry Stock to Distributor (RTV Debit Note)
+              </h2>
+              <p style={{ fontSize: '0.775rem', color: '#64748B', margin: '0.15rem 0 0 0' }}>
+                Ref #: <strong style={{ color: '#0284C7' }}>{rtvNumber}</strong> | Deducts inventory & credits supplier ledger balance
+              </p>
             </div>
           </div>
+          <button onClick={onClose} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#64748B' }}>
+            <X size={22} />
+          </button>
         </div>
 
-        {message && (
-          <div style={{
-            backgroundColor: message.type === 'success' ? '#F0FDF4' : '#FEF2F2',
-            border: `1px solid ${message.type === 'success' ? '#86EFAC' : '#FCA5A5'}`,
-            color: message.type === 'success' ? '#166534' : '#991B1B',
-            padding: '0.65rem 0.85rem',
-            borderRadius: '6px',
-            fontSize: '0.85rem',
-            fontWeight: 700,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            marginBottom: '1rem'
-          }}>
-            {message.type === 'success' ? <CheckCircle size={18} color="#059669" /> : <AlertTriangle size={18} color="#EF4444" />}
-            <span>{message.text}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmitRTV} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          
+          {/* Target Distributor Selector */}
           <div>
-            <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.2rem' }}>Reason for Return:</label>
-            <input
-              type="text"
-              placeholder="e.g. Near Expiry Stock / Damaged Box Dispatched"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-border)', fontWeight: 700 }}
+            <label style={{ fontSize: '0.8rem', fontWeight: 800, color: '#334155', display: 'block', marginBottom: '0.25rem' }}>
+              Target Pharma Distributor / Supplier *:
+            </label>
+            <select
+              value={selectedSupplierId}
+              onChange={(e) => setSelectedSupplierId(e.target.value)}
+              style={{ width: '100%', padding: '0.55rem', fontSize: '0.875rem', fontWeight: 800, borderRadius: '6px', border: '1.5px solid #0284C7', backgroundColor: '#FFFFFF' }}
               required
-            />
+            >
+              {suppliers.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.companyName || s.name} (License #: {s.licenseNo || 'N/A'}) - [Due Debt: Rs. {Number(s.pendingBalance || 0).toLocaleString('en-PK')}]
+                </option>
+              ))}
+            </select>
           </div>
 
-          <div style={{ backgroundColor: '#FEF2F2', border: '1px solid #FCA5A5', padding: '0.85rem', borderRadius: '6px', display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr auto', gap: '0.5rem', alignItems: 'flex-end' }}>
-            <div>
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, display: 'block' }}>Select Medicine:</label>
-              <select
-                value={selectedMedicineId}
-                onChange={(e) => {
-                  setSelectedMedicineId(e.target.value);
-                  setSelectedBatchNumber('');
-                }}
-                style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--color-border)', fontWeight: 700 }}
-              >
-                {medicines.map((m) => (
-                  <option key={m.id} value={m.id}>{m.brandName}</option>
-                ))}
-              </select>
-            </div>
+          {/* Near-Expiry Batch Picker */}
+          <div>
+            <label style={{ fontSize: '0.8rem', fontWeight: 800, color: '#334155', display: 'block', marginBottom: '0.25rem' }}>
+              Select Near-Expiry / Target Inventory Batch *:
+            </label>
+            <select
+              value={selectedBatchId || (availableBatches[0] && availableBatches[0].id)}
+              onChange={(e) => setSelectedBatchId(e.target.value)}
+              style={{ width: '100%', padding: '0.55rem', fontSize: '0.875rem', fontWeight: 800, borderRadius: '6px', border: '1.5px solid #0284C7', backgroundColor: '#FFFFFF' }}
+              required
+            >
+              {availableBatches.map((b) => {
+                const med = medicines.find((m) => m.id === b.medicineId);
+                return (
+                  <option key={b.id} value={b.id}>
+                    {med?.brandName || 'Medicine'} — Batch: {b.batchNumber} (Exp: {formatDateDDMMYYYY(b.expiryDate)}) | Available: {b.totalBoxesAvailable} Boxes
+                  </option>
+                );
+              })}
+            </select>
+          </div>
 
-            <div>
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, display: 'block' }}>Select Batch #:</label>
-              <select
-                value={selectedBatchNumber}
-                onChange={(e) => setSelectedBatchNumber(e.target.value)}
-                style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--color-border)', fontWeight: 700 }}
-              >
-                <option value="">-- Choose Batch --</option>
-                {currentMedicineBatches.map((b) => (
-                  <option key={b.id} value={b.batchNumber}>{b.batchNumber} (Exp: {b.expiryDate})</option>
-                ))}
-              </select>
+          {/* Batch Details Card */}
+          {selectedBatch && (
+            <div style={{ backgroundColor: '#FFFBEB', border: '1.5px solid #F59E0B', padding: '0.75rem 1rem', borderRadius: '6px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+              <div>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#B45309', display: 'block' }}>SELECTED MEDICINE:</span>
+                <strong style={{ fontSize: '0.9rem', color: '#92400E' }}>{linkedMedicine?.brandName || selectedBatch.medicineName}</strong>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#B45309', display: 'block' }}>BATCH & EXPIRY:</span>
+                <strong style={{ fontSize: '0.85rem', color: '#92400E' }}>{selectedBatch.batchNumber} ({formatDateDDMMYYYY(selectedBatch.expiryDate)})</strong>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#B45309', display: 'block' }}>STOCK AVAILABLE:</span>
+                <strong style={{ fontSize: '0.9rem', color: '#D97706' }}>{maxBoxesAvailable} Boxes</strong>
+              </div>
             </div>
+          )}
 
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
+            {/* Returned Boxes Input */}
             <div>
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, display: 'block' }}>Return Qty (Boxes):</label>
+              <label style={{ fontSize: '0.8rem', fontWeight: 800, color: '#334155', display: 'block', marginBottom: '0.25rem' }}>
+                Returned Boxes Quantity *:
+              </label>
               <input
                 type="number"
                 min="1"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                style={{ width: '100%', padding: '0.4rem', borderRadius: '4px', border: '1px solid var(--color-border)', fontWeight: 800 }}
+                max={maxBoxesAvailable || 9999}
+                value={returnedBoxes}
+                onChange={(e) => setReturnedBoxes(Math.max(1, Number(e.target.value)))}
+                style={{ width: '100%', padding: '0.5rem', fontSize: '0.9rem', fontWeight: 900, borderRadius: '6px', border: '1px solid #CBD5E1' }}
+                required
               />
             </div>
 
-            <button
-              type="button"
-              onClick={handleAddItem}
-              className="btn btn-primary"
-              style={{ padding: '0.45rem 0.85rem', backgroundColor: '#EF4444', color: '#FFF', fontWeight: 800 }}
-            >
-              <Plus size={14} /> Add Return Line
-            </button>
-          </div>
-
-          <div className="table-container">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Sr.</th>
-                  <th>Item Name</th>
-                  <th>Batch #</th>
-                  <th>Expiry Date</th>
-                  <th style={{ textAlign: 'center' }}>Qty (Boxes)</th>
-                  <th style={{ textAlign: 'right' }}>Box Rate</th>
-                  <th style={{ textAlign: 'right' }}>Deduction Total</th>
-                  <th style={{ textAlign: 'right' }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, idx) => (
-                  <tr key={item.id}>
-                    <td>{idx + 1}</td>
-                    <td style={{ fontWeight: 800 }}>{item.brandName}</td>
-                    <td style={{ fontFamily: 'monospace' }}>{item.batchNumber}</td>
-                    <td>{item.expiryDate}</td>
-                    <td style={{ textAlign: 'center', fontWeight: 800 }}>{item.quantity}</td>
-                    <td style={{ textAlign: 'right' }}>Rs. {Number(item.unitPrice).toFixed(2)}</td>
-                    <td style={{ textAlign: 'right', fontWeight: 800, color: '#EF4444' }}>
-                      Rs. {Number(item.totalAmount).toFixed(2)}
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveItem(item.id)}
-                        style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer' }}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '2px solid #E2E8F0', paddingTop: '0.85rem' }}>
-            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#1F2937' }}>
-              Total RTV Deduction Amount: <span style={{ color: '#EF4444' }}>Rs. {totalDeduction.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</span>
+            {/* Custom Refund Amount Input (User Specified) */}
+            <div>
+              <label style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0369A1', display: 'block', marginBottom: '0.25rem' }}>
+                Agreed Refund / Credit Amount (Rs.) *:
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={customRefundAmount !== '' ? customRefundAmount : suggestedRefund}
+                onChange={(e) => setCustomRefundAmount(e.target.value)}
+                placeholder={`Suggested: Rs. ${suggestedRefund.toFixed(2)}`}
+                style={{ width: '100%', padding: '0.5rem', fontSize: '0.9rem', fontWeight: 900, color: '#059669', borderRadius: '6px', border: '1.5px solid #059669', backgroundColor: '#ECFDF5' }}
+                required
+              />
             </div>
+          </div>
 
-            <button
-              type="submit"
-              className="btn btn-primary"
-              style={{ padding: '0.75rem 1.5rem', fontWeight: 900, backgroundColor: '#EF4444', color: '#FFF' }}
-            >
-              [Generate & Log RTV Debit Note]
+          {/* Reason for Return */}
+          <div>
+            <label style={{ fontSize: '0.8rem', fontWeight: 800, color: '#334155', display: 'block', marginBottom: '0.25rem' }}>
+              Reason for Return / Debit Note Notes:
+            </label>
+            <input
+              type="text"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="e.g. Near Expiry Stock Return to Distributor"
+              style={{ width: '100%', padding: '0.5rem', fontSize: '0.85rem', fontWeight: 700, borderRadius: '6px', border: '1px solid #CBD5E1' }}
+            />
+          </div>
+
+          {/* Return Summary Bar */}
+          <div style={{ backgroundColor: '#FEF2F2', border: '1.5px solid #FCA5A5', padding: '0.75rem 1rem', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#991B1B' }}>TOTAL RTV DEBIT NOTE CREDIT VALUE:</span>
+            <span style={{ fontSize: '1.3rem', fontWeight: 900, color: '#DC2626' }}>
+              Rs. {Number(finalRefundAmount).toLocaleString('en-PK', { minimumFractionDigits: 2 })}
+            </span>
+          </div>
+
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+            <button type="button" onClick={onClose} className="btn btn-outline" style={{ flex: 1 }}>
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary" style={{ flex: 2, backgroundColor: '#DC2626', color: '#FFF', fontWeight: 900, fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', border: 'none' }}>
+              <CheckCircle size={18} /> [Process RTV & Print Debit Note PDF]
             </button>
           </div>
+
         </form>
+
       </div>
     </div>
   );

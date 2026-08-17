@@ -36,9 +36,15 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem('pharmalink_pos_cust', customerName);
   }, [customerName]);
 
+  const [taxConfigVersion, setTaxConfigVersion] = useState(0);
+
   useEffect(() => {
-    localStorage.setItem('pharmalink_pos_doc', doctorName);
-  }, [doctorName]);
+    const handleTaxUpdate = () => {
+      setTaxConfigVersion((v) => v + 1);
+    };
+    window.addEventListener('tax_config_updated', handleTaxUpdate);
+    return () => window.removeEventListener('tax_config_updated', handleTaxUpdate);
+  }, []);
 
   const addToCart = (medicine, batch, unitSelection = 'Box') => {
     const currentGlobalTaxes = getTaxConfig();
@@ -227,17 +233,20 @@ export const CartProvider = ({ children }) => {
       tendered,
       change,
     };
-  }, [cart, discountType, discountValue, cashTendered]);
+  }, [cart, discountType, discountValue, cashTendered, taxConfigVersion]);
 
   const processCheckout = (extraDetails = {}) => {
     if (cart.length === 0) {
       return false;
     }
 
-    const invoiceNo = `DJ-${Math.floor(1000000 + Math.random() * 9000000)}`;
-    const saleOrderNo = `0${Math.floor(100000 + Math.random() * 900000)}`;
-    const dssId = `${Math.floor(1000000 + Math.random() * 9000000)}`;
+    const details = extraDetails || {};
     const now = new Date();
+    const dateTag = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}`;
+    const uniqueSeq = `${Date.now().toString().slice(-4)}${Math.floor(10 + Math.random() * 90)}`;
+    const invoiceNo = `INV-${dateTag}-${uniqueSeq}`;
+    const saleOrderNo = `SO-${dateTag}-${uniqueSeq}`;
+    const dssId = `DSS-${dateTag}-${uniqueSeq}`;
     const todayFormatted = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
 
     const saleRecord = {
@@ -248,23 +257,23 @@ export const CartProvider = ({ children }) => {
       time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       saleOrderType: 'REGULAR',
       cashierName: 'Husnain Ali',
-      customerName: extraDetails.customerName !== undefined ? extraDetails.customerName : customerName,
-      region: extraDetails.region !== undefined ? extraDetails.region : '',
-      customerPhone: extraDetails.customerPhone !== undefined ? extraDetails.customerPhone : '',
-      customerAddress: extraDetails.address !== undefined ? extraDetails.address : '',
-      customerLicenseNo: extraDetails.customerLicenseNo !== undefined ? extraDetails.customerLicenseNo : '',
-      customerNtn: extraDetails.customerNtn !== undefined ? extraDetails.customerNtn : '',
-      customerGst: extraDetails.customerGst !== undefined ? extraDetails.customerGst : '',
-      fbrStatus: extraDetails.fbrStatus !== undefined ? extraDetails.fbrStatus : '',
-      bookingMan: extraDetails.bookingMan !== undefined ? extraDetails.bookingMan : '',
-      referenceNo: extraDetails.referenceNo !== undefined ? extraDetails.referenceNo : '',
-      deliveryMan: extraDetails.deliveryMan !== undefined ? extraDetails.deliveryMan : '',
-      shipTo: extraDetails.shipTo !== undefined ? extraDetails.shipTo : '',
-      paymentStatus: extraDetails.paymentStatus || 'UNPAID_CREDIT',
-      remainingDebt: extraDetails.paymentStatus === 'PAID' ? 0 : calculations.netTotal,
-      paymentLogs: extraDetails.paymentStatus === 'PAID' ? [{ date: todayFormatted, time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), amountPaid: calculations.netTotal, paymentMode: 'Cash', note: 'Counter Full Settlement', remainingDebtAfter: 0 }] : [],
-      includeDrugActWarranty: extraDetails.includeDrugActWarranty !== undefined ? extraDetails.includeDrugActWarranty : true,
-      includeDrapWarranty: extraDetails.includeDrapWarranty !== undefined ? extraDetails.includeDrapWarranty : true,
+      customerName: details.customerName !== undefined ? details.customerName : customerName,
+      region: details.region !== undefined ? details.region : '',
+      customerPhone: details.customerPhone !== undefined ? details.customerPhone : '',
+      customerAddress: details.address !== undefined ? details.address : '',
+      customerLicenseNo: details.customerLicenseNo !== undefined ? details.customerLicenseNo : '',
+      customerNtn: details.customerNtn !== undefined ? details.customerNtn : '',
+      customerGst: details.customerGst !== undefined ? details.customerGst : '',
+      fbrStatus: details.fbrStatus !== undefined ? details.fbrStatus : '',
+      bookingMan: details.bookingMan !== undefined ? details.bookingMan : '',
+      referenceNo: details.referenceNo !== undefined ? details.referenceNo : '',
+      deliveryMan: details.deliveryMan !== undefined ? details.deliveryMan : '',
+      shipTo: details.shipTo !== undefined ? details.shipTo : '',
+      paymentStatus: details.paymentStatus || 'UNPAID_CREDIT',
+      remainingDebt: details.paymentStatus === 'PAID' ? 0 : calculations.netTotal,
+      paymentLogs: details.paymentStatus === 'PAID' ? [{ date: todayFormatted, time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), amountPaid: calculations.netTotal, paymentMode: 'Cash', note: 'Counter Full Settlement', remainingDebtAfter: 0 }] : [],
+      includeDrugActWarranty: details.includeDrugActWarranty !== undefined ? details.includeDrugActWarranty : true,
+      includeDrapWarranty: details.includeDrapWarranty !== undefined ? details.includeDrapWarranty : true,
       items: [...cart],
       grossSubtotal: calculations.grossSubtotal,
       subtotal: calculations.subtotal,

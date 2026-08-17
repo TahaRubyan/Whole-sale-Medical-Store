@@ -1,17 +1,25 @@
 import React, { useState } from 'react';
-import { Settings, Store, Printer, Users, Save, ShieldCheck, Calculator, CheckCircle, Plus, UserPlus, Trash2 } from 'lucide-react';
+import { Settings, Store, Printer, Users, Save, ShieldCheck, Calculator, CheckCircle, Plus, UserPlus, Trash2, Upload, Download, Image as ImageIcon, RotateCcw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { getTaxConfig, getWarrantyConfig } from '../data/mockData';
+import { getTaxConfig, getWarrantyConfig, getStoreInfo, STORE_INFO } from '../data/mockData';
 
 export const SettingsPage = () => {
   const { isCashier, staffAccounts, setStaffAccounts } = useAuth();
   const [activeTab, setActiveTab] = useState('PROFILE');
 
-  // Store Profile State
-  const [storeName, setStoreName] = useState('Idrees Medical Store');
-  const [form20, setForm20] = useState('09-342-0139-045748D');
-  const [form21, setForm21] = useState('09-342-0139-045748D');
-  const [gstin, setGstin] = useState('3277876174544');
+  // Store Profile & Digital Signature State
+  const initialStoreInfo = getStoreInfo();
+  const [storeName, setStoreName] = useState(initialStoreInfo.name || 'Idrees Medical Store');
+  const [storeAddress, setStoreAddress] = useState(initialStoreInfo.address || 'Jalal Pur Jattan, Gujrat');
+  const [storePhone, setStorePhone] = useState(initialStoreInfo.phone || '053-3724601, 053-3724602');
+  const [stnNumber, setStnNumber] = useState(initialStoreInfo.stnNumber || '3277876174544');
+  const [ntnNumber, setNtnNumber] = useState(initialStoreInfo.ntnNumber || '4442705-7');
+  const [form20, setForm20] = useState(initialStoreInfo.dslNumber || '09-342-0139-045748D');
+  const [form21, setForm21] = useState(initialStoreInfo.dlNumber || '09-342-0139-045748D');
+  const [gstin, setGstin] = useState(initialStoreInfo.gstin || '3277876174544');
+  const [signatoryName, setSignatoryName] = useState(initialStoreInfo.signatoryName || 'M. Idrees');
+  const [signatoryTitle, setSignatoryTitle] = useState(initialStoreInfo.signatoryTitle || 'Managing Director / Authorized Signatory');
+  const [signatureImage, setSignatureImage] = useState(initialStoreInfo.signatureImage || STORE_INFO.signatureImage || '');
   const [printerWidth, setPrinterWidth] = useState('80mm');
 
   // System-Wide Taxes State with Toggle Checkboxes
@@ -19,10 +27,6 @@ export const SettingsPage = () => {
   const [enableSaleTax, setEnableSaleTax] = useState(initialTaxes.enableSaleTax !== false);
   const [saleTaxPercent, setSaleTaxPercent] = useState(initialTaxes.saleTaxPercent || 18);
   const [saleTaxName, setSaleTaxName] = useState(initialTaxes.saleTaxName || 'Sale Tax 18%');
-
-  const [enableAdTax, setEnableAdTax] = useState(initialTaxes.enableAdTax !== false);
-  const [adTaxPercent, setAdTaxPercent] = useState(initialTaxes.adTaxPercent || 4);
-  const [adTaxName, setAdTaxName] = useState(initialTaxes.adTaxName || 'AdTax 4%');
 
   const [enableAdvTax, setEnableAdvTax] = useState(initialTaxes.enableAdvTax !== false);
   const [advTaxPercent, setAdvTaxPercent] = useState(initialTaxes.advTaxPercent || 0.5);
@@ -54,9 +58,40 @@ export const SettingsPage = () => {
     }, 3500);
   };
 
+  const handleSignatureUpload = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSignatureImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleResetDefaultSignature = () => {
+    setSignatureImage(STORE_INFO.signatureImage || '');
+  };
+
   const handleSaveProfile = (e) => {
     e.preventDefault();
-    showSaveSuccess('Pharmacy Store Profile & Licensing settings saved successfully!');
+    const info = {
+      ...initialStoreInfo,
+      name: storeName.trim(),
+      address: storeAddress.trim(),
+      phone: storePhone.trim(),
+      stnNumber: stnNumber.trim(),
+      ntnNumber: ntnNumber.trim(),
+      dslNumber: form20.trim(),
+      dlNumber: form21.trim(),
+      gstin: gstin.trim() || stnNumber.trim(),
+      signatoryName: signatoryName.trim(),
+      signatoryTitle: signatoryTitle.trim(),
+      signatureImage,
+    };
+    localStorage.setItem('pharmalink_store_info', JSON.stringify(info));
+    window.dispatchEvent(new Event('store_info_updated'));
+    showSaveSuccess('Pharmacy Store Profile & Digital Signature PNG saved successfully!');
   };
 
   const handleSaveTaxes = (e) => {
@@ -65,14 +100,15 @@ export const SettingsPage = () => {
       enableSaleTax,
       saleTaxPercent: Number(saleTaxPercent) || 0,
       saleTaxName: saleTaxName.trim() || 'Sale Tax 18%',
-      enableAdTax,
-      adTaxPercent: Number(adTaxPercent) || 0,
-      adTaxName: adTaxName.trim() || 'AdTax 4%',
+      enableAdTax: false,
+      adTaxPercent: 0,
+      adTaxName: '',
       enableAdvTax,
       advTaxPercent: Number(advTaxPercent) || 0,
       advTaxName: advTaxName.trim() || 'Adv Tax 0.5%',
     };
     localStorage.setItem('pharmalink_tax_config', JSON.stringify(taxConfig));
+    window.dispatchEvent(new Event('tax_config_updated'));
     showSaveSuccess('System-Wide Global Tax Checkboxes & Percentage Configuration saved successfully!');
   };
 
@@ -86,6 +122,7 @@ export const SettingsPage = () => {
       noteItems: [note1, note2, note3, note4].filter(Boolean),
     };
     localStorage.setItem('pharmalink_warranty_config', JSON.stringify(warrantyConfig));
+    window.dispatchEvent(new Event('warranty_config_updated'));
     showSaveSuccess('Legal Warranty Checkboxes & Invoice Notes updated successfully!');
   };
 
@@ -186,14 +223,76 @@ export const SettingsPage = () => {
         <form onSubmit={handleSaveProfile} className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <h3 style={{ fontSize: '1rem', fontWeight: 900, color: '#0369A1' }}>Wholesale Pharmacy Profile</h3>
           
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.2rem' }}>Store / Pharmacy Trade Name *:</label>
+              <input
+                type="text"
+                value={storeName}
+                onChange={(e) => setStoreName(e.target.value)}
+                style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-border)', fontWeight: 700 }}
+                required
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.2rem' }}>Contact Phone Number(s) *:</label>
+              <input
+                type="text"
+                value={storePhone}
+                onChange={(e) => setStorePhone(e.target.value)}
+                placeholder="e.g. 053-3724601, 053-3724602"
+                style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-border)', fontWeight: 700 }}
+                required
+              />
+            </div>
+          </div>
+
           <div>
-            <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.2rem' }}>Store Name:</label>
+            <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.2rem' }}>Full Business & Store Address *:</label>
             <input
               type="text"
-              value={storeName}
-              onChange={(e) => setStoreName(e.target.value)}
+              value={storeAddress}
+              onChange={(e) => setStoreAddress(e.target.value)}
+              placeholder="e.g. Jalal Pur Jattan, Gujrat"
               style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-border)', fontWeight: 700 }}
+              required
             />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+            <div>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.2rem' }}>STN Registration #:</label>
+              <input
+                type="text"
+                value={stnNumber}
+                onChange={(e) => setStnNumber(e.target.value)}
+                placeholder="e.g. 3277876174544"
+                style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-mono)' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.2rem' }}>NTN Tax Number:</label>
+              <input
+                type="text"
+                value={ntnNumber}
+                onChange={(e) => setNtnNumber(e.target.value)}
+                placeholder="e.g. 4442705-7"
+                style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-mono)' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.2rem' }}>GSTIN / Tax Reg #:</label>
+              <input
+                type="text"
+                value={gstin}
+                onChange={(e) => setGstin(e.target.value)}
+                placeholder="e.g. 3277876174544"
+                style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-mono)' }}
+              />
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
@@ -218,18 +317,109 @@ export const SettingsPage = () => {
             </div>
           </div>
 
-          <div>
-            <label style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.2rem' }}>GSTIN / Tax Registration Number:</label>
-            <input
-              type="text"
-              value={gstin}
-              onChange={(e) => setGstin(e.target.value)}
-              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-mono)' }}
-            />
+          {/* DIGITAL SIGNATURE SELECTION & CONFIGURATION */}
+          <div style={{ backgroundColor: '#F0F9FF', padding: '1.1rem', borderRadius: '8px', border: '1.5px solid #0284C7', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            <div>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 900, color: '#0369A1', margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <ImageIcon size={18} /> Official PNG Digital Signature & Stamp Selection
+              </h4>
+              <p style={{ fontSize: '0.75rem', color: '#64748B', margin: '0.2rem 0 0 0' }}>
+                Upload or select a PNG digital signature image to automatically embed on printed A4 Invoices, Customer Ledger Statements, and Financial Reports.
+              </p>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <div>
+                <label style={{ fontSize: '0.775rem', fontWeight: 800, color: '#334155', display: 'block', marginBottom: '0.15rem' }}>Authorized Signatory Name *:</label>
+                <input
+                  type="text"
+                  value={signatoryName}
+                  onChange={(e) => setSignatoryName(e.target.value)}
+                  placeholder="e.g. M. Idrees"
+                  style={{ width: '100%', padding: '0.45rem', fontSize: '0.85rem', fontWeight: 800, borderRadius: '4px', border: '1px solid #CBD5E1' }}
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.775rem', fontWeight: 800, color: '#334155', display: 'block', marginBottom: '0.15rem' }}>Authorized Designation / Role *:</label>
+                <input
+                  type="text"
+                  value={signatoryTitle}
+                  onChange={(e) => setSignatoryTitle(e.target.value)}
+                  placeholder="e.g. Managing Director / Authorized Signatory"
+                  style={{ width: '100%', padding: '0.45rem', fontSize: '0.85rem', fontWeight: 700, borderRadius: '4px', border: '1px solid #CBD5E1' }}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* PNG SIGNATURE FILE SELECTION & ACTION BUTTONS */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: '#FFFFFF', padding: '0.85rem', borderRadius: '6px', border: '1px solid #CBD5E1' }}>
+              <label style={{ fontSize: '0.775rem', fontWeight: 800, color: '#0369A1', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <Upload size={14} /> Upload New PNG Signature Image:
+              </label>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg"
+                  onChange={handleSignatureUpload}
+                  style={{ fontSize: '0.8rem', padding: '0.3rem', borderRadius: '4px', border: '1px solid #CBD5E1', backgroundColor: '#F8FAFC', flex: 1 }}
+                />
+
+                <button
+                  type="button"
+                  onClick={handleResetDefaultSignature}
+                  className="btn btn-outline"
+                  style={{ fontSize: '0.75rem', padding: '0.4rem 0.75rem', color: '#475569', borderColor: '#94A3B8', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                >
+                  <RotateCcw size={13} /> Reset Default PNG
+                </button>
+
+                {signatureImage && (
+                  <a
+                    href={signatureImage}
+                    download="digital_signature.png"
+                    className="btn btn-outline"
+                    style={{ fontSize: '0.75rem', padding: '0.4rem 0.75rem', color: '#0284C7', borderColor: '#0284C7', textDecoration: 'none', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                  >
+                    <Download size={13} /> Download Signature PNG
+                  </a>
+                )}
+              </div>
+
+              {/* LIVE ACTIVE SIGNATURE PREVIEW */}
+              <div style={{ marginTop: '0.4rem', padding: '0.65rem', backgroundColor: '#F8FAFC', borderRadius: '6px', border: '1.5px solid #E2E8F0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ fontWeight: 800, fontSize: '0.75rem', color: '#334155', minWidth: '110px' }}>Signature Preview:</div>
+                {signatureImage ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+                    <div style={{ backgroundColor: '#FFFFFF', padding: '6px 12px', borderRadius: '4px', border: '1px dashed #0284C7', display: 'inline-block' }}>
+                      <img
+                        src={signatureImage}
+                        alt="Active Digital Signature"
+                        style={{ height: '48px', maxHeight: '60px', maxWidth: '200px', objectFit: 'contain', display: 'block' }}
+                      />
+                    </div>
+                    <span style={{ fontSize: '0.725rem', color: '#16A34A', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <CheckCircle size={14} /> PNG Signature Loaded & Active
+                    </span>
+                  </div>
+                ) : (
+                  <span style={{ fontSize: '0.75rem', color: '#94A3B8', fontStyle: 'italic' }}>
+                    No signature image loaded. System will fallback to styled text signature.
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div style={{ fontSize: '0.725rem', color: '#0284C7', fontWeight: 700 }}>
+              ✔ This PNG signature will be automatically rendered on all printed A4 Invoices, Customer Statements, and Financial Reports.
+            </div>
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ width: '220px', padding: '0.65rem', fontWeight: 900, backgroundColor: '#0284C7', color: '#FFF' }}>
-            <Save size={16} /> [Save Store Profile]
+          <button type="submit" className="btn btn-primary" style={{ width: '280px', padding: '0.65rem', fontWeight: 900, backgroundColor: '#0284C7', color: '#FFF' }}>
+            <Save size={16} /> [Save Store Profile & Signature]
           </button>
         </form>
       )}

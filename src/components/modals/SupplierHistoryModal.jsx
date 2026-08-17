@@ -95,7 +95,7 @@ export const SupplierHistoryModal = ({ isOpen, onClose, supplier }) => {
         </div>
 
         {/* 2. Stock Inward PO Receipts History */}
-        <div>
+        <div style={{ marginBottom: '1.5rem' }}>
           <h3 style={{ fontSize: '0.95rem', fontWeight: 900, color: '#0369A1', marginBottom: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <FileText size={18} /> Stock Inward Purchase Orders ({poHistory.length})
           </h3>
@@ -106,30 +106,41 @@ export const SupplierHistoryModal = ({ isOpen, onClose, supplier }) => {
                 <tr style={{ backgroundColor: '#F8FAFC' }}>
                   <th>PO Reference #</th>
                   <th>Inward Date</th>
-                  <th>Created By & Time</th>
-                  <th style={{ textAlign: 'center' }}>Total Items / Batches</th>
-                  <th style={{ textAlign: 'right' }}>Total PO Amount (Rs.)</th>
-                  <th style={{ textAlign: 'center' }}>Status</th>
+                  <th>Created By</th>
+                  <th style={{ textAlign: 'center' }}>Items / Batches</th>
+                  <th style={{ textAlign: 'right' }}>Total Cost Amount</th>
+                  <th style={{ textAlign: 'center' }}>Payment Tag</th>
                 </tr>
               </thead>
               <tbody>
                 {poHistory.length > 0 ? (
-                  poHistory.map((po) => (
-                    <tr key={po.poNumber}>
-                      <td style={{ fontFamily: 'monospace', fontWeight: 800, color: '#0284C7' }}>{po.poNumber}</td>
-                      <td style={{ fontWeight: 700 }}>{formatDateDDMMYYYY(po.inwardDate || po.date)}</td>
-                      <td style={{ fontWeight: 700, color: '#0F172A' }}>
-                        {po.createdBy || 'Dr. Idrees'} <span style={{ fontSize: '0.725rem', color: '#64748B', display: 'block' }}>{po.createdAt || po.time || '10:00 AM'}</span>
-                      </td>
-                      <td style={{ textAlign: 'center', fontWeight: 700 }}>{po.itemsCount || (po.items ? po.items.length : 1)} Items</td>
-                      <td style={{ textAlign: 'right', fontWeight: 900, color: '#0F172A' }}>Rs. {Number(po.totalAmount || 0).toFixed(2)}</td>
-                      <td style={{ textAlign: 'center' }}>
-                        <span style={{ backgroundColor: '#D1FAE5', color: '#065F46', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.75rem' }}>
-                          RECEIVED INWARD
-                        </span>
-                      </td>
-                    </tr>
-                  ))
+                  poHistory.map((po) => {
+                    const remDebt = Number(po.remainingDebt || 0);
+                    const isPaid = po.paymentStatus === 'PAID_IN_FULL' || remDebt <= 0;
+
+                    return (
+                      <tr key={po.poNumber}>
+                        <td style={{ fontFamily: 'monospace', fontWeight: 800, color: '#0284C7' }}>{po.poNumber}</td>
+                        <td style={{ fontWeight: 700 }}>{formatDateDDMMYYYY(po.inwardDate || po.date)}</td>
+                        <td style={{ fontWeight: 700, color: '#0F172A' }}>
+                          {po.createdBy || 'Dr. Idrees'} <span style={{ fontSize: '0.725rem', color: '#64748B', display: 'block' }}>{po.createdAt || po.time || '10:00 AM'}</span>
+                        </td>
+                        <td style={{ textAlign: 'center', fontWeight: 700 }}>{po.brandName ? `${po.brandName} (${po.quantity} Boxes)` : `${po.items ? po.items.length : 1} Items`}</td>
+                        <td style={{ textAlign: 'right', fontWeight: 900, color: '#0F172A' }}>Rs. {Number(po.totalAmount || 0).toFixed(2)}</td>
+                        <td style={{ textAlign: 'center' }}>
+                          {isPaid ? (
+                            <span style={{ backgroundColor: '#ECFDF5', color: '#047857', border: '1px solid #6EE7B7', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.725rem' }}>
+                              🟢 PAID IN FULL
+                            </span>
+                          ) : (
+                            <span style={{ backgroundColor: '#FEF2F2', color: '#B91C1C', border: '1px solid #FCA5A5', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.725rem' }}>
+                              🔴 DEBT OWED (Rs. {remDebt.toLocaleString('en-PK')})
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
                     <td colSpan="6" style={{ textAlign: 'center', padding: '1.25rem', color: '#64748B' }}>

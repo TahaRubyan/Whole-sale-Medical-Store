@@ -1,9 +1,24 @@
 import React from 'react';
-import { FileText, X, Printer, CheckCircle, Store, MapPin } from 'lucide-react';
-import { STORE_INFO } from '../../data/mockData';
+import { FileText, X, Printer } from 'lucide-react';
+import { getStoreInfo } from '../../data/mockData';
 import { formatDateDDMMYYYY } from '../../utils/dateUtils';
+import { printElementById } from '../../utils/printUtils';
 
 export const CustomerLedgerStatementModal = ({ isOpen, onClose, customerName, region, invoices }) => {
+  const [, setSettingTick] = React.useState(0);
+
+  React.useEffect(() => {
+    const handleSettingUpdate = () => setSettingTick((t) => t + 1);
+    window.addEventListener('store_info_updated', handleSettingUpdate);
+    window.addEventListener('warranty_config_updated', handleSettingUpdate);
+    window.addEventListener('tax_config_updated', handleSettingUpdate);
+    return () => {
+      window.removeEventListener('store_info_updated', handleSettingUpdate);
+      window.removeEventListener('warranty_config_updated', handleSettingUpdate);
+      window.removeEventListener('tax_config_updated', handleSettingUpdate);
+    };
+  }, []);
+
   if (!isOpen || !invoices) return null;
 
   const customerInvoices = invoices.filter((inv) => {
@@ -16,47 +31,99 @@ export const CustomerLedgerStatementModal = ({ isOpen, onClose, customerName, re
   const totalCashPaid = totalBilled - totalRemainingDebt;
 
   const handlePrint = () => {
-    window.print();
+    printElementById('ledger-statement-print', `Statement of Account - ${customerName || 'Customer Shop'}`);
   };
 
+  const storeInfo = getStoreInfo();
+
   return (
-    <div className="modal-overlay" style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+    <div className="modal-overlay" style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
       
       <style>{`
-        @media print {
-          body * {
-            visibility: hidden !important;
+          @media print {
+            @page {
+              size: A4 portrait;
+              margin: 5mm 6mm;
+            }
+            html, body, #root, .app-container, .main-viewport, .content-area {
+              height: auto !important;
+              min-height: 0 !important;
+              width: 100% !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #FFFFFF !important;
+              color: #000000 !important;
+              font-family: Arial, sans-serif !important;
+              font-size: 9pt !important;
+              line-height: 1.3 !important;
+              overflow: visible !important;
+            }
+            .sidebar, header, nav, aside, .no-print, button, .btn {
+              display: none !important;
+            }
+            .modal-overlay {
+              position: static !important;
+              display: block !important;
+              width: 100% !important;
+              height: auto !important;
+              min-height: 0 !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #FFFFFF !important;
+              backdrop-filter: none !important;
+              box-shadow: none !important;
+              border: none !important;
+              inset: auto !important;
+              z-index: auto !important;
+            }
+            .modal-card, .card {
+              position: static !important;
+              display: block !important;
+              width: 100% !important;
+              max-width: 100% !important;
+              height: auto !important;
+              max-height: none !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #FFFFFF !important;
+              box-shadow: none !important;
+              border: none !important;
+              overflow: visible !important;
+            }
+            #ledger-statement-print {
+              display: block !important;
+              position: static !important;
+              width: 100% !important;
+              height: auto !important;
+              margin: 0 !important;
+              padding: 0.5rem !important;
+              border: 1.5px solid #000000 !important;
+              box-sizing: border-box !important;
+              background: #FFFFFF !important;
+              color: #000000 !important;
+              overflow: visible !important;
+            }
+            #ledger-statement-print * {
+              color: #000000 !important;
+            }
           }
-          #ledger-statement-print, #ledger-statement-print * {
-            visibility: visible !important;
-          }
-          #ledger-statement-print {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-          }
-          .no-print {
-            display: none !important;
-          }
-        }
       `}</style>
 
-      <div className="card" style={{ width: '820px', maxWidth: '95vw', maxHeight: '92vh', overflowY: 'auto', padding: '1.5rem', backgroundColor: '#FFFFFF', borderRadius: '12px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+      <div className="card modal-card" style={{ width: '850px', maxWidth: '95vw', maxHeight: '94vh', overflowY: 'auto', padding: '1.5rem', backgroundColor: '#FFFFFF', borderRadius: '12px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
         
-        {/* Modal Top Bar */}
-        <div className="no-print" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '2px solid #E2E8F0', paddingBottom: '0.75rem' }}>
+        {/* Modal Top Bar (Screen Only) */}
+        <div className="no-print" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', borderBottom: '2px solid #E2E8F0', paddingBottom: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <FileText size={22} color="#0284C7" />
             <h3 style={{ fontSize: '1.1rem', fontWeight: 900, color: '#0F172A', margin: 0 }}>
-              Customer Shop Ledger & Invoice Statement
+              Official Customer Statement of Account (A4 Document Preview)
             </h3>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <button
               onClick={handlePrint}
               className="btn btn-primary"
-              style={{ padding: '0.45rem 1rem', fontSize: '0.85rem', fontWeight: 800, backgroundColor: '#0284C7', color: '#FFF', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}
+              style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem', fontWeight: 900, backgroundColor: '#0284C7', color: '#FFF', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', borderRadius: '6px' }}
             >
               <Printer size={16} /> Print / Export A4 Statement PDF
             </button>
@@ -66,88 +133,71 @@ export const CustomerLedgerStatementModal = ({ isOpen, onClose, customerName, re
           </div>
         </div>
 
-        {/* Printable A4 Statement Container */}
-        <div id="ledger-statement-print" style={{ padding: '1rem', backgroundColor: '#FFFFFF' }}>
+        {/* 🏛️ OFFICIAL COMMERCIAL A4 STATEMENT CONTAINER */}
+        <div id="ledger-statement-print" style={{ padding: '1.5rem', backgroundColor: '#FFFFFF', border: '2px solid #000000', boxSizing: 'border-box' }}>
           
-          {/* Header Branding */}
-          <div style={{ borderBottom: '2px solid #000', paddingBottom: '0.85rem', marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          {/* 1. HEADER BRANDING */}
+          <div style={{ borderBottom: '2px solid #000000', paddingBottom: '0.85rem', marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-              <h1 style={{ fontSize: '1.6rem', fontWeight: 900, color: '#0284C7', margin: 0, textTransform: 'uppercase' }}>
-                {STORE_INFO.name}
+              <h1 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#000000', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {storeInfo.name}
               </h1>
-              <div style={{ fontSize: '0.825rem', color: '#475569', fontWeight: 600, marginTop: '0.2rem' }}>
-                {STORE_INFO.address} | DSL #: {STORE_INFO.dslNumber} | Phone: {STORE_INFO.phone}
+              <div style={{ fontSize: '0.825rem', color: '#1E293B', fontWeight: 600, marginTop: '0.25rem', lineHeight: '1.4' }}>
+                {storeInfo.address}<br />
+                <strong>DSL #:</strong> {storeInfo.dslNumber} | <strong>STN #:</strong> {storeInfo.stnNumber || '4442705-7'} | <strong>Phone:</strong> {storeInfo.phone}
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#0F172A', border: '2px solid #0F172A', padding: '0.35rem 0.85rem', borderRadius: '4px' }}>
+              <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#000000', border: '2px solid #000000', padding: '0.35rem 0.85rem', display: 'inline-block', textTransform: 'uppercase' }}>
                 STATEMENT OF ACCOUNT
               </div>
-              <div style={{ fontSize: '0.775rem', color: '#64748B', marginTop: '0.3rem' }}>
+              <div style={{ fontSize: '0.775rem', color: '#000000', marginTop: '0.35rem', fontWeight: 700 }}>
                 Date Generated: {formatDateDDMMYYYY(new Date())}
               </div>
             </div>
           </div>
 
-          {/* Customer Metadata Card */}
-          <div style={{ backgroundColor: '#F8FAFC', border: '1.5px solid #E2E8F0', padding: '0.85rem 1rem', borderRadius: '6px', marginBottom: '1.25rem', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+          {/* 2. CUSTOMER & STATEMENT METADATA BLOCK */}
+          <div style={{ border: '1.5px solid #000000', padding: '0.75rem 1rem', marginBottom: '1.25rem', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '0.75rem', backgroundColor: '#FFF' }}>
             <div>
-              <span style={{ fontSize: '0.725rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>Customer / Shop Name:</span>
-              <div style={{ fontSize: '1rem', fontWeight: 900, color: '#0F172A' }}>{customerName}</div>
+              <span style={{ fontSize: '0.725rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Statement To (Customer Shop):</span>
+              <div style={{ fontSize: '1.05rem', fontWeight: 900, color: '#000000', marginTop: '0.1rem' }}>{customerName}</div>
             </div>
             <div>
-              <span style={{ fontSize: '0.725rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>Region / Territory:</span>
-              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0284C7' }}>📍 {region || 'General Region'}</div>
+              <span style={{ fontSize: '0.725rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Territory / Region:</span>
+              <div style={{ fontSize: '0.925rem', fontWeight: 800, color: '#000000', marginTop: '0.1rem' }}>{region || 'General Region'}</div>
             </div>
-            <div>
-              <span style={{ fontSize: '0.725rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>Account Status:</span>
-              <div>
+            <div style={{ textAlign: 'right' }}>
+              <span style={{ fontSize: '0.725rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Account Status:</span>
+              <div style={{ marginTop: '0.1rem' }}>
                 {totalRemainingDebt > 0 ? (
-                  <span style={{ backgroundColor: '#FEE2E2', color: '#991B1B', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 900, fontSize: '0.75rem' }}>
-                    🔴 OUTSTANDING DEBT (Rs. {totalRemainingDebt.toFixed(2)})
+                  <span style={{ border: '1px solid #000000', color: '#000000', padding: '0.15rem 0.45rem', fontWeight: 900, fontSize: '0.75rem', textTransform: 'uppercase' }}>
+                    OUTSTANDING DEBT
                   </span>
                 ) : (
-                  <span style={{ backgroundColor: '#D1FAE5', color: '#065F46', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 900, fontSize: '0.75rem' }}>
-                    🟢 ALL DEBT SETTLED (PAID)
+                  <span style={{ border: '1px solid #000000', color: '#000000', padding: '0.15rem 0.45rem', fontWeight: 900, fontSize: '0.75rem', textTransform: 'uppercase' }}>
+                    CLEAR / PAID IN FULL
                   </span>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Financial Summary KPI Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.85rem', marginBottom: '1.25rem' }}>
-            <div style={{ border: '1px solid #CBD5E1', padding: '0.65rem 0.85rem', borderRadius: '6px', backgroundColor: '#F0F9FF' }}>
-              <span style={{ fontSize: '0.725rem', fontWeight: 800, color: '#0369A1' }}>Total Gross Billed:</span>
-              <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0369A1' }}>Rs. {totalBilled.toFixed(2)}</div>
+          {/* 3. ITEMIZED INVOICES & BILLING TABLE */}
+          <div style={{ marginBottom: '1.25rem' }}>
+            <div style={{ fontSize: '0.875rem', fontWeight: 900, color: '#000000', marginBottom: '0.4rem', textTransform: 'uppercase', borderBottom: '1px solid #000000', paddingBottom: '0.2rem' }}>
+              Itemized Wholesale Invoices & Billing Log
             </div>
-            <div style={{ border: '1px solid #6EE7B7', padding: '0.65rem 0.85rem', borderRadius: '6px', backgroundColor: '#ECFDF5' }}>
-              <span style={{ fontSize: '0.725rem', fontWeight: 800, color: '#065F46' }}>Total Cash Received / Settled:</span>
-              <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#059669' }}>Rs. {totalCashPaid.toFixed(2)}</div>
-            </div>
-            <div style={{ border: '1px solid #FCA5A5', padding: '0.65rem 0.85rem', borderRadius: '6px', backgroundColor: '#FEF2F2' }}>
-              <span style={{ fontSize: '0.725rem', fontWeight: 800, color: '#991B1B' }}>Remaining Balance Due:</span>
-              <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#DC2626' }}>Rs. {totalRemainingDebt.toFixed(2)}</div>
-            </div>
-          </div>
-
-          {/* Detailed Invoices & Payment History Table */}
-          <h3 style={{ fontSize: '0.9rem', fontWeight: 900, color: '#0F172A', marginBottom: '0.5rem' }}>
-            Itemized Invoices & Billing History
-          </h3>
-
-          <div className="table-container" style={{ marginBottom: '1.5rem' }}>
-            <table className="table" style={{ fontSize: '0.8rem' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.775rem', color: '#000000' }}>
               <thead>
-                <tr style={{ backgroundColor: '#F8FAFC' }}>
-                  <th>Invoice #</th>
-                  <th>Date & Time</th>
-                  <th>Booking Rep</th>
-                  <th>Delivery Driver</th>
-                  <th style={{ textAlign: 'right' }}>Invoice Net (Rs.)</th>
-                  <th style={{ textAlign: 'right' }}>Cash Settled (Rs.)</th>
-                  <th style={{ textAlign: 'right' }}>Due Debt (Rs.)</th>
-                  <th style={{ textAlign: 'center' }}>Payment Status</th>
+                <tr style={{ borderTop: '2px solid #000000', borderBottom: '2px solid #000000', textAlign: 'left', backgroundColor: '#F8FAFC' }}>
+                  <th style={{ padding: '0.45rem 0.35rem' }}>Invoice #</th>
+                  <th style={{ padding: '0.45rem 0.35rem' }}>Date</th>
+                  <th style={{ padding: '0.45rem 0.35rem' }}>Booking Rep</th>
+                  <th style={{ padding: '0.45rem 0.35rem' }}>Delivery Driver</th>
+                  <th style={{ padding: '0.45rem 0.35rem', textAlign: 'right' }}>Billed Net (Rs.)</th>
+                  <th style={{ padding: '0.45rem 0.35rem', textAlign: 'right' }}>Settled Cash (Rs.)</th>
+                  <th style={{ padding: '0.45rem 0.35rem', textAlign: 'right' }}>Balance Due (Rs.)</th>
                 </tr>
               </thead>
               <tbody>
@@ -158,40 +208,21 @@ export const CustomerLedgerStatementModal = ({ isOpen, onClose, customerName, re
                     const paid = origNet - remaining;
 
                     return (
-                      <tr key={inv.invoiceNo}>
-                        <td style={{ fontFamily: 'monospace', fontWeight: 800, color: '#0284C7' }}>{inv.invoiceNo}</td>
-                        <td style={{ fontWeight: 700 }}>
-                          {formatDateDDMMYYYY(inv.date)} <span style={{ fontSize: '0.725rem', color: '#64748B', marginLeft: '0.2rem' }}>{inv.time || '09:00 AM'}</span>
-                        </td>
+                      <tr key={inv.invoiceNo} style={{ borderBottom: '1px solid #CBD5E1' }}>
+                        <td style={{ fontFamily: 'monospace', fontWeight: 800 }}>{inv.invoiceNo}</td>
+                        <td style={{ fontWeight: 600 }}>{formatDateDDMMYYYY(inv.date)}</td>
                         <td>{inv.bookingMan || 'Tariq Mahmood'}</td>
                         <td>{inv.deliveryMan || 'Awais Ijaz'}</td>
-                        <td style={{ textAlign: 'right', fontWeight: 800 }}>Rs. {origNet.toFixed(2)}</td>
-                        <td style={{ textAlign: 'right', fontWeight: 800, color: '#059669' }}>Rs. {paid.toFixed(2)}</td>
-                        <td style={{ textAlign: 'right', fontWeight: 900, color: remaining > 0 ? '#DC2626' : '#059669' }}>
-                          Rs. {remaining.toFixed(2)}
-                        </td>
-                        <td style={{ textAlign: 'center' }}>
-                          {remaining <= 0 ? (
-                            <span style={{ backgroundColor: '#D1FAE5', color: '#065F46', padding: '0.15rem 0.45rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.725rem' }}>
-                              🟢 FULLY PAID
-                            </span>
-                          ) : paid > 0 ? (
-                            <span style={{ backgroundColor: '#FEF3C7', color: '#92400E', padding: '0.15rem 0.45rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.725rem' }}>
-                              🟡 PARTIAL PAID
-                            </span>
-                          ) : (
-                            <span style={{ backgroundColor: '#FEE2E2', color: '#991B1B', padding: '0.15rem 0.45rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.725rem' }}>
-                              🔴 NOT PAID
-                            </span>
-                          )}
-                        </td>
+                        <td style={{ textAlign: 'right', fontWeight: 800 }}>Rs. {origNet.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
+                        <td style={{ textAlign: 'right', fontWeight: 800 }}>Rs. {paid.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
+                        <td style={{ textAlign: 'right', fontWeight: 900 }}>Rs. {remaining.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
                       </tr>
                     );
                   })
                 ) : (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: 'center', padding: '1.5rem', color: '#64748B' }}>
-                      No invoices recorded for this shop.
+                    <td colSpan="7" style={{ textAlign: 'center', padding: '1.5rem', color: '#475569' }}>
+                      No invoices recorded for this customer shop.
                     </td>
                   </tr>
                 )}
@@ -199,69 +230,78 @@ export const CustomerLedgerStatementModal = ({ isOpen, onClose, customerName, re
             </table>
           </div>
 
-          {/* Consolidated Timestamped Cash Settlement Payment Logs */}
-          <h3 style={{ fontSize: '0.9rem', fontWeight: 900, color: '#0369A1', marginBottom: '0.5rem' }}>
-            📜 Timestamped Cash Payment Audit Log
-          </h3>
-          <div className="table-container" style={{ marginBottom: '1.5rem' }}>
-            <table className="table" style={{ fontSize: '0.775rem' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#F0F9FF' }}>
-                  <th>Payment Date & Time</th>
-                  <th>Related Invoice #</th>
-                  <th>Amount Paid (Rs.)</th>
-                  <th>Payment Mode</th>
-                  <th>Remaining Debt After (Rs.)</th>
-                  <th>Remarks / Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {customerInvoices.flatMap(inv => (inv.paymentLogs || []).map((log, lIdx) => ({ ...log, invNo: inv.invoiceNo, key: `${inv.invoiceNo}-${lIdx}` }))).length > 0 ? (
-                  customerInvoices.flatMap(inv => (inv.paymentLogs || []).map((log, lIdx) => ({ ...log, invNo: inv.invoiceNo, key: `${inv.invoiceNo}-${lIdx}` }))).map((log) => (
-                    <tr key={log.key}>
-                      <td style={{ fontWeight: 800, color: '#0F172A' }}>
-                        {formatDateDDMMYYYY(log.date)} <span style={{ color: '#0284C7', fontWeight: 900 }}>at {log.time || '10:00 AM'}</span>
-                      </td>
-                      <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0284C7' }}>{log.invNo}</td>
-                      <td style={{ fontWeight: 900, color: '#059669' }}>Rs. {Number(log.amountPaid || 0).toFixed(2)}</td>
-                      <td><span style={{ backgroundColor: '#E0F2FE', color: '#0369A1', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 700, fontSize: '0.725rem' }}>{log.paymentMode || 'Cash'}</span></td>
-                      <td style={{ fontWeight: 800, color: log.remainingDebtAfter > 0 ? '#DC2626' : '#059669' }}>Rs. {Number(log.remainingDebtAfter || 0).toFixed(2)}</td>
-                      <td style={{ color: '#475569' }}>{log.note || log.notes || 'Cash Settlement'}</td>
+          {/* 4. TIMESTAMPED CASH SETTLEMENT AUDIT LOG */}
+          {customerInvoices.flatMap(inv => (inv.paymentLogs || []).map((log, lIdx) => ({ ...log, invNo: inv.invoiceNo, key: `${inv.invoiceNo}-${lIdx}` }))).length > 0 && (
+            <div style={{ marginBottom: '1.25rem' }}>
+              <div style={{ fontSize: '0.85rem', fontWeight: 900, color: '#000000', marginBottom: '0.4rem', textTransform: 'uppercase', borderBottom: '1px solid #000000', paddingBottom: '0.2rem' }}>
+                Timestamped Cash Payments Received Log
+              </div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem', color: '#000000' }}>
+                <thead>
+                  <tr style={{ borderTop: '2px solid #000000', borderBottom: '2px solid #000000', textAlign: 'left', backgroundColor: '#F8FAFC' }}>
+                    <th style={{ padding: '0.4rem 0.3rem' }}>Payment Date & Time</th>
+                    <th style={{ padding: '0.4rem 0.3rem' }}>Invoice #</th>
+                    <th style={{ padding: '0.4rem 0.3rem', textAlign: 'right' }}>Amount Paid (Rs.)</th>
+                    <th style={{ padding: '0.4rem 0.3rem' }}>Payment Mode</th>
+                    <th style={{ padding: '0.4rem 0.3rem', textAlign: 'right' }}>Remaining Balance After</th>
+                    <th style={{ padding: '0.4rem 0.3rem' }}>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {customerInvoices.flatMap(inv => (inv.paymentLogs || []).map((log, lIdx) => ({ ...log, invNo: inv.invoiceNo, key: `${inv.invoiceNo}-${lIdx}` }))).map((log) => (
+                    <tr key={log.key} style={{ borderBottom: '1px solid #E2E8F0' }}>
+                      <td style={{ fontWeight: 700 }}>{formatDateDDMMYYYY(log.date)} at {log.time || '10:00 AM'}</td>
+                      <td style={{ fontFamily: 'monospace', fontWeight: 700 }}>{log.invNo}</td>
+                      <td style={{ textAlign: 'right', fontWeight: 800 }}>Rs. {Number(log.amountPaid || 0).toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
+                      <td>{log.paymentMode || 'Cash'}</td>
+                      <td style={{ textAlign: 'right', fontWeight: 800 }}>Rs. {Number(log.remainingDebtAfter || 0).toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
+                      <td style={{ color: '#334155' }}>{log.note || log.notes || 'Cash Deposit'}</td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="6" style={{ textAlign: 'center', padding: '1.25rem', color: '#64748B' }}>
-                      No cash settlement payment transactions logged yet for this customer.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* 5. STATEMENT NET TOTALS SUMMARY BOX */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', border: '2px solid #000000', padding: '0.65rem 0.85rem', marginBottom: '1.5rem', textTransform: 'uppercase', fontSize: '0.85rem', backgroundColor: '#F8FAFC' }}>
+            <div>
+              <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#475569' }}>TOTAL GROSS BILLED:</span>
+              <div style={{ fontWeight: 900, fontSize: '1rem' }}>Rs. {totalBilled.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</div>
+            </div>
+            <div>
+              <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#475569' }}>TOTAL CASH RECEIVED:</span>
+              <div style={{ fontWeight: 900, fontSize: '1rem' }}>Rs. {totalCashPaid.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#000000' }}>NET OUTSTANDING BALANCE DUE:</span>
+              <div style={{ fontWeight: 900, fontSize: '1.05rem', color: '#000000' }}>Rs. {totalRemainingDebt.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</div>
+            </div>
           </div>
 
-          {/* Official Digital Signature & Stamp Block */}
-          <div style={{ marginTop: '2.5rem', borderTop: '2px solid #0F172A', paddingTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ fontSize: '0.75rem', color: '#64748B', maxWidth: '400px' }}>
-              <strong>Notice:</strong> This official computer-generated statement of account is verified and digitally authenticated under Drug Act 1976 & DRAP Rules 2014 by Idrees Medical Store.
+          {/* 6. OFFICIAL DIGITAL SIGNATURE & LEGAL WARRANTY FOOTER */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '2px solid #000000', paddingTop: '0.85rem', marginTop: '1rem', fontSize: '0.75rem' }}>
+            <div style={{ maxWidth: '420px', lineHeight: '1.4', color: '#334155' }}>
+              <strong>Legal Compliance Declaration:</strong><br />
+              This official computer-generated statement of account is verified and digitally authenticated under Drug Act 1976 & DRAP Rules 2014 by <strong>{storeInfo.name}</strong>.
             </div>
 
-            <div style={{ textAlign: 'center', position: 'relative' }}>
-              {/* Digital Stamp Seal */}
-              <div style={{ border: '2px dashed #0284C7', borderRadius: '50%', width: '90px', height: '90px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'absolute', top: '-60px', left: '-30px', opacity: 0.85, color: '#0284C7', fontSize: '0.6rem', fontWeight: 900, transform: 'rotate(-12deg)', pointerEvents: 'none' }}>
-                <div>IDREES MED</div>
-                <div>SEAL / STAMP</div>
-                <div style={{ fontSize: '0.55rem' }}>OFFICIAL</div>
+            <div style={{ textAlign: 'center', minWidth: '180px' }}>
+              {storeInfo.signatureImage ? (
+                <img
+                  src={storeInfo.signatureImage}
+                  alt="Official Digital Signature"
+                  style={{ height: '48px', maxHeight: '55px', maxWidth: '170px', objectFit: 'contain', display: 'block', margin: '0 auto 0.2rem auto' }}
+                />
+              ) : (
+                <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '0.2rem' }}>
+                  {storeInfo.signatoryName || 'M. Idrees'}
+                </div>
+              )}
+              <div style={{ borderTop: '1.5px solid #000000', marginTop: '0.2rem', paddingTop: '0.15rem', fontWeight: 'bold', fontSize: '0.75rem' }}>
+                {storeInfo.signatoryName || 'M. Idrees'} ({storeInfo.signatoryTitle || 'Managing Director'})
               </div>
-
-              {/* Digital Signature Font */}
-              <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '1.3rem', fontWeight: 'bold', color: '#0F172A', marginBottom: '0.2rem' }}>
-                M. Idrees
-              </div>
-              <div style={{ borderTop: '1.5px solid #000', width: '200px', paddingTop: '0.25rem', fontSize: '0.775rem', fontWeight: 800, color: '#0F172A' }}>
-                M. Idrees (Managing Director)
-              </div>
-              <div style={{ fontSize: '0.7rem', color: '#0284C7', fontWeight: 700 }}>
+              <div style={{ fontSize: '0.65rem', color: '#0284C7', fontWeight: 700 }}>
                 ✔ VERIFIED DIGITAL SIGNATURE
               </div>
             </div>

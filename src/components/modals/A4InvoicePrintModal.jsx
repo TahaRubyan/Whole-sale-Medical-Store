@@ -1,24 +1,38 @@
 import React, { useState } from 'react';
 import { Printer, X, FileText, Download } from 'lucide-react';
-import { STORE_INFO, getTaxConfig } from '../../data/mockData';
+import { STORE_INFO, getTaxConfig, getStoreInfo } from '../../data/mockData';
 import { formatDateDDMMYYYY } from '../../utils/dateUtils';
+import { printElementById } from '../../utils/printUtils';
 
 import { useAuth } from '../../context/AuthContext';
 
 export const A4InvoicePrintModal = ({ invoice, onClose }) => {
   const { user } = useAuth();
-  if (!invoice) return null;
+  const [, setSettingTick] = useState(0);
+  React.useEffect(() => {
+    const handleSettingUpdate = () => setSettingTick((t) => t + 1);
+    window.addEventListener('store_info_updated', handleSettingUpdate);
+    window.addEventListener('warranty_config_updated', handleSettingUpdate);
+    window.addEventListener('tax_config_updated', handleSettingUpdate);
+    return () => {
+      window.removeEventListener('store_info_updated', handleSettingUpdate);
+      window.removeEventListener('warranty_config_updated', handleSettingUpdate);
+      window.removeEventListener('tax_config_updated', handleSettingUpdate);
+    };
+  }, []);
 
   // DUAL SEPARATE WARRANTY CHECKBOXES ON PRINT PREVIEW
   const [includeDrugActWarranty, setIncludeDrugActWarranty] = useState(
-    invoice.includeDrugActWarranty !== undefined ? invoice.includeDrugActWarranty : true
+    invoice && invoice.includeDrugActWarranty !== undefined ? invoice.includeDrugActWarranty : true
   );
   const [includeDrapWarranty, setIncludeDrapWarranty] = useState(
-    invoice.includeDrapWarranty !== undefined ? invoice.includeDrapWarranty : true
+    invoice && invoice.includeDrapWarranty !== undefined ? invoice.includeDrapWarranty : true
   );
 
+  if (!invoice) return null;
+
   const handlePrint = () => {
-    window.print();
+    printElementById('a4-invoice', `Sale Tax Invoice - ${invoice.invoiceNo || 'Invoice'}`);
   };
 
   return (
@@ -29,45 +43,68 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
           @media print {
             @page {
               size: A4 portrait;
-              margin: 6mm 8mm;
+              margin: 5mm 6mm;
             }
-            html, body {
+            html, body, #root, .app-container, .main-viewport, .content-area {
+              height: auto !important;
+              min-height: 0 !important;
               width: 100% !important;
-              height: 100% !important;
               margin: 0 !important;
               padding: 0 !important;
               background: #FFFFFF !important;
-              font-size: 11pt !important;
-            }
-            body * {
-              visibility: hidden !important;
-            }
-            .modal-overlay, .modal-card, div {
-              position: static !important;
-              max-height: none !important;
+              color: #000000 !important;
+              font-family: Arial, sans-serif !important;
+              font-size: 9pt !important;
+              line-height: 1.3 !important;
               overflow: visible !important;
-              background: none !important;
-              box-shadow: none !important;
-              padding: 0 !important;
-              margin: 0 !important;
-              border: none !important;
             }
-            #a4-invoice, #a4-invoice * {
-              visibility: visible !important;
+            .sidebar, header, nav, aside, .no-print, button, .btn {
+              display: none !important;
+            }
+            .modal-overlay {
+              position: static !important;
+              display: block !important;
+              width: 100% !important;
+              height: auto !important;
+              min-height: 0 !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #FFFFFF !important;
+              backdrop-filter: none !important;
+              box-shadow: none !important;
+              border: none !important;
+              inset: auto !important;
+              z-index: auto !important;
+            }
+            .modal-card, .card {
+              position: static !important;
+              display: block !important;
+              width: 100% !important;
+              max-width: 100% !important;
+              height: auto !important;
+              max-height: none !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #FFFFFF !important;
+              box-shadow: none !important;
+              border: none !important;
+              overflow: visible !important;
             }
             #a4-invoice {
-              position: absolute !important;
-              top: 0 !important;
-              left: 0 !important;
+              display: block !important;
+              position: static !important;
               width: 100% !important;
-              min-height: 98vh !important;
+              height: auto !important;
               margin: 0 !important;
-              padding: 1.75rem !important;
-              border: 2px solid #000000 !important;
+              padding: 0.5rem !important;
+              border: 1.5px solid #000000 !important;
               box-sizing: border-box !important;
+              background: #FFFFFF !important;
+              color: #000000 !important;
+              overflow: visible !important;
             }
-            .no-print, button, .btn {
-              display: none !important;
+            #a4-invoice * {
+              color: #000000 !important;
             }
           }
         `}
@@ -124,21 +161,21 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
         >
           {/* TOP RIGHT COMPLIANCE BLOCK */}
           <div style={{ textAlign: 'right', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '0.5rem', lineHeight: '1.65', letterSpacing: '0.03em' }}>
-            <div>DSL: <span style={{ fontFamily: 'monospace', fontWeight: '900' }}>{STORE_INFO.dslNumber}</span></div>
-            <div>STN: <span style={{ fontFamily: 'monospace', fontWeight: '900' }}>{STORE_INFO.stnNumber}</span></div>
-            <div>NTN: <span style={{ fontFamily: 'monospace', fontWeight: '900' }}>{STORE_INFO.ntnNumber}</span></div>
+            <div>DSL: <span style={{ fontFamily: 'monospace', fontWeight: '900' }}>{getStoreInfo().dslNumber}</span></div>
+            <div>STN: <span style={{ fontFamily: 'monospace', fontWeight: '900' }}>{getStoreInfo().stnNumber}</span></div>
+            <div>NTN: <span style={{ fontFamily: 'monospace', fontWeight: '900' }}>{getStoreInfo().ntnNumber}</span></div>
           </div>
 
           {/* TOP CENTER STORE BRANDING */}
           <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
             <h1 style={{ fontSize: '2.1rem', fontWeight: '900', margin: 0, textTransform: 'uppercase', letterSpacing: '0.02em', color: '#000000', lineHeight: '1.25' }}>
-              {STORE_INFO.name}
+              {getStoreInfo().name}
             </h1>
             <div style={{ fontSize: '0.925rem', fontWeight: 'bold', marginTop: '0.35rem', lineHeight: '1.5' }}>
-              {STORE_INFO.address}
+              {getStoreInfo().address}
             </div>
             <div style={{ fontSize: '0.835rem', marginTop: '0.2rem', lineHeight: '1.5' }}>
-              Phone# {STORE_INFO.phone} &nbsp;|&nbsp; E-Mail: {STORE_INFO.email}
+              Phone# {getStoreInfo().phone} &nbsp;|&nbsp; E-Mail: {getStoreInfo().email}
             </div>
 
             {/* SALE TAX INVOICE BADGE BOX */}
@@ -188,30 +225,27 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
             </div>
           </div>
 
-          {/* 13-COLUMN ITEMIZED LINE ITEMS TABLE */}
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1.85rem', marginBottom: '1.85rem', fontSize: '0.765rem', lineHeight: '1.5' }}>
+          {/* 12-COLUMN ITEMIZED LINE ITEMS TABLE */}
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '0.65rem', marginBottom: '0.65rem', fontSize: '0.75rem', lineHeight: '1.4' }}>
             <thead>
-              <tr style={{ borderTop: '2.5px solid #000000', borderBottom: '2.5px solid #000000', textAlign: 'left', pageBreakInside: 'avoid' }}>
-                <th style={{ padding: '0.6rem 0.3rem', width: '25px' }}>Sr.</th>
-                <th style={{ padding: '0.6rem 0.3rem' }}>Item Name</th>
-                <th style={{ padding: '0.6rem 0.3rem' }}>Batch No.</th>
-                <th style={{ padding: '0.6rem 0.3rem' }}>Expiry Date</th>
-                <th style={{ padding: '0.6rem 0.3rem', textAlign: 'center' }}>Qty</th>
-                <th style={{ padding: '0.6rem 0.3rem', textAlign: 'center' }}>Bonus</th>
-                <th style={{ padding: '0.6rem 0.3rem', textAlign: 'right' }}>Rate</th>
-                <th style={{ padding: '0.6rem 0.3rem', textAlign: 'right' }}>Gross</th>
-                <th style={{ padding: '0.6rem 0.3rem', textAlign: 'right' }}>Disc %</th>
-                <th style={{ padding: '0.6rem 0.3rem', textAlign: 'right' }}>Disc Amt</th>
+              <tr style={{ borderTop: '2px solid #000000', borderBottom: '2px solid #000000', textAlign: 'left', pageBreakInside: 'avoid' }}>
+                <th style={{ padding: '0.4rem 0.25rem', width: '25px' }}>Sr.</th>
+                <th style={{ padding: '0.4rem 0.25rem' }}>Item Name</th>
+                <th style={{ padding: '0.4rem 0.25rem' }}>Batch No.</th>
+                <th style={{ padding: '0.4rem 0.25rem' }}>Expiry Date</th>
+                <th style={{ padding: '0.4rem 0.25rem', textAlign: 'center' }}>Qty</th>
+                <th style={{ padding: '0.4rem 0.25rem', textAlign: 'center' }}>Bonus</th>
+                <th style={{ padding: '0.4rem 0.25rem', textAlign: 'right' }}>Rate</th>
+                <th style={{ padding: '0.4rem 0.25rem', textAlign: 'right' }}>Gross</th>
+                <th style={{ padding: '0.4rem 0.25rem', textAlign: 'right' }}>Disc %</th>
+                <th style={{ padding: '0.4rem 0.25rem', textAlign: 'right' }}>Disc Amt</th>
                 {getTaxConfig().enableSaleTax !== false && (
-                  <th style={{ padding: '0.6rem 0.3rem', textAlign: 'right' }}>{getTaxConfig().saleTaxName || 'Sale Tax 18%'}</th>
-                )}
-                {getTaxConfig().enableAdTax !== false && (
-                  <th style={{ padding: '0.6rem 0.3rem', textAlign: 'right' }}>{getTaxConfig().adTaxName || 'AdTax 4%'}</th>
+                  <th style={{ padding: '0.4rem 0.25rem', textAlign: 'right' }}>{getTaxConfig().saleTaxName || 'Sale Tax 18%'}</th>
                 )}
                 {getTaxConfig().enableAdvTax !== false && (
-                  <th style={{ padding: '0.6rem 0.3rem', textAlign: 'right' }}>{getTaxConfig().advTaxName || 'Adv Tax 0.5%'}</th>
+                  <th style={{ padding: '0.4rem 0.25rem', textAlign: 'right' }}>{getTaxConfig().advTaxName || 'Adv Tax 0.5%'}</th>
                 )}
-                <th style={{ padding: '0.6rem 0.3rem', textAlign: 'right' }}>Net Amount</th>
+                <th style={{ padding: '0.4rem 0.25rem', textAlign: 'right' }}>Net Amount</th>
               </tr>
             </thead>
             <tbody>
@@ -225,34 +259,36 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
 
                 const taxCfg = getTaxConfig();
                 const stAmt = taxCfg.enableSaleTax !== false ? (item.saleTaxAmt !== undefined ? item.saleTaxAmt : (discountedGross * 0.18)) : 0;
-                const adtAmt = taxCfg.enableAdTax !== false ? (item.adTaxAmt !== undefined ? item.adTaxAmt : (discountedGross * 0.04)) : 0;
                 const advtAmt = taxCfg.enableAdvTax !== false ? (item.advTaxAmt !== undefined ? item.advTaxAmt : (discountedGross * 0.005)) : 0;
-                const netAmt = item.total || (discountedGross + stAmt + adtAmt + advtAmt);
+                const netAmt = item.total || (discountedGross + stAmt + advtAmt);
 
                 return (
                   <tr key={idx} style={{ borderBottom: '1px solid #CBD5E1', pageBreakInside: 'avoid' }}>
-                    <td style={{ padding: '0.45rem 0.3rem' }}>{idx + 1}</td>
-                    <td style={{ padding: '0.45rem 0.3rem', fontWeight: 'bold' }}>
+                    <td style={{ padding: '0.35rem 0.25rem' }}>{idx + 1}</td>
+                    <td style={{ padding: '0.35rem 0.25rem', fontWeight: 'bold' }}>
                       {item.itemCode ? `${item.itemCode} / ` : ''}{item.brandName}
                     </td>
-                    <td style={{ padding: '0.45rem 0.3rem', fontFamily: 'monospace' }}>{item.batchNumber || '6789'}</td>
-                    <td style={{ padding: '0.45rem 0.3rem' }}>{formatDateDDMMYYYY(item.expiryDate || '2028-12-31')}</td>
-                    <td style={{ padding: '0.45rem 0.3rem', textAlign: 'center', fontWeight: 'bold' }}>{qty}</td>
-                    <td style={{ padding: '0.45rem 0.3rem', textAlign: 'center' }}>{item.bonus || '-'}</td>
-                    <td style={{ padding: '0.45rem 0.3rem', textAlign: 'right' }}>{rate.toFixed(2)}</td>
-                    <td style={{ padding: '0.45rem 0.3rem', textAlign: 'right' }}>{gross.toFixed(2)}</td>
-                    <td style={{ padding: '0.45rem 0.3rem', textAlign: 'right' }}>{discP.toFixed(2)}</td>
-                    <td style={{ padding: '0.45rem 0.3rem', textAlign: 'right' }}>{discAmt.toFixed(2)}</td>
+                    <td style={{ padding: '0.35rem 0.25rem', fontFamily: 'monospace' }}>{item.batchNumber || '6789'}</td>
+                    <td style={{ padding: '0.35rem 0.25rem' }}>{formatDateDDMMYYYY(item.expiryDate || '2028-12-31')}</td>
+                    <td style={{ padding: '0.35rem 0.25rem', textAlign: 'center', fontWeight: 'bold' }}>{qty}</td>
+                    <td style={{ padding: '0.35rem 0.25rem', textAlign: 'center' }}>{item.bonus || '-'}</td>
+                    <td style={{ padding: '0.35rem 0.25rem', textAlign: 'right' }}>{rate.toFixed(2)}</td>
+                    <td style={{ padding: '0.35rem 0.25rem', textAlign: 'right' }}>{gross.toFixed(2)}</td>
+                    <td style={{ padding: '0.35rem 0.25rem', textAlign: 'right' }}>{discP.toFixed(2)}</td>
+                    <td style={{ padding: '0.35rem 0.25rem', textAlign: 'right' }}>{discAmt.toFixed(2)}</td>
                     {taxCfg.enableSaleTax !== false && (
-                      <td style={{ padding: '0.45rem 0.3rem', textAlign: 'right' }}>{stAmt.toFixed(2)}</td>
-                    )}
-                    {taxCfg.enableAdTax !== false && (
-                      <td style={{ padding: '0.45rem 0.3rem', textAlign: 'right' }}>{adtAmt.toFixed(2)}</td>
+                      <td style={{ padding: '0.35rem 0.25rem', textAlign: 'right' }}>
+                        <span style={{ fontSize: '0.65rem', fontWeight: 'bold', color: '#0369A1', display: 'block' }}>{(item.saleTaxPercent !== undefined ? item.saleTaxPercent : 18)}%</span>
+                        {stAmt.toFixed(2)}
+                      </td>
                     )}
                     {taxCfg.enableAdvTax !== false && (
-                      <td style={{ padding: '0.45rem 0.3rem', textAlign: 'right' }}>{advtAmt.toFixed(2)}</td>
+                      <td style={{ padding: '0.35rem 0.25rem', textAlign: 'right' }}>
+                        <span style={{ fontSize: '0.65rem', color: '#475569', display: 'block' }}>{(item.advTaxPercent !== undefined ? item.advTaxPercent : 0.5)}%</span>
+                        {advtAmt.toFixed(2)}
+                      </td>
                     )}
-                    <td style={{ padding: '0.45rem 0.3rem', textAlign: 'right', fontWeight: 'bold' }}>{netAmt.toFixed(2)}</td>
+                    <td style={{ padding: '0.35rem 0.25rem', textAlign: 'right', fontWeight: 'bold' }}>{netAmt.toFixed(2)}</td>
                   </tr>
                 );
               })}
@@ -260,42 +296,36 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
           </table>
 
           {/* NET TOTAL SUMMARY LINE INCLUDING TAXES */}
-          <div style={{ borderTop: '2.5px solid #000000', borderBottom: '2.5px solid #000000', padding: '0.75rem 0.85rem', marginBottom: '1.85rem', fontSize: '0.875rem', lineHeight: '1.6', pageBreakInside: 'avoid' }}>
+          <div style={{ borderTop: '2px solid #000000', borderBottom: '2px solid #000000', padding: '0.5rem 0.75rem', marginBottom: '0.65rem', fontSize: '0.825rem', lineHeight: '1.5', pageBreakInside: 'avoid' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', fontWeight: 'bold' }}>
               <div>
                 <span>Gross: Rs. {Number(invoice.grossSubtotal || invoice.subtotal || 600).toFixed(2)}</span> &nbsp;|&nbsp;
                 <span>{getTaxConfig().saleTaxName || 'Sale Tax 18%'}: Rs. {Number(invoice.totalSaleTax || 108).toFixed(2)}</span> &nbsp;|&nbsp;
-                <span>{getTaxConfig().adTaxName || 'AdTax 4%'}: Rs. {Number(invoice.totalAdTax || 24).toFixed(2)}</span> &nbsp;|&nbsp;
                 <span>{getTaxConfig().advTaxName || 'Adv Tax 0.5%'}: Rs. {Number(invoice.totalAdvTax || 3.00).toFixed(2)}</span>
               </div>
-              <div style={{ fontSize: '1.1rem', textDecoration: 'underline', letterSpacing: '0.02em' }}>
-                NET AMOUNT: Rs. {Number(invoice.netTotal || 735.00).toFixed(2)}
+              <div style={{ fontSize: '1rem', textDecoration: 'underline', letterSpacing: '0.02em' }}>
+                NET AMOUNT: Rs. {Number(invoice.netTotal || 0).toFixed(2)}
               </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1.75rem', marginTop: '0.45rem', fontSize: '0.825rem' }}>
-              <span>Cash Received: <strong>Rs. {Number(invoice.tendered || invoice.netTotal || 800.00).toFixed(2)}</strong></span>
-              <span>Change / Balance: <strong>Rs. {Number(invoice.change || 0.00).toFixed(2)}</strong></span>
             </div>
           </div>
 
           {/* URDU ADVANCE TAX NOTICE BANNER */}
-          <div style={{ textAlign: 'right', direction: 'rtl', fontSize: '0.95rem', fontWeight: 'bold', padding: '0.6rem 0.85rem', border: '1.5px solid #000000', marginTop: '1.85rem', marginBottom: '1.35rem', backgroundColor: '#FFFFFF', lineHeight: '1.8', pageBreakInside: 'avoid' }}>
+          <div style={{ textAlign: 'right', direction: 'rtl', fontSize: '0.85rem', fontWeight: 'bold', padding: '0.45rem 0.65rem', border: '1.5px solid #000000', marginTop: '0.5rem', marginBottom: '0.65rem', backgroundColor: '#FFFFFF', lineHeight: '1.5', pageBreakInside: 'avoid' }}>
             {STORE_INFO.urduNotice}
           </div>
 
           {/* FORM 2A LEGAL WARRANTIES SECTION */}
           {(includeDrugActWarranty || includeDrapWarranty) && (
-            <div style={{ border: '1.5px solid #000000', padding: '0.75rem 0.85rem', fontSize: '0.75rem', lineHeight: '1.6', pageBreakInside: 'avoid', marginBottom: '1.85rem' }}>
-              <div style={{ fontWeight: 'bold', textDecoration: 'underline', marginBottom: '0.35rem', letterSpacing: '0.02em' }}>
+            <div style={{ border: '1.5px solid #000000', padding: '0.55rem 0.75rem', fontSize: '0.725rem', lineHeight: '1.5', pageBreakInside: 'avoid', marginBottom: '0.65rem' }}>
+              <div style={{ fontWeight: 'bold', textDecoration: 'underline', marginBottom: '0.25rem', letterSpacing: '0.02em' }}>
                 FORM 2A (See rules 19 and 30):
               </div>
 
               {/* DRUG ACT 1976 WARRANTY */}
               {includeDrugActWarranty && (
-                <div style={{ marginBottom: '0.6rem' }}>
+                <div style={{ marginBottom: '0.4rem' }}>
                   <strong>Warranty under Section 23(1)(i) of the Drugs Act, 1976:</strong>
-                  <div style={{ marginTop: '0.2rem', textAlign: 'justify' }}>
+                  <div style={{ marginTop: '0.15rem', textAlign: 'justify' }}>
                     I, <strong>M. Idrees</strong> being a person resident in Pakistan carrying on business at Jalal Pur Jattan under the name of <strong>Idrees Medical Store</strong> and being authorized distributor of the manufacturers / Principals, do hereby give this warranty that the drugs here above described as sold by me, and contained in this invoice prescribing the goods referred to herein do not contravene in any way the provisions of Section 23 of the Drug Act.
                   </div>
                 </div>
@@ -303,18 +333,18 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
 
               {/* DRAP 2014 ALTERNATIVE MEDICINES WARRANTY */}
               {includeDrapWarranty && (
-                <div style={{ marginBottom: '0.6rem', borderTop: includeDrugActWarranty ? '1px dashed #000000' : 'none', paddingTop: includeDrugActWarranty ? '0.45rem' : '0' }}>
+                <div style={{ marginBottom: '0.4rem', borderTop: includeDrugActWarranty ? '1px dashed #000000' : 'none', paddingTop: includeDrugActWarranty ? '0.35rem' : '0' }}>
                   <strong>Warranty under Alternative Medicines and Health Products (Enlistment) Rules 2014 [See Rules 10(3) and (5)]:</strong>
-                  <div style={{ marginTop: '0.2rem', textAlign: 'justify' }}>
+                  <div style={{ marginTop: '0.15rem', textAlign: 'justify' }}>
                     We, as the authorized distributors/agents and on behalf of the principals/manufacturers/importers hereby give warranty that the supplied alternative medicines and health products mentioned herein do not contravene any provision of the prevailing DRAP Act 2012 and rules framed thereunder.
                   </div>
                 </div>
               )}
 
               {/* 4 STANDARD WHOLESALE NOTES */}
-              <div style={{ borderTop: '1px solid #000000', paddingTop: '0.45rem', marginTop: '0.45rem' }}>
+              <div style={{ borderTop: '1px solid #000000', paddingTop: '0.35rem', marginTop: '0.35rem' }}>
                 <strong>Note:</strong>
-                <ol style={{ margin: 0, paddingLeft: '1.25rem', lineHeight: '1.6' }}>
+                <ol style={{ margin: 0, paddingLeft: '1.25rem', lineHeight: '1.5' }}>
                   {STORE_INFO.noteItems.map((note, i) => (
                     <li key={i}>{note}</li>
                   ))}
@@ -323,29 +353,32 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
             </div>
           )}
 
-          {/* FOOTER SIGNATURES: LEFT SIDE (DELIVERY / RECEIVER SIGNATURE) & RIGHT SIDE (DIGITAL STAMP SIGNATURE) */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '2px solid #000000', paddingTop: '0.85rem', marginTop: '1.5rem', fontSize: '0.775rem', lineHeight: '1.5', pageBreakInside: 'avoid' }}>
+          {/* FOOTER SIGNATURES: LEFT SIDE & RIGHT SIDE */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '2px solid #000000', paddingTop: '0.55rem', marginTop: '0.65rem', fontSize: '0.75rem', lineHeight: '1.4', pageBreakInside: 'avoid' }}>
             {/* LEFT BOTTOM: DELIVERY MAN & CUSTOMER RECEIVER SIGNATURE */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', minWidth: '220px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', minWidth: '220px' }}>
               <div>Printed By: <strong>{invoice.cashierName || 'Husnain Ali'}</strong></div>
               <div>Delivery Driver: <strong>{invoice.deliveryMan || 'Awais Ijaz'}</strong></div>
-              <div style={{ borderTop: '1px solid #000000', marginTop: '1.25rem', paddingTop: '0.2rem', fontWeight: 'bold', fontSize: '0.725rem' }}>
+              <div style={{ borderTop: '1px solid #000000', marginTop: '0.85rem', paddingTop: '0.15rem', fontWeight: 'bold', fontSize: '0.7rem' }}>
                 Delivery Driver / Customer Receiver Sign
               </div>
             </div>
 
-            {/* RIGHT BOTTOM: OFFICIAL DIGITAL STAMP SEAL & SIGNATURE */}
-            <div style={{ position: 'relative', textAlign: 'center', minWidth: '220px', padding: '0.45rem 0.85rem' }}>
-              <div style={{ border: '2px dashed #0284C7', borderRadius: '50%', width: '80px', height: '80px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'absolute', top: '-45px', left: '-25px', opacity: 0.8, color: '#0284C7', fontSize: '0.55rem', fontWeight: 900, transform: 'rotate(-15deg)', pointerEvents: 'none' }}>
-                <div>IDREES MED</div>
-                <div>SEAL / STAMP</div>
-                <div style={{ fontSize: '0.5rem' }}>OFFICIAL</div>
-              </div>
-              <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '1.2rem', fontWeight: 'bold', color: '#0F172A' }}>
-                M. Idrees
-              </div>
+            {/* RIGHT BOTTOM: OFFICIAL DIGITAL SIGNATURE */}
+            <div style={{ textAlign: 'center', minWidth: '220px', padding: '0.45rem 0.85rem' }}>
+              {getStoreInfo().signatureImage ? (
+                <img
+                  src={getStoreInfo().signatureImage}
+                  alt="Digital Signature"
+                  style={{ height: '48px', maxHeight: '55px', maxWidth: '170px', objectFit: 'contain', display: 'block', margin: '0 auto 0.2rem auto' }}
+                />
+              ) : (
+                <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '1.2rem', fontWeight: 'bold', color: '#0F172A' }}>
+                  {getStoreInfo().signatoryName || 'M. Idrees'}
+                </div>
+              )}
               <div style={{ borderTop: '1.5px solid #000000', marginTop: '0.2rem', paddingTop: '0.15rem', fontWeight: 'bold', fontSize: '0.775rem' }}>
-                {STORE_INFO.signatoryName || 'M. Idrees'} (Managing Director)
+                {getStoreInfo().signatoryName || 'M. Idrees'} ({getStoreInfo().signatoryTitle || 'Managing Director'})
               </div>
               <div style={{ fontSize: '0.65rem', color: '#0284C7', fontWeight: 700 }}>
                 ✔ VERIFIED DIGITAL SIGNATURE

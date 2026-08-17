@@ -2,6 +2,8 @@ import React from 'react';
 import { Printer, X } from 'lucide-react';
 
 export const ThermalPrintModal = ({ invoice, onClose }) => {
+  if (!invoice) return null;
+
   const handlePrint = () => {
     window.print();
   };

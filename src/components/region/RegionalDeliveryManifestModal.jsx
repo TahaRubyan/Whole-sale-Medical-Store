@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Printer, X, Download, MapPin, Truck, FileText, CheckCircle } from 'lucide-react';
 import { STORE_INFO } from '../../data/mockData';
 import { formatDateDDMMYYYY } from '../../utils/dateUtils';
+import { printElementById } from '../../utils/printUtils';
 
 export const RegionalDeliveryManifestModal = ({ isOpen, onClose, selectedRegion, invoices = [] }) => {
   if (!isOpen) return null;
@@ -49,7 +50,7 @@ export const RegionalDeliveryManifestModal = ({ isOpen, onClose, selectedRegion,
   }, [manifestInvoices]);
 
   const handlePrint = () => {
-    window.print();
+    printElementById('region-manifest-pdf', `Regional Delivery Manifest - ${selectedRegion || 'All Regions'}`);
   };
 
   const currentDateStr = formatDateDDMMYYYY(new Date());
@@ -74,45 +75,62 @@ export const RegionalDeliveryManifestModal = ({ isOpen, onClose, selectedRegion,
           @media print {
             @page {
               size: A4 portrait;
-              margin: 6mm 8mm;
+              margin: 5mm 6mm;
             }
-            html, body {
+            html, body, #root, .app-container, .main-viewport, .content-area {
+              height: auto !important;
+              min-height: 0 !important;
               width: 100% !important;
-              height: 100% !important;
               margin: 0 !important;
               padding: 0 !important;
               background: #FFFFFF !important;
-              font-size: 11pt !important;
-            }
-            body * {
-              visibility: hidden !important;
-            }
-            .modal-overlay, .modal-card, div {
-              position: static !important;
-              max-height: none !important;
+              color: #000000 !important;
+              font-family: Arial, sans-serif !important;
+              font-size: 9pt !important;
+              line-height: 1.3 !important;
               overflow: visible !important;
-              background: none !important;
-              box-shadow: none !important;
-              padding: 0 !important;
+            }
+            .sidebar, header, nav, aside, .no-print, button, .btn {
+              display: none !important;
+            }
+            .modal-overlay {
+              position: static !important;
+              display: block !important;
+              width: 100% !important;
+              height: auto !important;
               margin: 0 !important;
+              padding: 0 !important;
+              background: #FFFFFF !important;
+              backdrop-filter: none !important;
+              box-shadow: none !important;
               border: none !important;
             }
-            #region-manifest-pdf, #region-manifest-pdf * {
-              visibility: visible !important;
+            .modal-card, .card {
+              position: static !important;
+              display: block !important;
+              width: 100% !important;
+              max-width: 100% !important;
+              height: auto !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #FFFFFF !important;
+              box-shadow: none !important;
+              border: none !important;
             }
             #region-manifest-pdf {
-              position: absolute !important;
-              top: 0 !important;
-              left: 0 !important;
+              display: block !important;
+              position: static !important;
               width: 100% !important;
-              min-height: 98vh !important;
+              height: auto !important;
               margin: 0 !important;
-              padding: 1.75rem !important;
-              border: 2px solid #000000 !important;
+              padding: 0.5rem !important;
+              border: 1.5px solid #000000 !important;
               box-sizing: border-box !important;
+              background: #FFFFFF !important;
+              color: #000000 !important;
             }
-            .no-print, button, .btn {
-              display: none !important;
+            #region-manifest-pdf * {
+              color: #000000 !important;
             }
           }
         `}

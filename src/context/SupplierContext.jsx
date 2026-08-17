@@ -45,6 +45,19 @@ export const SupplierProvider = ({ children }) => {
     ];
   });
 
+  const [rtvNotes, setRtvNotes] = useState(() => {
+    const saved = localStorage.getItem('pharmalink_pk_rtv_notes');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {
+        console.error('Failed to parse saved RTV notes', e);
+      }
+    }
+    return [];
+  });
+
   useEffect(() => {
     try {
       localStorage.setItem('pharmalink_pk_suppliers', JSON.stringify(suppliers));
@@ -61,11 +74,26 @@ export const SupplierProvider = ({ children }) => {
     }
   }, [purchaseOrders]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem('pharmalink_pk_rtv_notes', JSON.stringify(rtvNotes));
+    } catch (e) {
+      console.error('Failed to save RTV notes to localStorage', e);
+    }
+  }, [rtvNotes]);
+
   // Helper to generate PO Number: PO-YYYYMMDD-XXXX
   const generatePONumber = () => {
     const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
     const seq = String(purchaseOrders.length + 1).padStart(4, '0');
     return `PO-${dateStr}-${seq}`;
+  };
+
+  // Helper to generate RTV Debit Note Number: RTV-YYYYMMDD-XXXX
+  const generateRTVNumber = () => {
+    const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+    const seq = String(rtvNotes.length + 1).padStart(4, '0');
+    return `RTV-${dateStr}-${seq}`;
   };
 
   const addSupplier = (supplierData) => {
@@ -126,6 +154,11 @@ export const SupplierProvider = ({ children }) => {
   const createPurchaseOrder = (poData) => {
     const now = new Date();
     const formattedTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const totAmount = (Number(poData.quantity) || 1) * (Number(poData.purchasePriceBox) || 0);
+    const amtPaid = poData.amountPaid !== undefined ? Number(poData.amountPaid) : (poData.paymentStatus === 'PAID_IN_FULL' ? totAmount : 0);
+    const remDebt = poData.remainingDebt !== undefined ? Number(poData.remainingDebt) : (totAmount - amtPaid);
+    const statusTag = poData.paymentStatus || (remDebt <= 0 ? 'PAID_IN_FULL' : 'DEBT_OWING');
+
     const newPo = {
       poNumber: poData.poNumber || generatePONumber(),
       distributorName: poData.distributorName || 'Muller & Phipps Pakistan',
@@ -139,10 +172,115 @@ export const SupplierProvider = ({ children }) => {
       quantity: Number(poData.quantity) || 1,
       boxPrice: Number(poData.boxPrice) || 0,
       purchasePriceBox: Number(poData.purchasePriceBox) || 0,
-      totalAmount: (Number(poData.quantity) || 1) * (Number(poData.purchasePriceBox) || 0),
+      totalAmount: totAmount,
+      amountPaid: amtPaid,
+      remainingDebt: remDebt,
+      paymentStatus: statusTag,
+      items: poData.items || undefined,
     };
+
     setPurchaseOrders((prev) => [newPo, ...prev]);
+
+    // Automatically update supplier's outstanding debt balance if remaining debt > 0
+    if (remDebt > 0 && poData.distributorName) {
+      setSuppliers((prev) =>
+        prev.map((s) => {
+          if ((s.companyName || s.name || '').toLowerCase().trim() === poData.distributorName.toLowerCase().trim()) {
+            const cur = s.pendingBalance !== undefined ? s.pendingBalance : (s.outstandingBalance || 0);
+            const updatedBal = cur + remDebt;
+            return { ...s, pendingBalance: updatedBal, outstandingBalance: updatedBal };
+          }
+          return s;
+        })
+      );
+    }
+
+    // Log payment entry if initial cash amount was paid
+    if (amtPaid > 0 && poData.distributorName) {
+      const distName = poData.distributorName;
+      setSuppliers((prev) =>
+        prev.map((s) => {
+          if ((s.companyName || s.name || '').toLowerCase().trim() === distName.toLowerCase().trim()) {
+            const cur = s.pendingBalance !== undefined ? s.pendingBalance : (s.outstandingBalance || 0);
+            const newLog = {
+              id: `PAY-PO-${Date.now()}`,
+              date: formatDateDDMMYYYY(now),
+              time: formattedTime,
+              amountPaid: amtPaid,
+              paymentMode: 'Cash',
+              note: `Initial PO Cash Deposit (${newPo.poNumber})`,
+              remainingBalance: cur,
+              remainingBalanceAfter: cur,
+            };
+            return {
+              ...s,
+              paymentLogs: [newLog, ...(Array.isArray(s.paymentLogs) ? s.paymentLogs : [])],
+            };
+          }
+          return s;
+        })
+      );
+    }
+
     return newPo;
+  };
+
+  const createRtvNote = (rtvData) => {
+    const now = new Date();
+    const formattedTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const rtvNo = rtvData.rtvNumber || generateRTVNumber();
+    const refundAmt = Number(rtvData.agreedRefundAmount) || 0;
+
+    const newRtv = {
+      id: `RTV-${Date.now()}`,
+      rtvNumber: rtvNo,
+      distributorName: rtvData.distributorName || 'Pharma Supplier',
+      supplierId: rtvData.supplierId || '',
+      date: rtvData.date || new Date().toISOString().split('T')[0],
+      time: formattedTime,
+      createdAt: `${formatDateDDMMYYYY(now)} ${formattedTime}`,
+      createdBy: rtvData.createdBy || 'Dr. Idrees',
+      brandName: rtvData.brandName || 'Near-Expiry Medicine',
+      genericFormula: rtvData.genericFormula || '',
+      batchNumber: rtvData.batchNumber || '',
+      expiryDate: rtvData.expiryDate || '',
+      returnedBoxes: Number(rtvData.returnedBoxes) || 1,
+      agreedRefundAmount: refundAmt,
+      reason: rtvData.reason || 'Near Expiry Stock Return',
+    };
+
+    setRtvNotes((prev) => [newRtv, ...prev]);
+
+    // Automatically reduce supplier balance by agreed refund amount
+    if (refundAmt > 0 && rtvData.distributorName) {
+      setSuppliers((prev) =>
+        prev.map((s) => {
+          if ((s.companyName || s.name || '').toLowerCase().trim() === rtvData.distributorName.toLowerCase().trim() || s.id === rtvData.supplierId) {
+            const currentBal = s.pendingBalance !== undefined ? s.pendingBalance : (s.outstandingBalance || 0);
+            const newBal = Math.max(0, currentBal - refundAmt);
+            const newLog = {
+              id: `RTV-CREDIT-${Date.now()}`,
+              date: formatDateDDMMYYYY(now),
+              time: formattedTime,
+              amountPaid: refundAmt,
+              paymentMode: 'RTV Credit Note',
+              note: `Stock Return Debit Note (${rtvNo}): ${newRtv.brandName} (${newRtv.returnedBoxes} Boxes)`,
+              remainingBalance: newBal,
+              remainingBalanceAfter: newBal,
+            };
+            return {
+              ...s,
+              pendingBalance: newBal,
+              outstandingBalance: newBal,
+              paymentLogs: [newLog, ...(Array.isArray(s.paymentLogs) ? s.paymentLogs : [])],
+            };
+          }
+          return s;
+        })
+      );
+    }
+
+    return newRtv;
   };
 
   return (
@@ -150,11 +288,14 @@ export const SupplierProvider = ({ children }) => {
       value={{
         suppliers,
         purchaseOrders,
+        rtvNotes,
         addSupplier,
         clearSupplierBalance,
         recordSupplierPayment,
         createPurchaseOrder,
         generatePONumber,
+        createRtvNote,
+        generateRTVNumber,
       }}
     >
       {children}

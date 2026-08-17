@@ -98,7 +98,7 @@ class ErrorBoundary extends Component {
 }
 
 const AppContent = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isCashier } = useAuth();
   const [currentScreen, setCurrentScreen] = useState('dashboard');
 
   if (!isAuthenticated) {
@@ -106,6 +106,11 @@ const AppContent = () => {
   }
 
   const renderScreen = () => {
+    // RBAC Route Guard: Ledger, Analytics, and Settings are strictly Admin Only
+    if (isCashier && ['region-ledger', '/region-ledger', 'analytics', 'settings'].includes(currentScreen)) {
+      return <DashboardPage onNavigate={setCurrentScreen} />;
+    }
+
     switch (currentScreen) {
       case 'dashboard':
         return <DashboardPage onNavigate={setCurrentScreen} />;

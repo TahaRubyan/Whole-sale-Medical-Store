@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { Truck, Lock, Plus, CheckCircle, DollarSign } from 'lucide-react';
+import { Truck, Lock, Plus, CheckCircle, DollarSign, RotateCcw, FileText } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSupplier } from '../context/SupplierContext';
 import NewPOModal from '../components/modals/NewPOModal';
 import PaySupplierModal from '../components/modals/PaySupplierModal';
 import SupplierHistoryModal from '../components/modals/SupplierHistoryModal';
+import ReturnToVendorModal from '../components/modals/ReturnToVendorModal';
+import RtvInvoicePrintModal from '../components/modals/RtvInvoicePrintModal';
 import { formatDateDDMMYYYY } from '../utils/dateUtils';
 
 export const SuppliersPage = () => {
-  const { permissions } = useAuth();
+  const { isCashier, permissions } = useAuth();
   const { suppliers, purchaseOrders } = useSupplier();
 
   const [isPoModalOpen, setIsPoModalOpen] = useState(false);
@@ -19,6 +21,10 @@ export const SuppliersPage = () => {
 
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [selectedSupplierForHistory, setSelectedSupplierForHistory] = useState(null);
+
+  const [isRtvModalOpen, setIsRtvModalOpen] = useState(false);
+  const [selectedSupplierForRtv, setSelectedSupplierForRtv] = useState(null);
+  const [rtvPrintRecord, setRtvPrintRecord] = useState(null);
 
   const handleOpenPoModal = (supplierId = null) => {
     setSelectedSupplierForPo(supplierId);
@@ -31,7 +37,6 @@ export const SuppliersPage = () => {
   };
 
   const handleOpenHistoryModal = (supplier) => {
-    // Attach matching PO history to supplier object for modal
     const pos = purchaseOrders.filter((po) => (po.distributorName || po.supplierName || '').toLowerCase() === (supplier.name || supplier.companyName || '').toLowerCase());
     setSelectedSupplierForHistory({
       ...supplier,
@@ -39,6 +44,21 @@ export const SuppliersPage = () => {
     });
     setIsHistoryModalOpen(true);
   };
+
+  const handleOpenRtvModal = (supplier = null) => {
+    setSelectedSupplierForRtv(supplier);
+    setIsRtvModalOpen(true);
+  };
+
+  const [filterDebtOnly, setFilterDebtOnly] = useState(false);
+
+  // Compute Debt KPIs
+  const debtSuppliersCount = suppliers.filter((s) => (s.pendingBalance !== undefined ? s.pendingBalance : (s.outstandingBalance || 0)) > 0).length;
+  const totalDebtAmount = suppliers.reduce((sum, s) => sum + Number(s.pendingBalance !== undefined ? s.pendingBalance : (s.outstandingBalance || 0)), 0);
+
+  const displayedSuppliers = filterDebtOnly
+    ? suppliers.filter((s) => (s.pendingBalance !== undefined ? s.pendingBalance : (s.outstandingBalance || 0)) > 0)
+    : suppliers;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -55,135 +75,183 @@ export const SuppliersPage = () => {
             </div>
           </div>
 
-          <button
-            className="btn btn-primary"
-            onClick={() => handleOpenPoModal(null)}
-            disabled={!permissions.canCreatePurchaseOrder}
-            style={{
-              backgroundColor: '#FFFFFF',
-              color: '#0284C7',
-              fontWeight: 800,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              opacity: !permissions.canCreatePurchaseOrder ? 0.5 : 1,
-              cursor: !permissions.canCreatePurchaseOrder ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {!permissions.canCreatePurchaseOrder ? <Lock size={16} /> : <Plus size={16} />}
-            New Purchase Order
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button
+              className="btn"
+              onClick={() => handleOpenRtvModal(null)}
+              style={{
+                backgroundColor: '#DC2626',
+                color: '#FFFFFF',
+                fontWeight: 800,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                border: 'none'
+              }}
+            >
+              <RotateCcw size={16} /> Return Stock (RTV Debit Note)
+            </button>
+
+            <button
+              className="btn btn-primary"
+              onClick={() => handleOpenPoModal(null)}
+              disabled={!permissions.canCreatePurchaseOrder}
+              style={{
+                backgroundColor: '#FFFFFF',
+                color: '#0284C7',
+                fontWeight: 800,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                opacity: !permissions.canCreatePurchaseOrder ? 0.5 : 1,
+                cursor: !permissions.canCreatePurchaseOrder ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {!permissions.canCreatePurchaseOrder ? <Lock size={16} /> : <Plus size={16} />}
+              New Purchase Order
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* SUPPLIER DEBT SUMMARY KPI CARDS */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+        <div className="card" style={{ padding: '1rem', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748B' }}>TOTAL REGISTERED DISTRIBUTORS</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0F172A', marginTop: '0.2rem' }}>
+            {suppliers.length} Companies
+          </div>
+        </div>
+
+        <div className="card" style={{ padding: '1rem', backgroundColor: '#FEF2F2', border: '1.5px solid #FCA5A5' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 900, color: '#991B1B' }}>DISTRIBUTORS WITH OUTSTANDING DEBT</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#DC2626', marginTop: '0.2rem' }}>
+            {debtSuppliersCount} Distributors Owing Debt
+          </div>
+        </div>
+
+        <div className="card" style={{ padding: '1rem', backgroundColor: '#F0F9FF', border: '1.5px solid #0284C7' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 900, color: '#0369A1' }}>NET TOTAL PAYABLE STOCK DEBT</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0284C7', marginTop: '0.2rem' }}>
+            Rs. {totalDebtAmount.toLocaleString('en-PK', { minimumFractionDigits: 2 })}
+          </div>
         </div>
       </div>
 
       <div className="card" style={{ padding: '1.25rem' }}>
         {/* Supplier Directory Section */}
         <div style={{ marginBottom: '1.5rem' }}>
-          <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-text-main)' }}>
-              Registered Pharma Distributors ({suppliers.length})
+          <div className="flex-between" style={{ marginBottom: '0.85rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-text-main)', margin: 0 }}>
+              Registered Pharma Distributors ({displayedSuppliers.length})
             </h3>
+
+            {/* FILTER TAB BUTTONS */}
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                onClick={() => setFilterDebtOnly(false)}
+                className={`btn ${!filterDebtOnly ? 'btn-primary' : 'btn-outline'}`}
+                style={{ fontSize: '0.775rem', fontWeight: 800, padding: '0.35rem 0.75rem' }}
+              >
+                All Distributors ({suppliers.length})
+              </button>
+
+              <button
+                onClick={() => setFilterDebtOnly(true)}
+                className={`btn ${filterDebtOnly ? 'btn-danger' : 'btn-outline'}`}
+                style={{ fontSize: '0.775rem', fontWeight: 800, padding: '0.35rem 0.75rem', borderColor: '#EF4444', color: filterDebtOnly ? '#FFF' : '#EF4444' }}
+              >
+                🔴 Debt Owing Distributors Only ({debtSuppliersCount})
+              </button>
+            </div>
           </div>
 
           <div className="table-container">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Distributor Name & ID</th>
+                  <th>Supplier ID</th>
+                  <th>Distributor / Company Name</th>
                   <th>Contact Person</th>
-                  <th>Phone / Email</th>
-                  <th>GSTIN / Tax #</th>
-                  <th>City Address</th>
-                  <th>Outstanding Balance</th>
-                  <th>Active Orders</th>
-                  <th>Actions</th>
+                  <th>Phone Number</th>
+                  <th>GSTIN / License #</th>
+                  <th>City</th>
+                  <th style={{ textAlign: 'right' }}>Outstanding Debt</th>
+                  <th style={{ textAlign: 'center' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {suppliers.map((sup) => {
-                  const supplierPoCount = purchaseOrders.filter((po) => po.supplierId === sup.id).length;
-                  const curBal = sup.pendingBalance !== undefined ? sup.pendingBalance : (sup.outstandingBalance || 0);
+                {displayedSuppliers.map((supplier) => {
+                  const bal = supplier.pendingBalance !== undefined ? supplier.pendingBalance : (supplier.outstandingBalance || 0);
+                  const isDebt = bal > 0;
 
                   return (
-                    <tr key={sup.id}>
-                      <td>
-                        <div style={{ fontWeight: 800, color: 'var(--color-text-main)' }}>{sup.name || sup.companyName}</div>
-                        <div style={{ fontSize: '0.725rem', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>
-                          {sup.id}
-                        </div>
+                    <tr key={supplier.id}>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 800 }}>{supplier.id}</td>
+                      <td style={{ fontWeight: 800, color: '#0F172A' }}>{supplier.companyName || supplier.name}</td>
+                      <td>{supplier.contactPerson || '-'}</td>
+                      <td>{supplier.phone || '-'}</td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.775rem' }}>
+                        {supplier.gstin || supplier.licenseNo || '-'}
                       </td>
-                      <td style={{ fontWeight: 600 }}>{sup.contactPerson}</td>
-                      <td>
-                        <div style={{ fontSize: '0.825rem' }}>{sup.phone}</div>
-                        <div style={{ fontSize: '0.725rem', color: 'var(--color-text-muted)' }}>{sup.email}</div>
-                      </td>
-                      <td>
-                        <span className="hotkey-pill">{sup.gstin}</span>
-                      </td>
-                      <td style={{ fontSize: '0.775rem', color: 'var(--color-text-muted)', maxWidth: '200px' }}>
-                        {sup.city || sup.address || 'Pakistan'}
-                      </td>
-                      <td
-                        style={{
-                          fontWeight: 800,
-                          color: curBal > 0 ? '#EF4444' : '#059669'
-                        }}
-                      >
-                        Rs. {Number(curBal).toLocaleString('en-PK')}
-                      </td>
-                      <td>
-                        <span className="badge badge-info" style={{ fontSize: '0.75rem' }}>
-                          {supplierPoCount} Order{supplierPoCount !== 1 ? 's' : ''}
+                      <td>{supplier.city || 'Lahore'}</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <span
+                          style={{
+                            fontWeight: 900,
+                            color: isDebt ? '#DC2626' : '#059669',
+                            backgroundColor: isDebt ? '#FEF2F2' : '#ECFDF5',
+                            padding: '0.2rem 0.5rem',
+                            borderRadius: '4px',
+                            border: isDebt ? '1px solid #FCA5A5' : '1px solid #A7F3D0',
+                          }}
+                        >
+                          Rs. {Number(bal).toLocaleString('en-PK', { minimumFractionDigits: 2 })}
                         </span>
                       </td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                      <td style={{ textAlign: 'center' }}>
+                        <div style={{ display: 'inline-flex', gap: '0.35rem' }}>
                           <button
+                            onClick={() => handleOpenPoModal(supplier.id)}
                             className="btn btn-outline"
-                            onClick={() => handleOpenHistoryModal(sup)}
-                            style={{
-                              fontSize: '0.725rem',
-                              padding: '0.25rem 0.5rem',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.3rem',
-                              borderColor: '#0284C7',
-                              color: '#0284C7',
-                              fontWeight: 700
-                            }}
-                            title="View full ledger & inward PO logs"
+                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontWeight: 800 }}
+                            title="Create Inward Purchase Order"
                           >
-                            📜 History Log
+                            <Plus size={12} /> PO
                           </button>
                           <button
-                            className="btn btn-outline"
-                            onClick={() => handleOpenPoModal(sup.id)}
-                            disabled={!permissions.canCreatePurchaseOrder}
-                            style={{
-                              fontSize: '0.725rem',
-                              padding: '0.25rem 0.5rem',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.3rem'
-                            }}
+                            onClick={() => handleOpenRtvModal(supplier)}
+                            className="btn"
+                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontWeight: 800, backgroundColor: '#FEF2F2', color: '#DC2626', border: '1px solid #FCA5A5' }}
+                            title="Return Stock to Supplier (RTV Debit Note)"
                           >
-                            {!permissions.canCreatePurchaseOrder ? <Lock size={12} /> : <Plus size={12} />} New PO
+                            <RotateCcw size={12} /> RTV
                           </button>
                           <button
+                            onClick={() => handleOpenHistoryModal(supplier)}
                             className="btn btn-outline"
-                            onClick={() => handleOpenPayModal(sup)}
-                            disabled={!permissions.canCreatePurchaseOrder}
+                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontWeight: 700 }}
+                            title="View Supplier Ledger & PO History"
+                          >
+                            Ledger
+                          </button>
+                          <button
+                            onClick={() => handleOpenPayModal(supplier)}
+                            className="btn btn-primary"
+                            disabled={!isDebt || isCashier}
                             style={{
-                              fontSize: '0.725rem',
                               padding: '0.25rem 0.5rem',
+                              fontSize: '0.75rem',
+                              fontWeight: 800,
+                              backgroundColor: isDebt ? '#059669' : '#94A3B8',
+                              borderColor: isDebt ? '#059669' : '#94A3B8',
+                              cursor: !isDebt || isCashier ? 'not-allowed' : 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '0.3rem',
-                              borderColor: curBal > 0 ? '#059669' : '#CBD5E1',
-                              color: curBal > 0 ? '#059669' : '#94A3B8',
+                              gap: '0.2rem',
                             }}
                           >
-                            {!permissions.canCreatePurchaseOrder ? <Lock size={12} /> : <DollarSign size={12} />} Pay Balance
+                            {isCashier ? <Lock size={12} /> : <DollarSign size={12} />} Pay
                           </button>
                         </div>
                       </td>
@@ -212,37 +280,54 @@ export const SuppliersPage = () => {
                   <th>Date</th>
                   <th>Item Lines</th>
                   <th>Total Amount</th>
-                  <th>Status</th>
+                  <th>Payment Status</th>
+                  <th>Stock Status</th>
                 </tr>
               </thead>
               <tbody>
                 {purchaseOrders.length === 0 ? (
                   <tr>
-                    <td colSpan={6} style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--color-text-muted)' }}>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--color-text-muted)' }}>
                       No purchase orders recorded yet.
                     </td>
                   </tr>
                 ) : (
-                  purchaseOrders.map((po) => (
-                    <tr key={po.id || po.poNumber}>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#0284C7' }}>
-                        {po.poNumber || po.id}
-                      </td>
-                      <td style={{ fontWeight: 700 }}>{po.distributorName || po.supplierName}</td>
-                      <td style={{ fontWeight: 600 }}>{formatDateDDMMYYYY(po.inwardDate || po.date)}</td>
-                      <td>
-                        <span style={{ fontWeight: 700 }}>{po.brandName ? `${po.brandName} (${po.quantity} Tabs)` : `${po.itemCount} item(s)`}</span>
-                      </td>
-                      <td style={{ fontWeight: 800 }}>
-                        Rs. {Number(po.totalAmount || (po.purchasePriceBox * (po.quantity / 200))).toLocaleString('en-PK', { minimumFractionDigits: 2 })}
-                      </td>
-                      <td>
-                        <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <CheckCircle size={12} /> Inward Stock Received
-                        </span>
-                      </td>
-                    </tr>
-                  ))
+                  purchaseOrders.map((po) => {
+                    const remDebt = Number(po.remainingDebt || 0);
+                    const isFullyPaid = po.paymentStatus === 'PAID_IN_FULL' || remDebt <= 0;
+
+                    return (
+                      <tr key={po.id || po.poNumber}>
+                        <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#0284C7' }}>
+                          {po.poNumber || po.id}
+                        </td>
+                        <td style={{ fontWeight: 700 }}>{po.distributorName || po.supplierName}</td>
+                        <td style={{ fontWeight: 600 }}>{formatDateDDMMYYYY(po.inwardDate || po.date)}</td>
+                        <td>
+                          <span style={{ fontWeight: 700 }}>{po.brandName ? `${po.brandName} (${po.quantity} Boxes)` : `${po.itemCount} item(s)`}</span>
+                        </td>
+                        <td style={{ fontWeight: 800 }}>
+                          Rs. {Number(po.totalAmount || (po.purchasePriceBox * (po.quantity / 200))).toLocaleString('en-PK', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td>
+                          {isFullyPaid ? (
+                            <span style={{ backgroundColor: '#ECFDF5', color: '#047857', border: '1.5px solid #6EE7B7', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.725rem' }}>
+                              🟢 PAID IN FULL
+                            </span>
+                          ) : (
+                            <span style={{ backgroundColor: '#FEF2F2', color: '#B91C1C', border: '1.5px solid #FCA5A5', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.725rem' }}>
+                              🔴 DEBT OWED (Rs. {remDebt.toLocaleString('en-PK')})
+                            </span>
+                          )}
+                        </td>
+                        <td>
+                          <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <CheckCircle size={12} /> Stock Received
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -256,6 +341,26 @@ export const SuppliersPage = () => {
           isOpen={isPoModalOpen}
           onClose={() => setIsPoModalOpen(false)}
           initialSupplierId={selectedSupplierForPo}
+        />
+      )}
+
+      {/* Return to Vendor Modal */}
+      {isRtvModalOpen && (
+        <ReturnToVendorModal
+          isOpen={isRtvModalOpen}
+          initialSupplier={selectedSupplierForRtv}
+          onClose={() => setIsRtvModalOpen(false)}
+          onSuccessPrint={(record) => {
+            setRtvPrintRecord(record);
+          }}
+        />
+      )}
+
+      {/* Printable RTV Debit Note Modal */}
+      {rtvPrintRecord && (
+        <RtvInvoicePrintModal
+          rtv={rtvPrintRecord}
+          onClose={() => setRtvPrintRecord(null)}
         />
       )}
 

@@ -87,6 +87,17 @@ export const POSPage = () => {
     }
   }, [customerDetails, setCustomerName]);
 
+  // Real-time listener for Settings updates (warranty & tax config)
+  useEffect(() => {
+    const handleWarrantyUpdate = () => {
+      const cfg = getWarrantyConfig();
+      setIncludeDrugActWarranty(cfg.enableDrugActWarranty !== false);
+      setIncludeDrapWarranty(cfg.enableDrapWarranty !== false);
+    };
+    window.addEventListener('warranty_config_updated', handleWarrantyUpdate);
+    return () => window.removeEventListener('warranty_config_updated', handleWarrantyUpdate);
+  }, []);
+
   // Click outside listener for search dropdown
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -147,7 +158,7 @@ export const POSPage = () => {
 
     addToCart(med, targetBatch, 'Box');
     setSearchQuery('');
-    setShowDropdown(false);
+    setShowDropdown(true);
     if (searchInputRef.current) {
       searchInputRef.current.focus();
     }
@@ -268,7 +279,11 @@ export const POSPage = () => {
                 type="text"
                 placeholder="Type Item Name, Code (e.g. med-333), Formula, or scan barcode..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowDropdown(true);
+                }}
+                onClick={() => setShowDropdown(true)}
                 onKeyDown={handleKeyDown}
                 onFocus={() => {
                   setShowDropdown(true);
@@ -453,13 +468,22 @@ export const POSPage = () => {
                             {discP.toFixed(1)}%
                           </td>
                           {taxCfg.enableSaleTax !== false && (
-                            <td style={{ padding: '0.65rem 0.35rem', textAlign: 'right', fontSize: '0.75rem' }}>{stAmt.toFixed(2)}</td>
+                            <td style={{ padding: '0.65rem 0.35rem', textAlign: 'right', fontSize: '0.75rem' }}>
+                              <div style={{ fontWeight: 800, color: '#0369A1' }}>{(ci.saleTaxPercent !== undefined ? ci.saleTaxPercent : 18)}%</div>
+                              <div>Rs. {stAmt.toFixed(2)}</div>
+                            </td>
                           )}
                           {taxCfg.enableAdTax !== false && (
-                            <td style={{ padding: '0.65rem 0.35rem', textAlign: 'right', fontSize: '0.75rem' }}>{adtAmt.toFixed(2)}</td>
+                            <td style={{ padding: '0.65rem 0.35rem', textAlign: 'right', fontSize: '0.75rem' }}>
+                              <div style={{ fontWeight: 700, color: '#475569' }}>{(ci.adTaxPercent !== undefined ? ci.adTaxPercent : 4)}%</div>
+                              <div>Rs. {adtAmt.toFixed(2)}</div>
+                            </td>
                           )}
                           {taxCfg.enableAdvTax !== false && (
-                            <td style={{ padding: '0.65rem 0.35rem', textAlign: 'right', fontSize: '0.75rem' }}>{advtAmt.toFixed(2)}</td>
+                            <td style={{ padding: '0.65rem 0.35rem', textAlign: 'right', fontSize: '0.75rem' }}>
+                              <div style={{ fontWeight: 700, color: '#475569' }}>{(ci.advTaxPercent !== undefined ? ci.advTaxPercent : 0.5)}%</div>
+                              <div>Rs. {advtAmt.toFixed(2)}</div>
+                            </td>
                           )}
                           <td style={{ padding: '0.65rem 0.35rem', textAlign: 'right', fontWeight: 900, color: '#059669' }}>
                             {netAmt.toFixed(2)}
@@ -501,7 +525,7 @@ export const POSPage = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', overflow: 'hidden' }}>
           
           {/* CASH COUNTER PANEL */}
-          <div className="card" style={{ padding: '1rem', backgroundColor: '#F0F9FF', border: '2px solid #0284C7', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+          <div className="card" style={{ padding: '1.25rem', marginTop: '0.25rem', backgroundColor: '#F0F9FF', border: '2px solid #0284C7', borderTop: '4px solid #0284C7', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
             <h3 style={{ fontSize: '1rem', fontWeight: 900, color: '#0369A1', margin: 0, borderBottom: '1.5px solid #BAE6FD', paddingBottom: '0.4rem' }}>
               💳 Commercial Cash Counter
             </h3>

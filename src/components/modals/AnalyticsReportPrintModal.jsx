@@ -1,7 +1,8 @@
 import React from 'react';
 import { Printer, X, FileText, Download } from 'lucide-react';
-import { STORE_INFO } from '../../data/mockData';
+import { STORE_INFO, getStoreInfo } from '../../data/mockData';
 import { formatDateDDMMYYYY } from '../../utils/dateUtils';
+import { printElementById } from '../../utils/printUtils';
 
 export const AnalyticsReportPrintModal = ({
   isOpen,
@@ -13,10 +14,23 @@ export const AnalyticsReportPrintModal = ({
   topSellingMedicines = [],
   financialSummary = {},
 }) => {
+  const [, setSettingTick] = React.useState(0);
+  React.useEffect(() => {
+    const handleSettingUpdate = () => setSettingTick((t) => t + 1);
+    window.addEventListener('store_info_updated', handleSettingUpdate);
+    window.addEventListener('warranty_config_updated', handleSettingUpdate);
+    window.addEventListener('tax_config_updated', handleSettingUpdate);
+    return () => {
+      window.removeEventListener('store_info_updated', handleSettingUpdate);
+      window.removeEventListener('warranty_config_updated', handleSettingUpdate);
+      window.removeEventListener('tax_config_updated', handleSettingUpdate);
+    };
+  }, []);
+
   if (!isOpen) return null;
 
   const handlePrint = () => {
-    window.print();
+    printElementById('analytics-pdf-report', 'Executive Financial Analytics Report');
   };
 
   const getPeriodTitle = () => {
@@ -39,42 +53,56 @@ export const AnalyticsReportPrintModal = ({
               margin: 6mm 8mm;
             }
             html, body {
-              width: 100% !important;
-              height: 100% !important;
               margin: 0 !important;
               padding: 0 !important;
+              height: auto !important;
               background: #FFFFFF !important;
-              font-size: 11pt !important;
-            }
-            body * {
-              visibility: hidden !important;
-            }
-            .modal-overlay, .modal-card, div {
-              position: static !important;
-              max-height: none !important;
+              color: #000000 !important;
               overflow: visible !important;
-              background: none !important;
-              box-shadow: none !important;
-              padding: 0 !important;
-              margin: 0 !important;
-              border: none !important;
             }
-            #analytics-pdf-report, #analytics-pdf-report * {
-              visibility: visible !important;
+            .no-print, button, .btn {
+              display: none !important;
             }
-            #analytics-pdf-report {
+            .modal-overlay {
               position: absolute !important;
               top: 0 !important;
               left: 0 !important;
               width: 100% !important;
-              min-height: 98vh !important;
+              min-height: 100% !important;
+              height: auto !important;
+              background: #FFFFFF !important;
+              backdrop-filter: none !important;
+              z-index: 999999 !important;
               margin: 0 !important;
-              padding: 1.65rem !important;
-              border: 2px solid #000000 !important;
-              box-sizing: border-box !important;
+              padding: 0 !important;
+              display: block !important;
             }
-            .no-print, button, .btn {
-              display: none !important;
+            .card, .modal-card {
+              position: static !important;
+              width: 100% !important;
+              max-width: 100% !important;
+              max-height: none !important;
+              overflow: visible !important;
+              box-shadow: none !important;
+              border: none !important;
+              padding: 0 !important;
+              margin: 0 !important;
+              background: #FFFFFF !important;
+            }
+            #analytics-pdf-report {
+              display: block !important;
+              visibility: visible !important;
+              position: static !important;
+              width: 100% !important;
+              margin: 0 !important;
+              padding: 1rem !important;
+              box-sizing: border-box !important;
+              border: 2px solid #000000 !important;
+              background: #FFFFFF !important;
+              color: #000000 !important;
+            }
+            #analytics-pdf-report * {
+              visibility: visible !important;
             }
           }
         `}
@@ -107,13 +135,13 @@ export const AnalyticsReportPrintModal = ({
           {/* STORE HEADER BRANDING (NO DSL/STN/NTN AS REQUESTED) */}
           <div style={{ textAlign: 'center', marginBottom: '1.5rem', paddingTop: '0.5rem' }}>
             <h1 style={{ fontSize: '2.1rem', fontWeight: '900', margin: 0, textTransform: 'uppercase', letterSpacing: '0.02em', color: '#000000', lineHeight: '1.25' }}>
-              {STORE_INFO.name}
+              {getStoreInfo().name}
             </h1>
             <div style={{ fontSize: '0.925rem', fontWeight: 'bold', marginTop: '0.35rem', lineHeight: '1.5' }}>
-              {STORE_INFO.address}
+              {getStoreInfo().address}
             </div>
             <div style={{ fontSize: '0.835rem', marginTop: '0.2rem', lineHeight: '1.5' }}>
-              Phone# {STORE_INFO.phone} &nbsp;|&nbsp; E-Mail: {STORE_INFO.email}
+              Phone# {getStoreInfo().phone} &nbsp;|&nbsp; E-Mail: {getStoreInfo().email}
             </div>
 
             {/* PERIOD BANNER */}
@@ -242,19 +270,23 @@ export const AnalyticsReportPrintModal = ({
             </div>
 
             {/* DIGITAL SIGNATURE BOX */}
-            <div style={{ border: '1px solid #000000', padding: '0.45rem 0.85rem', textAlign: 'center', minWidth: '200px' }}>
-              {STORE_INFO.signatureImage ? (
-                <img src={STORE_INFO.signatureImage} alt="Authorized Signature" style={{ maxHeight: '46px', objectFit: 'contain', display: 'block', margin: '0 auto' }} />
+            <div style={{ textAlign: 'center', minWidth: '180px' }}>
+              {getStoreInfo().signatureImage ? (
+                <img
+                  src={getStoreInfo().signatureImage}
+                  alt="Official Digital Signature"
+                  style={{ height: '48px', maxHeight: '55px', maxWidth: '170px', objectFit: 'contain', display: 'block', margin: '0 auto 0.2rem auto' }}
+                />
               ) : (
-                <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 'bold' }}>
-                  {STORE_INFO.signatoryName}
+                <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 'bold', fontSize: '1.1rem' }}>
+                  {getStoreInfo().signatoryName || 'M. Idrees'}
                 </div>
               )}
-              <div style={{ borderTop: '1px solid #000000', marginTop: '0.3rem', paddingTop: '0.15rem', fontWeight: 'bold' }}>
-                {STORE_INFO.signatoryName || 'M. Idrees'}
+              <div style={{ borderTop: '1.5px solid #000000', marginTop: '0.2rem', paddingTop: '0.15rem', fontWeight: 'bold', fontSize: '0.75rem' }}>
+                {getStoreInfo().signatoryName || 'M. Idrees'} ({getStoreInfo().signatoryTitle || 'Managing Director'})
               </div>
-              <div style={{ fontSize: '0.675rem' }}>
-                Authorized Signatory
+              <div style={{ fontSize: '0.65rem', color: '#0284C7', fontWeight: 700 }}>
+                ✔ VERIFIED DIGITAL SIGNATURE
               </div>
             </div>
           </div>
