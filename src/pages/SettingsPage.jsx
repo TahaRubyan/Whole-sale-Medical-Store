@@ -160,6 +160,65 @@ export const SettingsPage = () => {
     }
   };
 
+  const handleExportSystemBackup = () => {
+    const backupObj = {
+      backupDate: new Date().toISOString(),
+      storeInfo: localStorage.getItem('pharmalink_store_info'),
+      taxConfig: localStorage.getItem('pharmalink_tax_config'),
+      warrantyConfig: localStorage.getItem('pharmalink_warranty_config'),
+      medicines: localStorage.getItem('pharmalink_pk_medicines'),
+      batches: localStorage.getItem('pharmalink_pk_batches'),
+      invoices: localStorage.getItem('pharmalink_pk_invoices'),
+      suppliers: localStorage.getItem('pharmalink_pk_suppliers'),
+      purchaseOrders: localStorage.getItem('pharmalink_pk_purchase_orders'),
+      rtvNotes: localStorage.getItem('pharmalink_pk_rtv_notes'),
+      patients: localStorage.getItem('pharmalink_pk_patients'),
+      auditLogs: localStorage.getItem('pharmalink_pk_audit_logs'),
+    };
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupObj, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `pharmalink_system_backup_${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    showSaveSuccess('System JSON Backup downloaded successfully!');
+  };
+
+  const handleImportSystemBackup = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const backupObj = JSON.parse(event.target.result);
+        if (backupObj) {
+          if (backupObj.storeInfo) localStorage.setItem('pharmalink_store_info', backupObj.storeInfo);
+          if (backupObj.taxConfig) localStorage.setItem('pharmalink_tax_config', backupObj.taxConfig);
+          if (backupObj.warrantyConfig) localStorage.setItem('pharmalink_warranty_config', backupObj.warrantyConfig);
+          if (backupObj.medicines) localStorage.setItem('pharmalink_pk_medicines', backupObj.medicines);
+          if (backupObj.batches) localStorage.setItem('pharmalink_pk_batches', backupObj.batches);
+          if (backupObj.invoices) localStorage.setItem('pharmalink_pk_invoices', backupObj.invoices);
+          if (backupObj.suppliers) localStorage.setItem('pharmalink_pk_suppliers', backupObj.suppliers);
+          if (backupObj.purchaseOrders) localStorage.setItem('pharmalink_pk_purchase_orders', backupObj.purchaseOrders);
+          if (backupObj.rtvNotes) localStorage.setItem('pharmalink_pk_rtv_notes', backupObj.rtvNotes);
+          if (backupObj.patients) localStorage.setItem('pharmalink_pk_patients', backupObj.patients);
+          if (backupObj.auditLogs) localStorage.setItem('pharmalink_pk_audit_logs', backupObj.auditLogs);
+
+          showSaveSuccess('System Data Restored Successfully! Reloading app...');
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        }
+      } catch (err) {
+        alert('Invalid backup JSON file format.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       
@@ -215,6 +274,14 @@ export const SettingsPage = () => {
           style={{ fontSize: '0.825rem', fontWeight: 800 }}
         >
           <Users size={16} /> Cashier & Staff Accounts
+        </button>
+
+        <button
+          onClick={() => setActiveTab('BACKUP')}
+          className={`btn ${activeTab === 'BACKUP' ? 'btn-primary' : 'btn-outline'}`}
+          style={{ fontSize: '0.825rem', fontWeight: 800, backgroundColor: activeTab === 'BACKUP' ? '#0369A1' : 'transparent' }}
+        >
+          <Download size={16} /> Backup & Restore Data
         </button>
       </div>
 
@@ -687,6 +754,62 @@ export const SettingsPage = () => {
             </div>
           </div>
 
+        </div>
+      )}
+
+      {/* TAB 5: BACKUP & DATA EXPORT */}
+      {activeTab === 'BACKUP' && (
+        <div className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0369A1', margin: 0 }}>
+              💾 System Data Backup & Restore Utility
+            </h3>
+            <p style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '0.2rem' }}>
+              Export a complete backup file of your testing invoices, stock inventory, supplier ledgers, and settings to save on your computer or transfer to another device.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            {/* EXPORT BACKUP CARD */}
+            <div style={{ backgroundColor: '#F0F9FF', padding: '1.25rem', borderRadius: '8px', border: '1.5px solid #0284C7', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0369A1', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Download size={18} /> Export System Backup (JSON)
+              </div>
+              <p style={{ fontSize: '0.775rem', color: '#475569', margin: 0 }}>
+                Downloads all your created invoices, stock items, customer debts, and store profile settings as a `.json` backup file.
+              </p>
+              <button
+                type="button"
+                onClick={handleExportSystemBackup}
+                className="btn btn-primary"
+                style={{ padding: '0.65rem 1rem', fontWeight: 900, backgroundColor: '#0284C7', color: '#FFF', fontSize: '0.825rem', width: 'fit-content' }}
+              >
+                <Download size={16} /> Export Backup (.json)
+              </button>
+            </div>
+
+            {/* RESTORE BACKUP CARD */}
+            <div style={{ backgroundColor: '#F8FAFC', padding: '1.25rem', borderRadius: '8px', border: '1.5px solid #CBD5E1', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#334155', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Upload size={18} /> Restore Backup File
+              </div>
+              <p style={{ fontSize: '0.775rem', color: '#475569', margin: 0 }}>
+                Upload a previously downloaded `.json` backup file to restore all your invoices, stock data, and settings cleanly.
+              </p>
+              <label
+                className="btn btn-outline"
+                style={{ padding: '0.65rem 1rem', fontWeight: 900, borderColor: '#0284C7', color: '#0284C7', fontSize: '0.825rem', width: 'fit-content', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                <Upload size={16} /> Choose & Restore Backup File
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleImportSystemBackup}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            </div>
+          </div>
         </div>
       )}
     </div>
