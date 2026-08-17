@@ -3,26 +3,7 @@ import { INITIAL_MEDICINES, INITIAL_BATCHES } from '../data/mockData';
 
 const InventoryContext = createContext();
 
-const INITIAL_AUDIT_LOGS = [
-  {
-    id: "LOG-001",
-    actionTitle: "Initial Stock Load",
-    itemBrandName: "Panadol 500mg",
-    details: "850 Tablets added in Batch B26-Pan-01",
-    performedBy: "Dr. Idrees",
-    timestamp: "2026-08-01 09:00 AM",
-    type: "ADD",
-  },
-  {
-    id: "LOG-002",
-    actionTitle: "Batch Issue / Internal Use",
-    itemBrandName: "Brufen 400mg",
-    details: "Deducted 20 Tablets for Store Internal Use",
-    performedBy: "Usman Tariq",
-    timestamp: "2026-08-01 11:30 AM",
-    type: "DEDUCT",
-  },
-];
+const INITIAL_AUDIT_LOGS = [];
 
 export const InventoryProvider = ({ children }) => {
   const [medicines, setMedicines] = useState(() => {
@@ -30,7 +11,7 @@ export const InventoryProvider = ({ children }) => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       } catch (e) {
         console.error('Failed to parse saved medicines', e);
       }
@@ -43,7 +24,7 @@ export const InventoryProvider = ({ children }) => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       } catch (e) {
         console.error('Failed to parse saved batches', e);
       }

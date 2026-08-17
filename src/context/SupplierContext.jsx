@@ -10,7 +10,7 @@ export const SupplierProvider = ({ children }) => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       } catch (e) {
         console.error('Failed to parse saved suppliers', e);
       }
@@ -28,21 +28,7 @@ export const SupplierProvider = ({ children }) => {
         console.error('Failed to parse saved purchase orders', e);
       }
     }
-    return [
-      {
-        poNumber: "PO-20260801-0101",
-        distributorName: "Muller & Phipps Pakistan",
-        inwardDate: "2026-08-01",
-        brandName: "Panadol 500mg",
-        genericFormula: "Paracetamol 500mg",
-        batchNumber: "B26-Pan-01",
-        expiryDate: "2027-06-30",
-        quantity: 200,
-        boxPrice: 600,
-        purchasePriceBox: 480,
-        totalAmount: 96000,
-      },
-    ];
+    return [];
   });
 
   const [rtvNotes, setRtvNotes] = useState(() => {
