@@ -13,7 +13,11 @@ import {
   LogOut,
   Download,
   Search,
-  Filter
+  Filter,
+  DollarSign,
+  Calendar,
+  CreditCard,
+  Clock
 } from 'lucide-react';
 
 const INITIAL_TENANTS_LIST = [
@@ -26,7 +30,11 @@ const INITIAL_TENANTS_LIST = [
     adminUsername: 'idrees_admin',
     status: 'ACTIVE',
     subscriptionTier: 'STANDARD',
-    createdAt: '2026-08-12',
+    createdAt: '2026-07-15',
+    activatedAt: '2026-07-15',
+    nextBillingDate: '2026-08-15', // Passed 1 month -> Membership Due!
+    monthlyFee: 15000,
+    paymentStatus: 'DEBT_DUE', // 'PAID' | 'PARTIAL_PAID' | 'DEBT_DUE'
   },
   {
     id: 'TNT-1002',
@@ -37,7 +45,11 @@ const INITIAL_TENANTS_LIST = [
     adminUsername: 'alrazi_admin',
     status: 'ACTIVE',
     subscriptionTier: 'PREMIUM',
-    createdAt: '2026-08-15',
+    createdAt: '2026-08-01',
+    activatedAt: '2026-08-01',
+    nextBillingDate: '2026-09-01',
+    monthlyFee: 15000,
+    paymentStatus: 'PAID',
   },
 ];
 
@@ -87,6 +99,9 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
   const [newDslNumber, setNewDslNumber] = useState('');
   const [newAdminUsername, setNewAdminUsername] = useState('');
   const [newTempPassword, setNewTempPassword] = useState('1234');
+  const [newMonthlyFee, setNewMonthlyFee] = useState(15000);
+  const [newPaymentStatus, setNewPaymentStatus] = useState('PAID');
+  
   const [successMsg, setSuccessMsg] = useState('');
   const [tenantSearchQuery, setTenantSearchQuery] = useState('');
 
@@ -97,9 +112,24 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
     }, 3500);
   };
 
+  const calculateNextBillingDate = (startDateStr) => {
+    const startDate = new Date(startDateStr || Date.now());
+    startDate.setDate(startDate.getDate() + 30);
+    return startDate.toISOString().split('T')[0];
+  };
+
+  const isMembershipDue = (tenant) => {
+    if (!tenant.nextBillingDate) return false;
+    const todayStr = new Date().toISOString().split('T')[0];
+    return tenant.nextBillingDate <= todayStr && tenant.paymentStatus !== 'PAID';
+  };
+
   const handleOnboardTenant = (e) => {
     e.preventDefault();
     if (!newStoreName.trim() || !newAdminUsername.trim()) return;
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const nextBillStr = calculateNextBillingDate(todayStr);
 
     const newTenant = {
       id: `TNT-${1000 + tenants.length + 1}`,
@@ -110,7 +140,11 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
       adminUsername: newAdminUsername.trim().toLowerCase(),
       status: 'ACTIVE',
       subscriptionTier: 'STANDARD',
-      createdAt: new Date().toISOString().split('T')[0],
+      createdAt: todayStr,
+      activatedAt: todayStr,
+      nextBillingDate: nextBillStr,
+      monthlyFee: Number(newMonthlyFee) || 15000,
+      paymentStatus: newPaymentStatus,
       tempPassword: newTempPassword,
       forcePasswordReset: true,
     };
@@ -126,9 +160,40 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
     setNewDslNumber('');
     setNewAdminUsername('');
     setNewTempPassword('1234');
+    setNewMonthlyFee(15000);
+    setNewPaymentStatus('PAID');
     setIsOnboardModalOpen(false);
 
-    showNotification(`Client Tenant "${newTenant.storeName}" (${newTenant.id}) onboarded successfully!`);
+    showNotification(`Client Tenant "${newTenant.storeName}" (${newTenant.id}) onboarded! 1-Month Billing cycle set to ${nextBillStr}.`);
+  };
+
+  const handleRecordPayment = (tenantId) => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const nextBillStr = calculateNextBillingDate(todayStr);
+
+    const updated = tenants.map((t) => {
+      if (t.id === tenantId) {
+        return {
+          ...t,
+          paymentStatus: 'PAID',
+          activatedAt: todayStr,
+          nextBillingDate: nextBillStr,
+          status: 'ACTIVE'
+        };
+      }
+      return t;
+    });
+
+    setTenants(updated);
+    localStorage.setItem('pharmalink_superadmin_tenants', JSON.stringify(updated));
+    showNotification(`Payment recorded for Tenant ${tenantId}! Membership extended 30 days to ${nextBillStr}.`);
+  };
+
+  const handleUpdatePaymentStatus = (tenantId, newStatus) => {
+    const updated = tenants.map((t) => (t.id === tenantId ? { ...t, paymentStatus: newStatus } : t));
+    setTenants(updated);
+    localStorage.setItem('pharmalink_superadmin_tenants', JSON.stringify(updated));
+    showNotification(`Tenant ${tenantId} payment status updated to ${newStatus}.`);
   };
 
   const handleToggleTenantStatus = (tenantId, currentStatus) => {
@@ -156,6 +221,9 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
       (t.dslNumber && t.dslNumber.toLowerCase().includes(q))
     );
   });
+
+  const dueMembershipsCount = tenants.filter((t) => isMembershipDue(t)).length;
+  const totalMonthlyFeeSum = tenants.reduce((sum, t) => sum + (Number(t.monthlyFee) || 15000), 0);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem', backgroundColor: '#F8FAFC', minHeight: '100vh', fontFamily: 'Inter, system-ui, sans-serif' }}>
@@ -191,7 +259,7 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
               Super-Admin Control Panel — Welcome back, rubyan 👋
             </h2>
             <p style={{ fontSize: '0.85rem', color: '#E0F2FE', marginTop: '0.2rem', margin: 0 }}>
-              Master SaaS Multi-Tenant Management & Client Account Provisioning System.
+              Master SaaS Multi-Tenant Management & 30-Day Client Subscription Billing System.
             </p>
           </div>
         </div>
@@ -228,7 +296,7 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
         {/* Metric 1: Active Tenants */}
         <div className="card" style={{ padding: '1.25rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.825rem', fontWeight: 700, color: '#64748B' }}>Total Active Clients</span>
+            <span style={{ fontSize: '0.825rem', fontWeight: 700, color: '#64748B' }}>Active Client Tenants</span>
             <div style={{ width: '36px', height: '36px', borderRadius: '6px', backgroundColor: '#E0F2FE', color: '#0284C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Store size={20} />
             </div>
@@ -237,14 +305,46 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
             {tenants.filter(t => t.status === 'ACTIVE').length} Tenants
           </div>
           <div style={{ fontSize: '0.75rem', color: '#0284C7', fontWeight: 700, marginTop: '0.2rem' }}>
-            Fully Isolated Workspaces
+            Fully Isolated Databases
           </div>
         </div>
 
-        {/* Metric 2: Unresolved Tickets */}
+        {/* Metric 2: Monthly Membership Dues Alert */}
+        <div className="card" style={{ padding: '1.25rem', border: dueMembershipsCount > 0 ? '1.5px solid #EF4444' : '1px solid #E2E8F0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <span style={{ fontSize: '0.825rem', fontWeight: 700, color: '#64748B' }}>Monthly Membership Due</span>
+            <div style={{ width: '36px', height: '36px', borderRadius: '6px', backgroundColor: dueMembershipsCount > 0 ? '#FEF2F2' : '#F1F5F9', color: dueMembershipsCount > 0 ? '#DC2626' : '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Clock size={20} />
+            </div>
+          </div>
+          <div style={{ fontSize: '1.65rem', fontWeight: 900, color: dueMembershipsCount > 0 ? '#DC2626' : '#059669' }}>
+            {dueMembershipsCount} Clients Due
+          </div>
+          <div style={{ fontSize: '0.75rem', color: dueMembershipsCount > 0 ? '#DC2626' : '#059669', fontWeight: 700, marginTop: '0.2rem' }}>
+            {dueMembershipsCount > 0 ? '🚨 Contact Clients to Collect Fee' : 'All Accounts Up to Date'}
+          </div>
+        </div>
+
+        {/* Metric 3: Total Monthly SaaS Run-Rate */}
         <div className="card" style={{ padding: '1.25rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.825rem', fontWeight: 700, color: '#64748B' }}>Unresolved Support Tickets</span>
+            <span style={{ fontSize: '0.825rem', fontWeight: 700, color: '#64748B' }}>Monthly Subscription Volume</span>
+            <div style={{ width: '36px', height: '36px', borderRadius: '6px', backgroundColor: '#D1FAE5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <CreditCard size={20} />
+            </div>
+          </div>
+          <div style={{ fontSize: '1.65rem', fontWeight: 900, color: '#059669' }}>
+            Rs. {totalMonthlyFeeSum.toLocaleString()}/mo
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 700, marginTop: '0.2rem' }}>
+            30-Day Recurring Memberships
+          </div>
+        </div>
+
+        {/* Metric 4: Unresolved Tickets */}
+        <div className="card" style={{ padding: '1.25rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <span style={{ fontSize: '0.825rem', fontWeight: 700, color: '#64748B' }}>Support Tickets Desk</span>
             <div style={{ width: '36px', height: '36px', borderRadius: '6px', backgroundColor: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <LifeBuoy size={20} />
             </div>
@@ -253,23 +353,7 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
             {tickets.filter(tk => tk.status === 'OPEN').length} Issues
           </div>
           <div style={{ fontSize: '0.75rem', color: '#D97706', fontWeight: 700, marginTop: '0.2rem' }}>
-            100% Free Support Desk
-          </div>
-        </div>
-
-        {/* Metric 3: System Health */}
-        <div className="card" style={{ padding: '1.25rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.825rem', fontWeight: 700, color: '#64748B' }}>SaaS Backend Status</span>
-            <div style={{ width: '36px', height: '36px', borderRadius: '6px', backgroundColor: '#D1FAE5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Activity size={20} />
-            </div>
-          </div>
-          <div style={{ fontSize: '1.65rem', fontWeight: 900, color: '#059669' }}>
-            100% Operational
-          </div>
-          <div style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 700, marginTop: '0.2rem' }}>
-            Node.js API + Supabase PostgreSQL
+            100% Free Support Logs
           </div>
         </div>
       </div>
@@ -282,7 +366,7 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
             className={`btn ${activeTab === 'TENANTS' ? 'btn-primary' : 'btn-outline'}`}
             style={{ fontSize: '0.825rem', fontWeight: 800 }}
           >
-            <Store size={16} /> Client Tenants Directory ({tenants.length})
+            <Store size={16} /> Client Tenants & Membership Billing ({tenants.length})
           </button>
 
           <button
@@ -305,13 +389,18 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
         )}
       </div>
 
-      {/* TAB 1: CLIENT TENANT DIRECTORY */}
+      {/* TAB 1: CLIENT TENANT DIRECTORY & MONTHLY BILLING */}
       {activeTab === 'TENANTS' && (
         <div className="card" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0369A1', margin: 0 }}>
-              🏢 Active Client Tenants Directory
-            </h3>
+            <div>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0369A1', margin: 0 }}>
+                🏢 Active Client Tenants & 30-Day Subscription Ledger
+              </h3>
+              <p style={{ fontSize: '0.775rem', color: '#64748B', marginTop: '0.15rem', margin: 0 }}>
+                Track monthly payment statuses, dues, and record membership renewal collections.
+              </p>
+            </div>
             
             <div style={{ position: 'relative', width: '280px' }}>
               <Search size={15} style={{ position: 'absolute', left: '0.65rem', top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
@@ -332,48 +421,116 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
                   <th>Tenant ID</th>
                   <th>Store / Pharmacy Name</th>
                   <th>Contact Phone</th>
-                  <th>DSL License No.</th>
-                  <th>Admin Username</th>
-                  <th>Status</th>
-                  <th>Created On</th>
-                  <th style={{ textAlign: 'center' }}>Action</th>
+                  <th>Admin User</th>
+                  <th>Monthly Fee</th>
+                  <th>Payment Status</th>
+                  <th>Next Billing Due</th>
+                  <th>Account Status</th>
+                  <th style={{ textAlign: 'center' }}>Billing & Status Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredTenants.length > 0 ? (
-                  filteredTenants.map((t) => (
-                    <tr key={t.id}>
-                      <td style={{ fontFamily: 'monospace', fontWeight: 900, color: '#0284C7' }}>{t.id}</td>
-                      <td><strong>{t.storeName}</strong></td>
-                      <td>{t.phone}</td>
-                      <td style={{ fontFamily: 'monospace', fontSize: '0.775rem' }}>{t.dslNumber || 'N/A'}</td>
-                      <td><span style={{ fontWeight: 800, color: '#0369A1' }}>{t.adminUsername}</span></td>
-                      <td>
-                        <span className={`badge ${t.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'}`}>
-                          {t.status}
-                        </span>
-                      </td>
-                      <td style={{ fontSize: '0.775rem', color: '#64748B' }}>{t.createdAt}</td>
-                      <td style={{ textAlign: 'center' }}>
-                        <button
-                          onClick={() => handleToggleTenantStatus(t.id, t.status)}
-                          className="btn btn-outline"
-                          style={{
-                            padding: '0.25rem 0.65rem',
-                            fontSize: '0.725rem',
-                            fontWeight: 800,
-                            borderColor: t.status === 'ACTIVE' ? '#DC2626' : '#059669',
-                            color: t.status === 'ACTIVE' ? '#DC2626' : '#059669'
-                          }}
-                        >
-                          {t.status === 'ACTIVE' ? 'Suspend Tenant' : 'Activate Tenant'}
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  filteredTenants.map((t) => {
+                    const due = isMembershipDue(t);
+                    return (
+                      <tr key={t.id} style={{ backgroundColor: due ? '#FFFBEB' : 'transparent' }}>
+                        <td style={{ fontFamily: 'monospace', fontWeight: 900, color: '#0284C7' }}>{t.id}</td>
+                        <td>
+                          <strong>{t.storeName}</strong>
+                          <span style={{ fontSize: '0.7rem', color: '#64748B', display: 'block' }}>DSL: {t.dslNumber || 'N/A'}</span>
+                        </td>
+                        <td>{t.phone}</td>
+                        <td><span style={{ fontWeight: 800, color: '#0369A1' }}>{t.adminUsername}</span></td>
+                        <td style={{ fontWeight: 800, color: '#0F172A' }}>
+                          Rs. {(Number(t.monthlyFee) || 15000).toLocaleString()}/mo
+                        </td>
+                        <td>
+                          {t.paymentStatus === 'PAID' && (
+                            <span className="badge badge-success">
+                              ✔ PAID FULL
+                            </span>
+                          )}
+                          {t.paymentStatus === 'PARTIAL_PAID' && (
+                            <span className="badge badge-warning">
+                              ⚠️ PAID IN HALF
+                            </span>
+                          )}
+                          {t.paymentStatus === 'DEBT_DUE' && (
+                            <span className="badge badge-danger">
+                              🚨 DEBT DUE
+                            </span>
+                          )}
+                        </td>
+                        <td>
+                          <div style={{ fontWeight: 800, color: due ? '#DC2626' : '#334155' }}>
+                            {t.nextBillingDate || 'N/A'}
+                          </div>
+                          {due && (
+                            <span style={{ fontSize: '0.675rem', fontWeight: 900, color: '#DC2626', backgroundColor: '#FEE2E2', padding: '0.15rem 0.4rem', borderRadius: '4px', display: 'inline-block', marginTop: '0.15rem' }}>
+                              🚨 MEMBERSHIP DUE — CONTACT CLIENT!
+                            </span>
+                          )}
+                        </td>
+                        <td>
+                          <span className={`badge ${t.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'}`}>
+                            {t.status}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', alignItems: 'center' }}>
+                            {/* Record Payment Button */}
+                            <button
+                              onClick={() => handleRecordPayment(t.id)}
+                              className="btn"
+                              style={{
+                                padding: '0.3rem 0.65rem',
+                                fontSize: '0.725rem',
+                                fontWeight: 900,
+                                backgroundColor: '#10B981',
+                                color: '#FFFFFF',
+                                border: 'none',
+                                borderRadius: '4px',
+                                width: '100%',
+                                cursor: 'pointer'
+                              }}
+                              title="Record payment collection and extend 30 days"
+                            >
+                              💳 Record Fee Paid (+30 Days)
+                            </button>
+
+                            <div style={{ display: 'flex', gap: '0.25rem', width: '100%' }}>
+                              <button
+                                onClick={() => handleUpdatePaymentStatus(t.id, t.paymentStatus === 'PARTIAL_PAID' ? 'DEBT_DUE' : 'PARTIAL_PAID')}
+                                className="btn btn-outline"
+                                style={{ padding: '0.2rem 0.4rem', fontSize: '0.675rem', fontWeight: 800, flex: 1, borderColor: '#D97706', color: '#D97706' }}
+                              >
+                                {t.paymentStatus === 'PARTIAL_PAID' ? 'Set Debt Due' : 'Set Half Paid'}
+                              </button>
+
+                              <button
+                                onClick={() => handleToggleTenantStatus(t.id, t.status)}
+                                className="btn btn-outline"
+                                style={{
+                                  padding: '0.2rem 0.4rem',
+                                  fontSize: '0.675rem',
+                                  fontWeight: 800,
+                                  flex: 1,
+                                  borderColor: t.status === 'ACTIVE' ? '#DC2626' : '#059669',
+                                  color: t.status === 'ACTIVE' ? '#DC2626' : '#059669'
+                                }}
+                              >
+                                {t.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: 'center', padding: '1.5rem', color: '#94A3B8' }}>
+                    <td colSpan="9" style={{ textAlign: 'center', padding: '1.5rem', color: '#94A3B8' }}>
                       No client tenants found.
                     </td>
                   </tr>
@@ -457,10 +614,10 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
       {/* 4. MODAL: ONBOARD NEW CLIENT TENANT */}
       {isOnboardModalOpen && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '520px', padding: '0', overflow: 'hidden', border: '1.5px solid #0284C7' }}>
+          <div className="card" style={{ width: '100%', maxWidth: '540px', padding: '0', overflow: 'hidden', border: '1.5px solid #0284C7' }}>
             <div style={{ backgroundColor: '#0284C7', color: '#FFFFFF', padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ fontWeight: 900, fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Store size={20} /> Onboard New Client Tenant
+                <Store size={20} /> Onboard New Client Tenant & Set 30-Day Membership
               </div>
               <button onClick={() => setIsOnboardModalOpen(false)} style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer' }}>
                 <X size={20} />
@@ -507,6 +664,33 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 800, display: 'block', marginBottom: '0.2rem' }}>Monthly Fee (Rs.) *:</label>
+                  <input
+                    type="number"
+                    value={newMonthlyFee}
+                    onChange={(e) => setNewMonthlyFee(e.target.value)}
+                    placeholder="15000"
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #CBD5E1', fontWeight: 700 }}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 800, display: 'block', marginBottom: '0.2rem' }}>Initial Payment Status *:</label>
+                  <select
+                    value={newPaymentStatus}
+                    onChange={(e) => setNewPaymentStatus(e.target.value)}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #CBD5E1', fontWeight: 700 }}
+                  >
+                    <option value="PAID">✔ Paid Full</option>
+                    <option value="PARTIAL_PAID">⚠️ Paid in Half</option>
+                    <option value="DEBT_DUE">🚨 Debt Due</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                <div>
                   <label style={{ fontSize: '0.8rem', fontWeight: 800, display: 'block', marginBottom: '0.2rem' }}>Contact Phone:</label>
                   <input
                     type="text"
@@ -541,7 +725,7 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
               </div>
 
               <div style={{ backgroundColor: '#F0F9FF', border: '1px solid #BAE6FD', padding: '0.65rem', borderRadius: '6px', fontSize: '0.75rem', color: '#0369A1', fontWeight: 700 }}>
-                ✔ Client will be forced to change password on first login. System generates unique tenant ID automatically.
+                ✔ Automatically sets 30-day membership cycle. Next billing due date will be calculated 30 days from today.
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.5rem' }}>

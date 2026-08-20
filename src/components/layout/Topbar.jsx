@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { STORE_INFO } from '../../data/mockData';
+import PwaInstallButton from './PwaInstallButton';
 
 const SCREEN_TITLES = {
   dashboard: 'Executive Dashboard',
@@ -50,8 +51,11 @@ export const Topbar = ({ currentScreen }) => {
         </div>
       </div>
 
-      {/* Right Controls: Role Switcher & User Profile & Logout */}
+      {/* Right Controls: PWA App Install, Role Switcher, User Profile & Logout */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        {/* PWA Install Button */}
+        <PwaInstallButton />
+
         {/* Live RBAC Role Switcher Toggle */}
         <button
           onClick={toggleRole}

@@ -99,28 +99,7 @@ export const LoginPage = ({ onOpenSuperAdmin }) => {
           </button>
         </form>
 
-        {/* Quick Credentials Preset Buttons */}
-        <div style={{ marginTop: '1.75rem', borderTop: '1px solid #E2E8F0', paddingTop: '1.25rem' }}>
-          <p style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748B', textAlign: 'center', margin: '0 0 0.65rem 0' }}>
-            💡 Quick Demo Credentials:
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-            <button
-              type="button"
-              onClick={() => handleQuickFill('admin')}
-              style={{ padding: '0.5rem', fontSize: '0.775rem', fontWeight: 800, backgroundColor: '#F0F9FF', border: '1px solid #0284C7', color: '#0369A1', borderRadius: '6px', cursor: 'pointer' }}
-            >
-              🔑 Login as Admin
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickFill('cashier')}
-              style={{ padding: '0.5rem', fontSize: '0.775rem', fontWeight: 800, backgroundColor: '#FEF3C7', border: '1px solid #D97706', color: '#92400E', borderRadius: '6px', cursor: 'pointer' }}
-            >
-              👤 Login as Cashier
-            </button>
-          </div>
-        </div>
+
 
         {/* Super-Admin Discreet Portal Link */}
         {onOpenSuperAdmin && (

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Settings, Store, Printer, Users, Save, ShieldCheck, Calculator, CheckCircle, Plus, UserPlus, Trash2, Upload, Download, Image as ImageIcon, RotateCcw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getTaxConfig, getWarrantyConfig, getStoreInfo, STORE_INFO } from '../data/mockData';
+import PwaInstallButton from '../components/layout/PwaInstallButton';
 
 export const SettingsPage = () => {
   const { isCashier, staffAccounts, setStaffAccounts } = useAuth();
@@ -223,7 +224,7 @@ export const SettingsPage = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       
       {/* Header Banner (Ocean Cyan Blue Theme) */}
-      <div className="card" style={{ padding: '1.25rem', backgroundColor: '#0284C7', color: '#FFFFFF', border: 'none' }}>
+      <div className="card" style={{ padding: '1.25rem', backgroundColor: '#0284C7', color: '#FFFFFF', border: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <Settings size={28} color="#FFFFFF" />
           <div>
@@ -233,6 +234,7 @@ export const SettingsPage = () => {
             </p>
           </div>
         </div>
+        <PwaInstallButton style={{ backgroundColor: '#FFFFFF', color: '#0284C7', border: 'none', fontWeight: 900, padding: '0.65rem 1.15rem', borderRadius: '8px', fontSize: '0.825rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
       </div>
 
       {/* Success Notification Banner */}
