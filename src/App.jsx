@@ -97,12 +97,57 @@ class ErrorBoundary extends Component {
   }
 }
 
+import SuperAdminLoginPage from './pages/SuperAdminLoginPage';
+import SuperAdminDashboardPage from './pages/SuperAdminDashboardPage';
+
 const AppContent = () => {
   const { isAuthenticated, isCashier } = useAuth();
-  const [currentScreen, setCurrentScreen] = useState('dashboard');
+  const [currentScreen, setCurrentScreen] = useState(() => {
+    if (window.location.pathname === '/super-admin' || window.location.hash === '#super-admin') {
+      return 'super-admin';
+    }
+    return 'dashboard';
+  });
+
+  const [superAdminUser, setSuperAdminUser] = useState(() => {
+    const isLogged = localStorage.getItem('pharmalink_superadmin_logged_in') === 'true';
+    if (isLogged) {
+      try {
+        return JSON.parse(localStorage.getItem('pharmalink_superadmin_user'));
+      } catch (e) {}
+    }
+    return null;
+  });
+
+  // Super-Admin Independent Route Branch
+  if (currentScreen === 'super-admin') {
+    if (!superAdminUser) {
+      return (
+        <SuperAdminLoginPage
+          onLoginSuccess={(userObj) => {
+            setSuperAdminUser(userObj);
+          }}
+        />
+      );
+    }
+    return (
+      <SuperAdminDashboardPage
+        onLogout={() => {
+          localStorage.removeItem('pharmalink_superadmin_logged_in');
+          localStorage.removeItem('pharmalink_superadmin_user');
+          setSuperAdminUser(null);
+          setCurrentScreen('dashboard');
+        }}
+      />
+    );
+  }
 
   if (!isAuthenticated) {
-    return <LoginPage />;
+    return (
+      <LoginPage
+        onOpenSuperAdmin={() => setCurrentScreen('super-admin')}
+      />
+    );
   }
 
   const renderScreen = () => {

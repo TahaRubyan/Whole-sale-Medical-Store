@@ -1,0 +1,17 @@
+{
+  "name": "Idrees Medical Store ERP & POS",
+  "short_name": "PharmaLink ERP",
+  "description": "Commercial Wholesale Pharmacy POS Billing & Multi-Tenant Inventory System",
+  "theme_color": "#0284C7",
+  "background_color": "#F8FAFC",
+  "display": "standalone",
+  "orientation": "any",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

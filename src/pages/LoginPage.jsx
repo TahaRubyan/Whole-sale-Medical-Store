@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ShieldCheck, User, Lock, LogIn, Store, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-export const LoginPage = () => {
+export const LoginPage = ({ onOpenSuperAdmin }) => {
   const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -121,6 +121,19 @@ export const LoginPage = () => {
             </button>
           </div>
         </div>
+
+        {/* Super-Admin Discreet Portal Link */}
+        {onOpenSuperAdmin && (
+          <div style={{ textAlign: 'center', marginTop: '1.25rem', borderTop: '1px dashed #E2E8F0', paddingTop: '0.75rem' }}>
+            <button
+              type="button"
+              onClick={onOpenSuperAdmin}
+              style={{ background: 'none', border: 'none', color: '#0284C7', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+            >
+              <ShieldCheck size={14} /> Open Super-Admin SaaS Portal (rubyan)
+            </button>
+          </div>
+        )}
 
       </div>
     </div>
