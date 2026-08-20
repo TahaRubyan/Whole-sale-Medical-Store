@@ -111,14 +111,14 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
   const [newMonthlyFee, setNewMonthlyFee] = useState(15000);
   const [newPaymentStatus, setNewPaymentStatus] = useState('PAID');
   
-  const [successMsg, setSuccessMsg] = useState('');
+  const [toastNotification, setToastNotification] = useState(null); // { message, type: 'success' | 'error' }
   const [tenantSearchQuery, setTenantSearchQuery] = useState('');
 
-  const showNotification = (msg) => {
-    setSuccessMsg(msg);
+  const showNotification = (msg, type = 'success') => {
+    setToastNotification({ message: msg, type });
     setTimeout(() => {
-      setSuccessMsg('');
-    }, 3500);
+      setToastNotification(null);
+    }, 1500);
   };
 
   const calculateNextBillingDate = (startDateStr) => {
@@ -202,7 +202,8 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
     const updated = tenants.map((t) => (t.id === tenantId ? { ...t, paymentStatus: newStatus } : t));
     setTenants(updated);
     localStorage.setItem('pharmalink_superadmin_tenants', JSON.stringify(updated));
-    showNotification(`Tenant ${tenantId} payment status updated to ${newStatus}.`);
+    const isErr = newStatus === 'DEBT_DUE';
+    showNotification(`Tenant ${tenantId} payment status updated to ${newStatus}.`, isErr ? 'error' : 'success');
   };
 
   const handleToggleTenantStatus = (tenantId, currentStatus) => {
@@ -210,7 +211,11 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
     const updated = tenants.map((t) => (t.id === tenantId ? { ...t, status: nextStatus } : t));
     setTenants(updated);
     localStorage.setItem('pharmalink_superadmin_tenants', JSON.stringify(updated));
-    showNotification(`Tenant ${tenantId} status updated to ${nextStatus}.`);
+    if (nextStatus === 'SUSPENDED') {
+      showNotification(`Tenant ${tenantId} account status updated to SUSPENDED.`, 'error');
+    } else {
+      showNotification(`Tenant ${tenantId} account status ACTIVATED.`, 'success');
+    }
   };
 
   const handleDeleteTenant = (tenantId, storeName) => {
@@ -218,7 +223,7 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
       const updated = tenants.filter((t) => t.id !== tenantId);
       setTenants(updated);
       localStorage.setItem('pharmalink_superadmin_tenants', JSON.stringify(updated));
-      showNotification(`Tenant "${storeName}" deleted successfully.`);
+      showNotification(`Tenant "${storeName}" deleted from system.`, 'error');
     }
   };
 
@@ -308,12 +313,7 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
         </button>
       </div>
 
-      {/* SUCCESS NOTIFICATION */}
-      {successMsg && (
-        <div style={{ backgroundColor: '#D1FAE5', border: '1.5px solid #10B981', color: '#065F46', padding: '0.85rem 1.25rem', borderRadius: '8px', fontWeight: 800, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <CheckCircle size={20} /> {successMsg}
-        </div>
-      )}
+
 
       {/* 2. KPI METRICS GRID */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
@@ -959,6 +959,36 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* FLOATING BOTTOM-RIGHT TOAST NOTIFICATION (AUTO-DISAPPEARS IN 1.5 SECONDS) */}
+      {toastNotification && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          zIndex: 99999,
+          backgroundColor: toastNotification.type === 'error' ? '#FEF2F2' : '#ECFDF5',
+          border: toastNotification.type === 'error' ? '1.5px solid #EF4444' : '1.5px solid #10B981',
+          color: toastNotification.type === 'error' ? '#991B1B' : '#065F46',
+          padding: '0.85rem 1.25rem',
+          borderRadius: '8px',
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.18)',
+          fontWeight: 800,
+          fontSize: '0.85rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.6rem',
+          animation: 'slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+          maxWidth: '380px'
+        }}>
+          {toastNotification.type === 'error' ? (
+            <AlertCircle size={18} color="#DC2626" style={{ flexShrink: 0 }} />
+          ) : (
+            <CheckCircle size={18} color="#10B981" style={{ flexShrink: 0 }} />
+          )}
+          <span>{toastNotification.message}</span>
         </div>
       )}
     </div>
