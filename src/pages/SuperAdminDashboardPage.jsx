@@ -17,55 +17,13 @@ import {
   DollarSign,
   Calendar,
   CreditCard,
-  Clock
+  Clock,
+  Trash2
 } from 'lucide-react';
 
-const INITIAL_TENANTS_LIST = [
-  {
-    id: 'TNT-1001',
-    storeName: 'Idrees Medical Store',
-    address: 'Jalal Pur Jattan, Gujrat',
-    phone: '053-3724601',
-    dslNumber: '09-342-0139-045748D',
-    adminUsername: 'idrees_admin',
-    status: 'ACTIVE',
-    subscriptionTier: 'STANDARD',
-    createdAt: '2026-07-15',
-    activatedAt: '2026-07-15',
-    nextBillingDate: '2026-08-15', // Passed 1 month -> Membership Due!
-    monthlyFee: 15000,
-    paymentStatus: 'DEBT_DUE', // 'PAID' | 'PARTIAL_PAID' | 'DEBT_DUE'
-  },
-  {
-    id: 'TNT-1002',
-    storeName: 'Al-Razi Pharmacy',
-    address: 'Main Commercial Market, Karianwala',
-    phone: '0300-8451122',
-    dslNumber: '09-342-0139-088912P',
-    adminUsername: 'alrazi_admin',
-    status: 'ACTIVE',
-    subscriptionTier: 'PREMIUM',
-    createdAt: '2026-08-01',
-    activatedAt: '2026-08-01',
-    nextBillingDate: '2026-09-01',
-    monthlyFee: 15000,
-    paymentStatus: 'PAID',
-  },
-];
-
-const INITIAL_TICKETS_LIST = [
-  {
-    id: 'TCK-901',
-    tenantId: 'TNT-1001',
-    storeName: 'Idrees Medical Store',
-    reportedBy: 'Ali (Cashier)',
-    issueTitle: 'Thermal printer receipt alignment on 80mm roll',
-    issueDetails: 'When printing 80mm thermal receipts, bottom margin cuts off driver signature line.',
-    screen: 'POS Billing',
-    status: 'OPEN',
-    createdAt: '2026-08-17 09:15 AM',
-  },
-];
+// Clean Slate Initial State for Production Deployment
+const INITIAL_TENANTS_LIST = [];
+const INITIAL_TICKETS_LIST = [];
 
 export const SuperAdminDashboardPage = ({ onLogout }) => {
   const [activeTab, setActiveTab] = useState('TENANTS'); // 'TENANTS' | 'TICKETS'
@@ -74,7 +32,7 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       } catch (e) {}
     }
     return INITIAL_TENANTS_LIST;
@@ -164,7 +122,7 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
     setNewPaymentStatus('PAID');
     setIsOnboardModalOpen(false);
 
-    showNotification(`Client Tenant "${newTenant.storeName}" (${newTenant.id}) onboarded! 1-Month Billing cycle set to ${nextBillStr}.`);
+    showNotification(`Client Tenant "${newTenant.storeName}" (${newTenant.id}) onboarded! Next Billing due date: ${nextBillStr}.`);
   };
 
   const handleRecordPayment = (tenantId) => {
@@ -202,6 +160,15 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
     setTenants(updated);
     localStorage.setItem('pharmalink_superadmin_tenants', JSON.stringify(updated));
     showNotification(`Tenant ${tenantId} status updated to ${nextStatus}.`);
+  };
+
+  const handleDeleteTenant = (tenantId, storeName) => {
+    if (window.confirm(`Are you sure you want to delete client tenant "${storeName}" (${tenantId})? This will wipe their isolated database record.`)) {
+      const updated = tenants.filter((t) => t.id !== tenantId);
+      setTenants(updated);
+      localStorage.setItem('pharmalink_superadmin_tenants', JSON.stringify(updated));
+      showNotification(`Tenant "${storeName}" deleted successfully.`);
+    }
   };
 
   const handleResolveTicket = (ticketId) => {
@@ -468,7 +435,7 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
                           </div>
                           {due && (
                             <span style={{ fontSize: '0.675rem', fontWeight: 900, color: '#DC2626', backgroundColor: '#FEE2E2', padding: '0.15rem 0.4rem', borderRadius: '4px', display: 'inline-block', marginTop: '0.15rem' }}>
-                              🚨 MEMBERSHIP DUE — CONTACT CLIENT!
+                              🚨 MEMBERSHIP DUE!
                             </span>
                           )}
                         </td>
@@ -478,51 +445,76 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
                           </span>
                         </td>
                         <td style={{ textAlign: 'center' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', alignItems: 'center' }}>
-                            {/* Record Payment Button */}
+                          {/* SLEEK SINGLE-ROW ACTION BAR */}
+                          <div style={{ display: 'flex', items: 'center', justifyContent: 'center', gap: '0.4rem', flexWrap: 'nowrap' }}>
+                            {/* Record Fee Payment Button */}
                             <button
                               onClick={() => handleRecordPayment(t.id)}
-                              className="btn"
+                              className="btn btn-primary"
                               style={{
-                                padding: '0.3rem 0.65rem',
+                                padding: '0.35rem 0.65rem',
                                 fontSize: '0.725rem',
                                 fontWeight: 900,
                                 backgroundColor: '#10B981',
                                 color: '#FFFFFF',
                                 border: 'none',
-                                borderRadius: '4px',
-                                width: '100%',
-                                cursor: 'pointer'
+                                borderRadius: '6px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.25rem',
+                                whiteSpace: 'nowrap'
                               }}
-                              title="Record payment collection and extend 30 days"
+                              title="Record monthly payment and extend 30 days"
                             >
-                              💳 Record Fee Paid (+30 Days)
+                              <CreditCard size={13} /> Fee Paid (+30d)
                             </button>
 
-                            <div style={{ display: 'flex', gap: '0.25rem', width: '100%' }}>
-                              <button
-                                onClick={() => handleUpdatePaymentStatus(t.id, t.paymentStatus === 'PARTIAL_PAID' ? 'DEBT_DUE' : 'PARTIAL_PAID')}
-                                className="btn btn-outline"
-                                style={{ padding: '0.2rem 0.4rem', fontSize: '0.675rem', fontWeight: 800, flex: 1, borderColor: '#D97706', color: '#D97706' }}
-                              >
-                                {t.paymentStatus === 'PARTIAL_PAID' ? 'Set Debt Due' : 'Set Half Paid'}
-                              </button>
+                            {/* Payment Status Dropdown Selector */}
+                            <select
+                              value={t.paymentStatus || 'PAID'}
+                              onChange={(e) => handleUpdatePaymentStatus(t.id, e.target.value)}
+                              style={{
+                                padding: '0.35rem 0.45rem',
+                                fontSize: '0.725rem',
+                                fontWeight: 800,
+                                borderRadius: '6px',
+                                border: '1.5px solid #CBD5E1',
+                                backgroundColor: '#FFFFFF',
+                                color: '#334155',
+                                outline: 'none',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <option value="PAID">✔ Paid Full</option>
+                              <option value="PARTIAL_PAID">⚠️ Paid in Half</option>
+                              <option value="DEBT_DUE">🚨 Debt Due</option>
+                            </select>
 
-                              <button
-                                onClick={() => handleToggleTenantStatus(t.id, t.status)}
-                                className="btn btn-outline"
-                                style={{
-                                  padding: '0.2rem 0.4rem',
-                                  fontSize: '0.675rem',
-                                  fontWeight: 800,
-                                  flex: 1,
-                                  borderColor: t.status === 'ACTIVE' ? '#DC2626' : '#059669',
-                                  color: t.status === 'ACTIVE' ? '#DC2626' : '#059669'
-                                }}
-                              >
-                                {t.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
-                              </button>
-                            </div>
+                            {/* Account Status Toggle (Active / Suspend) */}
+                            <button
+                              onClick={() => handleToggleTenantStatus(t.id, t.status)}
+                              className="btn btn-outline"
+                              style={{
+                                padding: '0.35rem 0.55rem',
+                                fontSize: '0.725rem',
+                                fontWeight: 800,
+                                borderColor: t.status === 'ACTIVE' ? '#DC2626' : '#059669',
+                                color: t.status === 'ACTIVE' ? '#DC2626' : '#059669',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {t.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
+                            </button>
+
+                            {/* Delete Tenant Button */}
+                            <button
+                              onClick={() => handleDeleteTenant(t.id, t.storeName)}
+                              className="btn btn-outline"
+                              style={{ padding: '0.35rem 0.45rem', borderColor: '#CBD5E1', color: '#94A3B8' }}
+                              title="Delete Client Tenant"
+                            >
+                              <Trash2 size={13} />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -530,8 +522,16 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
                   })
                 ) : (
                   <tr>
-                    <td colSpan="9" style={{ textAlign: 'center', padding: '1.5rem', color: '#94A3B8' }}>
-                      No client tenants found.
+                    <td colSpan="9" style={{ textAlign: 'center', padding: '2.5rem', color: '#94A3B8' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                        <Store size={36} color="#CBD5E1" />
+                        <div style={{ fontWeight: 800, color: '#64748B', fontSize: '0.9rem' }}>
+                          No Client Tenants Onboarded Yet
+                        </div>
+                        <p style={{ fontSize: '0.775rem', color: '#94A3B8', margin: 0, maxWidth: '360px' }}>
+                          Click the <strong>"[Onboard New Client Tenant]"</strong> button above to register your first client pharmacy and assign their 30-day membership!
+                        </p>
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -600,8 +600,16 @@ export const SuperAdminDashboardPage = ({ onLogout }) => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: 'center', padding: '1.5rem', color: '#94A3B8' }}>
-                      No support tickets reported.
+                    <td colSpan="8" style={{ textAlign: 'center', padding: '2rem', color: '#94A3B8' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
+                        <LifeBuoy size={32} color="#CBD5E1" />
+                        <div style={{ fontWeight: 800, color: '#64748B', fontSize: '0.875rem' }}>
+                          No Open Support Tickets
+                        </div>
+                        <p style={{ fontSize: '0.75rem', color: '#94A3B8', margin: 0 }}>
+                          Client issue reports and system error telemetry logs will appear here.
+                        </p>
+                      </div>
                     </td>
                   </tr>
                 )}
