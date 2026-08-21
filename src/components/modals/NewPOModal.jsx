@@ -3,7 +3,7 @@ import { useSupplier } from '../../context/SupplierContext';
 import { useInventory } from '../../context/InventoryContext';
 import { useAuth } from '../../context/AuthContext';
 import { Truck, CheckCircle, X, Plus, Trash2, Package } from 'lucide-react';
-import { isWithinSixMonths } from '../../utils/dateUtils';
+import { isWithinSixMonths, formatDateDDMMYYYY, formatExpiryMMYYYY } from '../../utils/dateUtils';
 import AlertWarningModal from './AlertWarningModal';
 
 const PRESET_DISTRIBUTORS = {
@@ -46,6 +46,7 @@ const PRESET_DISTRIBUTORS = {
 };
 
 export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
+  const { user } = useAuth();
   const { createPurchaseOrder, generatePONumber, suppliers, addSupplier } = useSupplier();
   const { medicines, setMedicines, setBatches } = useInventory();
 
@@ -58,7 +59,7 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
   const [supplierFbrStatus, setSupplierFbrStatus] = useState('');
   const [supplierPhone, setSupplierPhone] = useState('');
   const [registerSupplier, setRegisterSupplier] = useState(true);
-  const [inwardDate, setInwardDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [inwardDate, setInwardDate] = useState(() => formatDateDDMMYYYY(new Date()));
   const [warningMsg, setWarningMsg] = useState('');
   const [isSavingTransition, setIsSavingTransition] = useState(false);
 

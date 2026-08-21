@@ -17,7 +17,7 @@ import SalesReturnModal from '../components/modals/SalesReturnModal';
 import CustomerDetailsModal from '../components/modals/CustomerDetailsModal';
 import CartItemEditModal from '../components/modals/CartItemEditModal';
 import AlertWarningModal from '../components/modals/AlertWarningModal';
-import { formatDateDDMMYYYY, isWithinSixMonths } from '../utils/dateUtils';
+import { formatDateDDMMYYYY, formatExpiryMMYYYY, isWithinSixMonths } from '../utils/dateUtils';
 
 export const POSPage = () => {
   const { medicines, batches } = useInventory();
@@ -431,7 +431,7 @@ export const POSPage = () => {
                             {ci.batchNumber}
                           </td>
                           <td style={{ padding: '0.65rem 0.35rem', fontSize: '0.75rem' }}>
-                            {formatDateDDMMYYYY(ci.expiryDate)}
+                            {formatExpiryMMYYYY(ci.expiryDate)}
                           </td>
                           <td style={{ padding: '0.65rem 0.35rem', textAlign: 'center' }}>
                             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
