@@ -59,6 +59,7 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
   const [supplierPhone, setSupplierPhone] = useState('');
   const [registerSupplier, setRegisterSupplier] = useState(true);
   const [inwardDate, setInwardDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [warningMsg, setWarningMsg] = useState('');
 
   // Multi-Item PO Entry State (Box Count Standard - Placeholders Only)
   const [poItems, setPoItems] = useState([
@@ -173,6 +174,13 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
     if (validItems.length === 0) {
       alert("Please enter at least one valid Medicine Trade Name in your Purchase Order.");
       return;
+    }
+
+    for (const item of validItems) {
+      if (item.expiryDate && isWithinSixMonths(item.expiryDate)) {
+        setWarningMsg(`Cannot Inward Batch: Expiry Date Exceeded for "${item.brandName || 'Medicine'}". Expiry must be greater than 6 months from today!`);
+        return;
+      }
     }
 
     let poPaymentStatusTag = 'PAID_FULL';
