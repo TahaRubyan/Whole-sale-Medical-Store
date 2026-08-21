@@ -60,6 +60,7 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
   const [registerSupplier, setRegisterSupplier] = useState(true);
   const [inwardDate, setInwardDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [warningMsg, setWarningMsg] = useState('');
+  const [isSavingTransition, setIsSavingTransition] = useState(false);
 
   // Multi-Item PO Entry State (Box Count Standard - Placeholders Only)
   const [poItems, setPoItems] = useState([
@@ -339,16 +340,57 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
       return updatedBatches;
     });
 
-    window.dispatchEvent(new Event('pharmalink_inventory_updated'));
+  window.dispatchEvent(new Event('pharmalink_inventory_updated'));
 
-    // 4. Auto-Close Modal
-    onClose();
+    // 4. Auto-Close Modal with Save Success Transition
+    setIsSavingTransition(true);
+    setTimeout(() => {
+      setIsSavingTransition(false);
+      onClose();
+    }, 1000);
   };
 
   return (
     <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
       {/* EXTRA-WIDE MODAL LAYOUT (MAX-WIDTH: 1280PX) */}
       <div className="card" style={{ width: '96%', maxWidth: '1280px', maxHeight: '92vh', overflowY: 'auto', padding: '1.75rem', position: 'relative', backgroundColor: '#FFFFFF', boxShadow: '0 10px 30px rgba(0,0,0,0.25)' }}>
+        
+        {/* PURCHASE ORDER SAVE SUCCESS TRANSITION OVERLAY */}
+        {isSavingTransition && (
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.96)',
+            backdropFilter: 'blur(5px)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            borderRadius: '8px',
+            gap: '0.85rem'
+          }}>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              backgroundColor: '#ECFDF5',
+              border: '3px solid #10B981',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <CheckCircle size={38} color="#10B981" />
+            </div>
+            <h3 style={{ fontSize: '1.35rem', fontWeight: 900, color: '#065F46', margin: 0 }}>
+              Purchase Order {poNumber} Saved Successfully!
+            </h3>
+            <p style={{ fontSize: '0.9rem', color: '#047857', fontWeight: 700, margin: 0 }}>
+              ✔ Items & Stock Batches updated in Inventory Catalog. Closing window...
+            </p>
+          </div>
+        )}
+
         <button onClick={onClose} style={{ position: 'absolute', right: '1.25rem', top: '1.25rem', background: 'none', border: 'none', cursor: 'pointer' }}>
           <X size={22} />
         </button>
