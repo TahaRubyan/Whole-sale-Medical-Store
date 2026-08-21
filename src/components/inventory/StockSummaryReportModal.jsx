@@ -30,11 +30,7 @@ export const StockSummaryReportModal = ({ isOpen, onClose }) => {
         med.purchasePriceBox || (med.boxPrice ? med.boxPrice * 0.8 : 480)
       );
       const costValuation = totalBoxes * purchasePriceBox;
-      const isLow = totalBoxes <= med.reorderLevel;
-
-      if (isLow) {
-        lowStockCount += 1;
-      }
+      const isLow = false; // Low stock limit disabled per user request
 
       totalBoxesAvailable += totalBoxes;
       estimatedCostValuation += costValuation;

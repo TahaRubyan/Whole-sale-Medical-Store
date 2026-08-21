@@ -287,10 +287,10 @@ export const InventoryPage = () => {
                   filteredMedicines.map((med) => {
                     const medBatches = batches.filter((b) => b.medicineId === med.id && b.status !== 'Quarantined');
                     const totalBoxes = medBatches.reduce((sum, b) => sum + (b.totalBoxesAvailable || Math.floor((b.totalTabletsAvailable || 0) / (med.tabletsPerBox || 20)) || 0), 0);
-                    const isLow = totalBoxes <= med.reorderLevel;
+                    const isLow = false; // Low stock limit disabled per user request
 
                     return (
-                      <tr key={med.id} style={{ backgroundColor: isLow ? '#FEF2F2' : 'transparent' }}>
+                      <tr key={med.id}>
                         <td style={{ fontFamily: 'monospace', fontWeight: 800, color: '#0284C7' }}>{med.id}</td>
                         <td style={{ fontWeight: 800 }}>{med.brandName}</td>
                         <td style={{ color: '#64748B', fontSize: '0.775rem' }}>{med.genericFormula}</td>
@@ -301,8 +301,8 @@ export const InventoryPage = () => {
                         </td>
                         <td>{med.manufacturer}</td>
                         <td style={{ fontWeight: 600 }}>{med.rackLocation || 'Rack A'}</td>
-                        <td style={{ textAlign: 'center', fontWeight: 900, color: isLow ? '#DC2626' : '#059669' }}>
-                          {totalBoxes} Boxes {isLow && <span style={{ fontSize: '0.7rem', color: '#DC2626' }}>(Low Stock)</span>}
+                        <td style={{ textAlign: 'center', fontWeight: 900, color: '#059669' }}>
+                          {totalBoxes} Boxes
                         </td>
                         <td style={{ textAlign: 'right', color: '#475569' }}>
                           Rs. {Number(med.purchasePriceBox || med.boxPrice * 0.8 || 480).toFixed(2)}

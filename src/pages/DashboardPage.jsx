@@ -21,12 +21,8 @@ export const DashboardPage = ({ onNavigate }) => {
   const todayRevenue = todayInvoices.reduce((sum, inv) => sum + (inv.netTotal || inv.subtotal || 0), 0);
   const todayOrdersCount = todayInvoices.length;
 
-  // Calculate Low Stock Medicines (Box Count)
-  const lowStockCount = medicines.filter((m) => {
-    const medBatches = batches.filter((b) => b.medicineId === m.id && b.status !== 'Quarantined');
-    const totalBoxes = medBatches.reduce((sum, b) => sum + (b.totalBoxesAvailable || Math.floor((b.totalTabletsAvailable || 0) / (m.tabletsPerBox || 20)) || 0), 0);
-    return totalBoxes <= m.reorderLevel;
-  }).length;
+  // Calculate Low Stock Medicines (Box Count - Limit Disabled per User Request)
+  const lowStockCount = 0;
 
   // Calculate Est. Today Profit (~25% margin)
   const todayEstProfit = todayRevenue * 0.25;
