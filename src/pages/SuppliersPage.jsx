@@ -25,6 +25,7 @@ export const SuppliersPage = () => {
   const [isRtvModalOpen, setIsRtvModalOpen] = useState(false);
   const [selectedSupplierForRtv, setSelectedSupplierForRtv] = useState(null);
   const [rtvPrintRecord, setRtvPrintRecord] = useState(null);
+  const [filterDebtOnly, setFilterDebtOnly] = useState(false);
 
   const handleOpenPoModal = (supplierId = null) => {
     setSelectedSupplierForPo(supplierId);
