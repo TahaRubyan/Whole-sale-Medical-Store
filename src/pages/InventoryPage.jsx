@@ -617,9 +617,11 @@ export const InventoryPage = () => {
 
       {deletingMedicine && (
         <DeleteConfirmModal
+          itemName={deletingMedicine.brandName}
           title={`Delete ${deletingMedicine.brandName}?`}
           message={`Are you sure you want to remove ${deletingMedicine.brandName} (${deletingMedicine.id}) from the wholesale catalog?`}
           onConfirm={handleDeleteConfirm}
+          onClose={() => setDeletingMedicine(null)}
           onCancel={() => setDeletingMedicine(null)}
         />
       )}
