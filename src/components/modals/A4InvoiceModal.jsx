@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Printer, X, FileText, Download } from 'lucide-react';
 import { STORE_INFO, getTaxConfig, getStoreInfo } from '../../data/mockData';
-import { formatDateDDMMYYYY } from '../../utils/dateUtils';
+import { formatDateDDMMYYYY, formatExpiryMMYYYY } from '../../utils/dateUtils';
 import { printElementById } from '../../utils/printUtils';
 
 import { useAuth } from '../../context/AuthContext';
@@ -269,7 +269,7 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                       {item.itemCode ? `${item.itemCode} / ` : ''}{item.brandName}
                     </td>
                     <td style={{ padding: '0.35rem 0.25rem', fontFamily: 'monospace' }}>{item.batchNumber || '6789'}</td>
-                    <td style={{ padding: '0.35rem 0.25rem' }}>{formatDateDDMMYYYY(item.expiryDate || '2028-12-31')}</td>
+                    <td style={{ padding: '0.35rem 0.25rem' }}>{formatExpiryMMYYYY(item.expiryDate || '2028-12-31')}</td>
                     <td style={{ padding: '0.35rem 0.25rem', textAlign: 'center', fontWeight: 'bold' }}>{qty}</td>
                     <td style={{ padding: '0.35rem 0.25rem', textAlign: 'center' }}>{item.bonus || '-'}</td>
                     <td style={{ padding: '0.35rem 0.25rem', textAlign: 'right' }}>{rate.toFixed(2)}</td>
@@ -300,8 +300,8 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
             <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', fontWeight: 'bold' }}>
               <div>
                 <span>Gross: Rs. {Number(sale.grossSubtotal || sale.subtotal || 600).toFixed(2)}</span> &nbsp;|&nbsp;
-                <span>{getTaxConfig().saleTaxName || 'Sale Tax 18%'}: Rs. {Number(sale.totalSaleTax || 108).toFixed(2)}</span> &nbsp;|&nbsp;
-                <span>{getTaxConfig().advTaxName || 'Adv Tax 0.5%'}: Rs. {Number(sale.totalAdvTax || 3.00).toFixed(2)}</span>
+                <span>Sales Tax Amount: Rs. {Number(sale.totalSaleTax || 108).toFixed(2)}</span> &nbsp;|&nbsp;
+                <span>Adv Tax Amount: Rs. {Number(sale.totalAdvTax || 3.00).toFixed(2)}</span>
               </div>
               <div style={{ fontSize: '1rem', textDecoration: 'underline', letterSpacing: '0.02em' }}>
                 NET AMOUNT: Rs. {Number(sale.netTotal || 0).toFixed(2)}
@@ -384,6 +384,13 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                 ✔ VERIFIED DIGITAL SIGNATURE
               </div>
             </div>
+          </div>
+
+          {/* MULTI-PAGE A4 FOOTER PAGE NUMBERING (PAGE N OF M) */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', paddingTop: '0.35rem', borderTop: '1px solid #000000', fontSize: '0.7rem', color: '#000000', fontWeight: 'bold' }}>
+            <div>PharmaLink ERP Commercial Sales Invoice</div>
+            <div>Page 1 of {Math.ceil((sale.items?.length || 1) / 12) || 1}</div>
+            <div>Original Customer Delivery Copy</div>
           </div>
         </div>
 

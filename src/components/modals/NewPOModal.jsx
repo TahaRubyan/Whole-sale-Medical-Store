@@ -60,7 +60,7 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
   const [registerSupplier, setRegisterSupplier] = useState(true);
   const [inwardDate, setInwardDate] = useState(() => new Date().toISOString().split('T')[0]);
 
-  // Multi-Item PO Entry State (Box Count Standard)
+  // Multi-Item PO Entry State (Box Count Standard - Placeholders Only)
   const [poItems, setPoItems] = useState([
     {
       id: 1,
@@ -68,7 +68,7 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
       genericFormula: '',
       batchNumber: '',
       expiryDate: '',
-      boxes: 1,
+      boxes: '',
       purchasePriceBox: '',
       boxPrice: '',
     }
@@ -84,9 +84,19 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
       setSupplierNtn(preset.ntn);
       setSupplierGst(preset.gst);
       setSupplierFbrStatus(preset.fbrStatus);
-      if (preset.items && preset.items.length > 0) {
-        setPoItems(preset.items);
-      }
+      // Keep order items array as clean empty placeholders
+      setPoItems([
+        {
+          id: Date.now(),
+          brandName: '',
+          genericFormula: '',
+          batchNumber: '',
+          expiryDate: '',
+          boxes: '',
+          purchasePriceBox: '',
+          boxPrice: '',
+        }
+      ]);
     } else {
       const found = suppliers.find((s) => s.id === supId);
       if (found) {
@@ -115,11 +125,11 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
         id: Date.now(),
         brandName: '',
         genericFormula: '',
-        batchNumber: `B26-${Math.floor(1000 + Math.random() * 9000)}`,
-        expiryDate: '2028-12-31',
-        boxes: 10,
-        purchasePriceBox: 480,
-        boxPrice: 600,
+        batchNumber: '',
+        expiryDate: '',
+        boxes: '',
+        purchasePriceBox: '',
+        boxPrice: '',
       }
     ]);
   };
@@ -143,50 +153,51 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
     return sum + (qty * cost);
   }, 0);
 
-  // Warning modal state
-  const [warningMsg, setWarningMsg] = useState('');
-
   // PO Payment Settlement & Supplier Debt Tagging State
-  const [paymentStatusTag, setPaymentStatusTag] = useState('PAID_IN_FULL'); // 'PAID_IN_FULL' | 'DEBT_OWING'
-  const [customAmountPaid, setCustomAmountPaid] = useState('');
-
-  const amountPaidNum = paymentStatusTag === 'PAID_IN_FULL'
-    ? totalOrderValuation
-    : (customAmountPaid !== '' ? Number(customAmountPaid) : 0);
-  const remainingDebtNum = Math.max(0, totalOrderValuation - amountPaidNum);
+  const [amountPaid, setAmountPaid] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    for (const item of poItems) {
-      if (isWithinSixMonths(item.expiryDate)) {
-        setWarningMsg(`Cannot Add Batch: Expiry Date Exceeded for "${item.brandName || 'Medicine'}". Expiry must be greater than 6 months from today!`);
-        return;
-      }
+    if (!distributorName.trim()) {
+      alert("Please enter Distributor / Supplier Name.");
+      return;
     }
 
-    // 1. Check if distributor is registered, if not & checkbox checked, register them with full metadata
-    if (registerSupplier && distributorName.trim()) {
-      const exists = suppliers.some((s) => (s.companyName || s.name || '').toLowerCase() === distributorName.trim().toLowerCase());
-      if (!exists && addSupplier) {
+    const validItems = poItems.filter((i) => i.brandName && i.brandName.trim().length > 0);
+    if (validItems.length === 0) {
+      alert("Please enter at least one valid Medicine Trade Name in your Purchase Order.");
+      return;
+    }
+
+    const amountPaidNum = Number(amountPaid) || 0;
+    const remainingDebtNum = Math.max(0, totalOrderValuation - amountPaidNum);
+    
+    let paymentStatusTag = 'PAID_FULL';
+    if (remainingDebtNum > 0 && amountPaidNum > 0) {
+      paymentStatusTag = 'PARTIAL_DEBT';
+    } else if (remainingDebtNum > 0 && amountPaidNum === 0) {
+      paymentStatusTag = 'UNPAID_DEBT';
+    }
+
+    // 1. Optionally Save Supplier in Supplier Directory
+    if (registerSupplier) {
+      const existing = suppliers.find((s) => s.name.toLowerCase().trim() === distributorName.toLowerCase().trim());
+      if (!existing) {
         addSupplier({
           name: distributorName.trim(),
-          companyName: distributorName.trim(),
-          contactPerson: 'Manager',
-          phone: supplierPhone.trim() || '+92 300 1234567',
-          email: 'info@distributor.pk',
+          phone: supplierPhone.trim() || '+92 300 0000000',
           licenseNo: supplierLicenseNo.trim(),
           ntn: supplierNtn.trim(),
           gstin: supplierGst.trim(),
           fbrStatus: supplierFbrStatus.trim(),
-          city: 'Islamabad',
+          city: 'Wholesale Commercial Market',
           pendingBalance: 0,
         });
       }
     }
 
-    // 2. Record Consolidated PO Order in SupplierContext with payment status tag & debt
-    const primaryItem = poItems[0] || {};
+    // 2. Record Consolidated PO Order in SupplierContext
+    const primaryItem = validItems[0] || {};
     const poData = {
       poNumber,
       distributorName: distributorName.trim(),
@@ -196,18 +207,18 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
       supplierFbrStatus: supplierFbrStatus.trim(),
       supplierPhone: supplierPhone.trim(),
       inwardDate,
-      brandName: poItems.length === 1 ? primaryItem.brandName : `${primaryItem.brandName} (+${poItems.length - 1} items)`,
+      brandName: validItems.length === 1 ? primaryItem.brandName : `${primaryItem.brandName} (+${validItems.length - 1} items)`,
       genericFormula: primaryItem.genericFormula || '',
       batchNumber: primaryItem.batchNumber || '',
       expiryDate: primaryItem.expiryDate || '',
-      quantity: poItems.reduce((sum, i) => sum + (Number(i.boxes) || 0), 0),
+      quantity: validItems.reduce((sum, i) => sum + (Number(i.boxes) || 0), 0),
       boxPrice: Number(primaryItem.boxPrice) || 0,
       purchasePriceBox: Number(primaryItem.purchasePriceBox) || 0,
       totalAmount: totalOrderValuation,
       amountPaid: amountPaidNum,
       remainingDebt: remainingDebtNum,
       paymentStatus: paymentStatusTag,
-      items: poItems,
+      items: validItems,
       createdBy: user?.name || 'Hassan (Admin)',
       createdByRole: user?.role || 'Admin',
       createdAt: new Date().toISOString(),
@@ -215,59 +226,111 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
 
     createPurchaseOrder(poData);
 
-    // 3. Stock inward each line item into InventoryContext
-    poItems.forEach((item) => {
-      const nameStr = (item.brandName || 'Medicine Item').trim();
-      const formulaStr = (item.genericFormula || 'Generic Formula').trim();
-      const batchStr = (item.batchNumber || 'BATCH-01').trim();
-      const expStr = item.expiryDate || '2028-12-31';
-      const boxQty = Number(item.boxes) || 1;
-      const costBox = Number(item.purchasePriceBox) || 480;
-      const mrpBox = Number(item.boxPrice) || 600;
+    // 3. Stock inward each line item into InventoryContext (Single batch update)
+    setMedicines((prevMeds) => {
+      let updatedMeds = [...prevMeds];
+      validItems.forEach((item) => {
+        const nameStr = (item.brandName || '').trim();
+        if (!nameStr) return;
+        const formulaStr = (item.genericFormula || '').trim();
+        const costBox = Number(item.purchasePriceBox) || 0;
+        const mrpBox = Number(item.boxPrice) || 0;
 
-      let targetMedicine = medicines.find(
-        (m) => m.brandName.toLowerCase().trim() === nameStr.toLowerCase()
-      );
-      let targetMedicineId = targetMedicine ? targetMedicine.id : `MED-${Date.now().toString().slice(-4)}`;
+        let existingMed = updatedMeds.find(
+          (m) => m.brandName.toLowerCase().trim() === nameStr.toLowerCase()
+        );
 
-      if (!targetMedicine) {
-        targetMedicine = {
-          id: targetMedicineId,
-          brandName: nameStr,
-          genericFormula: formulaStr,
-          category: 'Tablets',
-          manufacturer: distributorName.trim(),
-          rackLocation: 'Rack A-01 / Inward',
-          reorderLevel: 20,
-          unitType: 'Box',
-          tabletsPerBox: 200,
-          boxPrice: mrpBox,
-          pricePerTablet: mrpBox / 200,
-          purchasePriceBox: costBox,
-          requiresPrescription: false,
-          barcode: `890${Date.now().toString().slice(-10)}`,
-        };
-        setMedicines((prevMeds) => [targetMedicine, ...prevMeds]);
-      }
-
-      const newBatch = {
-        id: `BAT-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 100)}`,
-        medicineId: targetMedicineId,
-        batchNumber: batchStr,
-        mfgDate: inwardDate,
-        expiryDate: expStr,
-        totalBoxesAvailable: boxQty,
-        totalTabletsAvailable: boxQty * 200,
-        boxPrice: mrpBox,
-        pricePerTablet: mrpBox / 200,
-        purchasePriceBox: costBox,
-        distributorName: distributorName.trim(),
-        status: 'In Stock',
-      };
-
-      setBatches((prev) => [newBatch, ...prev]);
+        if (!existingMed) {
+          const newMed = {
+            id: `MED-${Date.now().toString().slice(-4)}-${Math.floor(Math.random() * 100)}`,
+            brandName: nameStr,
+            genericFormula: formulaStr || 'Pharmaceutical Formula',
+            category: 'Tablets',
+            manufacturer: distributorName.trim() || 'Wholesale Supplier',
+            rackLocation: 'Rack A-01 / Inward',
+            reorderLevel: 20,
+            unitType: 'Box',
+            tabletsPerBox: 200,
+            boxPrice: mrpBox,
+            pricePerTablet: mrpBox > 0 ? mrpBox / 200 : 0,
+            purchasePriceBox: costBox,
+            requiresPrescription: false,
+            barcode: `890${Date.now().toString().slice(-10)}`,
+          };
+          updatedMeds = [newMed, ...updatedMeds];
+        } else if (mrpBox > 0 || costBox > 0) {
+          updatedMeds = updatedMeds.map((m) =>
+            m.brandName.toLowerCase().trim() === nameStr.toLowerCase()
+              ? {
+                  ...m,
+                  boxPrice: mrpBox > 0 ? mrpBox : m.boxPrice,
+                  purchasePriceBox: costBox > 0 ? costBox : m.purchasePriceBox,
+                  pricePerTablet: mrpBox > 0 ? mrpBox / (m.tabletsPerBox || 200) : m.pricePerTablet,
+                }
+              : m
+          );
+        }
+      });
+      return updatedMeds;
     });
 
+    setBatches((prevBatches) => {
+      let updatedBatches = [...prevBatches];
+      validItems.forEach((item) => {
+        const nameStr = (item.brandName || '').trim();
+        if (!nameStr) return;
+        const batchStr = (item.batchNumber || `BAT-${Date.now().toString().slice(-4)}`).trim();
+        const expStr = item.expiryDate || '2028-12-31';
+        const boxQty = Number(item.boxes) || 0;
+        const costBox = Number(item.purchasePriceBox) || 0;
+        const mrpBox = Number(item.boxPrice) || 0;
+
+        let existingMed = medicines.find(
+          (m) => m.brandName.toLowerCase().trim() === nameStr.toLowerCase()
+        );
+        const medId = existingMed ? existingMed.id : `MED-${Date.now().toString().slice(-4)}`;
+
+        let existingBatch = updatedBatches.find(
+          (b) => b.batchNumber.toLowerCase().trim() === batchStr.toLowerCase()
+        );
+
+        if (existingBatch) {
+          updatedBatches = updatedBatches.map((b) =>
+            b.batchNumber.toLowerCase().trim() === batchStr.toLowerCase()
+              ? {
+                  ...b,
+                  totalBoxesAvailable: (Number(b.totalBoxesAvailable) || 0) + boxQty,
+                  totalTabletsAvailable: (Number(b.totalTabletsAvailable) || 0) + boxQty * (b.tabletsPerBox || 200),
+                  boxPrice: mrpBox > 0 ? mrpBox : b.boxPrice,
+                  purchasePriceBox: costBox > 0 ? costBox : b.purchasePriceBox,
+                  expiryDate: expStr || b.expiryDate,
+                }
+              : b
+          );
+        } else {
+          const newBatch = {
+            id: `BAT-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 100)}`,
+            medicineId: medId,
+            batchNumber: batchStr,
+            mfgDate: inwardDate,
+            expiryDate: expStr,
+            totalBoxesAvailable: boxQty,
+            totalTabletsAvailable: boxQty * 200,
+            boxPrice: mrpBox,
+            pricePerTablet: mrpBox > 0 ? mrpBox / 200 : 0,
+            purchasePriceBox: costBox,
+            distributorName: distributorName.trim(),
+            status: 'In Stock',
+          };
+          updatedBatches = [newBatch, ...updatedBatches];
+        }
+      });
+      return updatedBatches;
+    });
+
+    window.dispatchEvent(new Event('pharmalink_inventory_updated'));
+
+    // 4. Auto-Close Modal
     onClose();
   };
 

@@ -102,3 +102,65 @@ export const isWithinSixMonths = (dateInput) => {
 
   return expDate <= cutoff;
 };
+
+/**
+ * Expiry Date Format Standardization (MM-YYYY)
+ * Formats any expiry date into MM-YYYY (e.g. 08-2028, 12-2028).
+ * 
+ * @param {string|Date} dateInput 
+ * @returns {string} Formatted MM-YYYY expiry string
+ */
+export const formatExpiryMMYYYY = (dateInput) => {
+  if (!dateInput) return 'N/A';
+
+  if (dateInput instanceof Date) {
+    if (isNaN(dateInput.getTime())) return 'N/A';
+    const month = String(dateInput.getMonth() + 1).padStart(2, '0');
+    const year = dateInput.getFullYear();
+    return `${month}-${year}`;
+  }
+
+  if (typeof dateInput === 'string') {
+    const str = dateInput.trim();
+    if (!str) return 'N/A';
+
+    // Already MM-YYYY format
+    if (/^\d{2}-\d{4}$/.test(str)) {
+      return str;
+    }
+
+    // YYYY-MM-DD format (e.g. 2028-12-31 -> 12-2028)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+      const [y, m] = str.split('-');
+      return `${m}-${y}`;
+    }
+
+    // YYYY-MM format (e.g. 2028-12 -> 12-2028)
+    if (/^\d{4}-\d{2}$/.test(str)) {
+      const [y, m] = str.split('-');
+      return `${m}-${y}`;
+    }
+
+    // DD-MM-YYYY format (e.g. 31-12-2028 -> 12-2028)
+    if (/^\d{2}-\d{2}-\d{4}$/.test(str)) {
+      const [d, m, y] = str.split('-');
+      return `${m}-${y}`;
+    }
+
+    // DD/MM/YYYY format
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) {
+      const [d, m, y] = str.split('/');
+      return `${m}-${y}`;
+    }
+
+    // Try Date parse fallback
+    const parsed = new Date(str);
+    if (!isNaN(parsed.getTime())) {
+      const month = String(parsed.getMonth() + 1).padStart(2, '0');
+      const year = parsed.getFullYear();
+      return `${month}-${year}`;
+    }
+  }
+
+  return String(dateInput);
+};
