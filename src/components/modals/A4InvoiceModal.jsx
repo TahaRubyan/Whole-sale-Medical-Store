@@ -165,32 +165,32 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
               <tr>
                 <td style={{ border: 'none', padding: 0 }}>
                   {/* TOP RIGHT COMPLIANCE BLOCK */}
-                  <div style={{ textAlign: 'right', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '0.35rem', lineHeight: '1.5', letterSpacing: '0.03em' }}>
+                  <div style={{ textAlign: 'right', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.25rem', lineHeight: '1.4', letterSpacing: '0.02em' }}>
                     <div>DSL: <span style={{ fontFamily: 'monospace', fontWeight: '900' }}>{getStoreInfo().dslNumber}</span></div>
                     <div>STN: <span style={{ fontFamily: 'monospace', fontWeight: '900' }}>{getStoreInfo().stnNumber}</span></div>
                     <div>NTN: <span style={{ fontFamily: 'monospace', fontWeight: '900' }}>{getStoreInfo().ntnNumber}</span></div>
                   </div>
 
                   {/* TOP CENTER STORE BRANDING */}
-                  <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
-                    <h1 style={{ fontSize: '2rem', fontWeight: '900', margin: 0, textTransform: 'uppercase', letterSpacing: '0.02em', color: '#000000', lineHeight: '1.2' }}>
+                  <div style={{ textAlign: 'center', marginBottom: '0.95rem' }}>
+                    <h1 style={{ fontSize: '1.45rem', fontWeight: '900', margin: 0, textTransform: 'uppercase', letterSpacing: '0.02em', color: '#000000', lineHeight: '1.2' }}>
                       {getStoreInfo().name}
                     </h1>
-                    <div style={{ fontSize: '0.9rem', fontWeight: 'bold', marginTop: '0.25rem', lineHeight: '1.4' }}>
+                    <div style={{ fontSize: '0.785rem', fontWeight: 'bold', marginTop: '0.15rem', lineHeight: '1.3' }}>
                       {getStoreInfo().address}
                     </div>
-                    <div style={{ fontSize: '0.825rem', marginTop: '0.15rem', lineHeight: '1.4' }}>
+                    <div style={{ fontSize: '0.725rem', marginTop: '0.1rem', lineHeight: '1.3' }}>
                       Phone# {getStoreInfo().phone} &nbsp;|&nbsp; E-Mail: {getStoreInfo().email}
                     </div>
 
                     {/* SALE TAX INVOICE BADGE BOX */}
-                    <div style={{ display: 'inline-block', border: '2px solid #000000', padding: '0.3rem 2rem', marginTop: '0.65rem', fontWeight: '900', fontSize: '1.15rem', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                    <div style={{ display: 'inline-block', border: '1.5px solid #000000', padding: '0.25rem 1.5rem', marginTop: '0.45rem', fontWeight: '900', fontSize: '0.95rem', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                       SALE TAX INVOICE
                     </div>
                   </div>
 
                   {/* 3-COLUMN METADATA HEADER GRID */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1.15fr 1.45fr 1.2fr', gap: '0.85rem', border: '2px solid #000000', padding: '0.75rem 0.85rem', marginBottom: '1.25rem', fontSize: '0.785rem', lineHeight: '1.6' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.15fr 1.45fr 1.2fr', gap: '0.65rem', border: '1.5px solid #000000', padding: '0.55rem 0.75rem', marginBottom: '0.95rem', fontSize: '0.725rem', lineHeight: '1.5' }}>
                     {/* COLUMN 1 */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                       <div><strong>Invoice #:</strong> <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{sale.invoiceNo || 'DJ-8263263'}</span></div>
@@ -449,8 +449,7 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                   </div>
 
                   {/* MULTI-PAGE A4 FOOTER PAGE NUMBERING (PAGE N OF M) */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', paddingTop: '0.35rem', borderTop: '1px solid #000000', fontSize: '0.7rem', color: '#000000', fontWeight: 'bold' }}>
-                    <div>PharmaLink ERP Commercial Sales Invoice</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.4rem', paddingTop: '0.25rem', borderTop: '1px solid #000000', fontSize: '0.675rem', color: '#000000', fontWeight: 'bold' }}>
                     <div>Page 1 of {Math.ceil((sale.items?.length || 1) / 12) || 1}</div>
                     <div>Original Customer Delivery Copy</div>
                   </div>

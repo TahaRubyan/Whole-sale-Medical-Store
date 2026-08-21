@@ -209,6 +209,12 @@ export const InventoryProvider = ({ children }) => {
     return available.length > 0 ? available[0] : null;
   };
 
+  const deleteMedicine = (medicineId) => {
+    setMedicines((prevMeds) => prevMeds.filter((m) => m.id !== medicineId));
+    setBatches((prevBatches) => prevBatches.filter((b) => b.medicineId !== medicineId));
+    addAuditLog('Medicine Deleted', medicineId, `Deleted medicine ${medicineId} from wholesale catalog`, 'DELETE', 'Admin');
+  };
+
   return (
     <InventoryContext.Provider
       value={{
@@ -217,6 +223,7 @@ export const InventoryProvider = ({ children }) => {
         auditLogs,
         setMedicines,
         setBatches,
+        deleteMedicine,
         togglePrescriptionRequirement,
         deductStock,
         restoreStock,

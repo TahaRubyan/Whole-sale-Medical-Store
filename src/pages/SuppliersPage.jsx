@@ -50,15 +50,51 @@ export const SuppliersPage = () => {
     setIsRtvModalOpen(true);
   };
 
-  const [filterDebtOnly, setFilterDebtOnly] = useState(false);
+  // Group suppliers by Unique Company Name
+  const uniqueSuppliers = useMemo(() => {
+    const map = new Map();
 
-  // Compute Debt KPIs
-  const debtSuppliersCount = suppliers.filter((s) => (s.pendingBalance !== undefined ? s.pendingBalance : (s.outstandingBalance || 0)) > 0).length;
-  const totalDebtAmount = suppliers.reduce((sum, s) => sum + Number(s.pendingBalance !== undefined ? s.pendingBalance : (s.outstandingBalance || 0)), 0);
+    suppliers.forEach((s) => {
+      const companyName = (s.companyName || s.name || 'Pharma Supplier').trim();
+      const normKey = companyName.toLowerCase();
+
+      if (!map.has(normKey)) {
+        const matchingPOs = purchaseOrders.filter(
+          (po) => (po.distributorName || po.supplierName || '').toLowerCase().trim() === normKey
+        );
+
+        const calculatedDebt = matchingPOs.reduce(
+          (sum, po) => sum + (Number(po.remainingDebt) || 0),
+          0
+        );
+
+        const currentBal = s.pendingBalance !== undefined ? Number(s.pendingBalance) : (Number(s.outstandingBalance) || calculatedDebt);
+
+        map.set(normKey, {
+          ...s,
+          companyName,
+          name: companyName,
+          phone: s.phone || '+92 300 0000000',
+          licenseNo: s.licenseNo || s.gstin || '09-342-0139-045748D',
+          ntn: s.ntn || '3277876174544',
+          city: s.city || 'Wholesale Commercial Market',
+          pendingBalance: currentBal,
+          poCount: matchingPOs.length,
+          poHistory: matchingPOs,
+        });
+      }
+    });
+
+    return Array.from(map.values());
+  }, [suppliers, purchaseOrders]);
+
+  // Compute Debt KPIs based on Unique Companies
+  const debtSuppliersCount = uniqueSuppliers.filter((s) => s.pendingBalance > 0).length;
+  const totalDebtAmount = uniqueSuppliers.reduce((sum, s) => sum + Number(s.pendingBalance || 0), 0);
 
   const displayedSuppliers = filterDebtOnly
-    ? suppliers.filter((s) => (s.pendingBalance !== undefined ? s.pendingBalance : (s.outstandingBalance || 0)) > 0)
-    : suppliers;
+    ? uniqueSuppliers.filter((s) => s.pendingBalance > 0)
+    : uniqueSuppliers;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -70,7 +106,7 @@ export const SuppliersPage = () => {
             <div>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Pakistan Supplier Directory & Stock Inward Orders</h2>
               <p style={{ fontSize: '0.8rem', color: '#E0F2FE', marginTop: '0.15rem' }}>
-                Distributor contact profiles, GSTIN verification, credit balances & Inward Purchase Orders.
+                Distributor company directory, license verification, ledger statements & inward PO shipments.
               </p>
             </div>
           </div>
@@ -117,9 +153,9 @@ export const SuppliersPage = () => {
       {/* SUPPLIER DEBT SUMMARY KPI CARDS */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
         <div className="card" style={{ padding: '1rem', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748B' }}>TOTAL REGISTERED DISTRIBUTORS</div>
+          <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748B' }}>TOTAL REGISTERED PHARMA DISTRIBUTORS</div>
           <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0F172A', marginTop: '0.2rem' }}>
-            {suppliers.length} Companies
+            {uniqueSuppliers.length} Companies
           </div>
         </div>
 
@@ -143,7 +179,7 @@ export const SuppliersPage = () => {
         <div style={{ marginBottom: '1.5rem' }}>
           <div className="flex-between" style={{ marginBottom: '0.85rem', flexWrap: 'wrap', gap: '0.75rem' }}>
             <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-text-main)', margin: 0 }}>
-              Registered Pharma Distributors ({displayedSuppliers.length})
+              Pharma Distributor Directory ({displayedSuppliers.length} Companies)
             </h3>
 
             {/* FILTER TAB BUTTONS */}
@@ -153,7 +189,7 @@ export const SuppliersPage = () => {
                 className={`btn ${!filterDebtOnly ? 'btn-primary' : 'btn-outline'}`}
                 style={{ fontSize: '0.775rem', fontWeight: 800, padding: '0.35rem 0.75rem' }}
               >
-                All Distributors ({suppliers.length})
+                All Companies ({uniqueSuppliers.length})
               </button>
 
               <button
@@ -161,7 +197,7 @@ export const SuppliersPage = () => {
                 className={`btn ${filterDebtOnly ? 'btn-danger' : 'btn-outline'}`}
                 style={{ fontSize: '0.775rem', fontWeight: 800, padding: '0.35rem 0.75rem', borderColor: '#EF4444', color: filterDebtOnly ? '#FFF' : '#EF4444' }}
               >
-                🔴 Debt Owing Distributors Only ({debtSuppliersCount})
+                🔴 Debt Owing Companies Only ({debtSuppliersCount})
               </button>
             </div>
           </div>
@@ -170,31 +206,35 @@ export const SuppliersPage = () => {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Supplier ID</th>
                   <th>Distributor / Company Name</th>
-                  <th>Contact Person</th>
-                  <th>Phone Number</th>
+                  <th>Contact Phone</th>
                   <th>GSTIN / License #</th>
                   <th>City</th>
+                  <th style={{ textAlign: 'center' }}>Total PO Orders</th>
                   <th style={{ textAlign: 'right' }}>Outstanding Debt</th>
-                  <th style={{ textAlign: 'center' }}>Actions</th>
+                  <th style={{ textAlign: 'center' }}>Company Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {displayedSuppliers.map((supplier) => {
-                  const bal = supplier.pendingBalance !== undefined ? supplier.pendingBalance : (supplier.outstandingBalance || 0);
+                  const bal = supplier.pendingBalance || 0;
                   const isDebt = bal > 0;
 
                   return (
-                    <tr key={supplier.id}>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 800 }}>{supplier.id}</td>
-                      <td style={{ fontWeight: 800, color: '#0F172A' }}>{supplier.companyName || supplier.name}</td>
-                      <td>{supplier.contactPerson || '-'}</td>
-                      <td>{supplier.phone || '-'}</td>
+                    <tr key={supplier.id || supplier.name}>
+                      <td style={{ fontWeight: 900, color: '#0F172A', fontSize: '0.9rem' }}>
+                        {supplier.companyName || supplier.name}
+                      </td>
+                      <td style={{ fontWeight: 700 }}>{supplier.phone || '-'}</td>
                       <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.775rem' }}>
                         {supplier.gstin || supplier.licenseNo || '-'}
                       </td>
-                      <td>{supplier.city || 'Lahore'}</td>
+                      <td>{supplier.city || 'Wholesale Market'}</td>
+                      <td style={{ textAlign: 'center' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 800, backgroundColor: '#F1F5F9', color: '#0284C7', padding: '0.2rem 0.55rem', borderRadius: '4px' }}>
+                          {supplier.poCount || (supplier.poHistory ? supplier.poHistory.length : 1)} Orders
+                        </span>
+                      </td>
                       <td style={{ textAlign: 'right' }}>
                         <span
                           style={{
@@ -212,35 +252,29 @@ export const SuppliersPage = () => {
                       <td style={{ textAlign: 'center' }}>
                         <div style={{ display: 'inline-flex', gap: '0.35rem' }}>
                           <button
+                            onClick={() => handleOpenHistoryModal(supplier)}
+                            className="btn btn-outline"
+                            style={{ padding: '0.3rem 0.65rem', fontSize: '0.775rem', fontWeight: 900, borderColor: '#0284C7', color: '#0284C7', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                            title="Click for supplier log ledger with full transaction & PO details"
+                          >
+                            <FileText size={14} /> 📋 View Log Ledger & Details
+                          </button>
+
+                          <button
                             onClick={() => handleOpenPoModal(supplier.id)}
                             className="btn btn-outline"
-                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontWeight: 800 }}
+                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.75rem', fontWeight: 800 }}
                             title="Create Inward Purchase Order"
                           >
                             <Plus size={12} /> PO
                           </button>
-                          <button
-                            onClick={() => handleOpenRtvModal(supplier)}
-                            className="btn"
-                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontWeight: 800, backgroundColor: '#FEF2F2', color: '#DC2626', border: '1px solid #FCA5A5' }}
-                            title="Return Stock to Supplier (RTV Debit Note)"
-                          >
-                            <RotateCcw size={12} /> RTV
-                          </button>
-                          <button
-                            onClick={() => handleOpenHistoryModal(supplier)}
-                            className="btn btn-outline"
-                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontWeight: 700 }}
-                            title="View Supplier Ledger & PO History"
-                          >
-                            Ledger
-                          </button>
+
                           <button
                             onClick={() => handleOpenPayModal(supplier)}
                             className="btn btn-primary"
                             disabled={!isDebt || isCashier}
                             style={{
-                              padding: '0.25rem 0.5rem',
+                              padding: '0.3rem 0.5rem',
                               fontSize: '0.75rem',
                               fontWeight: 800,
                               backgroundColor: isDebt ? '#059669' : '#94A3B8',
