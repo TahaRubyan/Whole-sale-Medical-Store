@@ -154,7 +154,13 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
   }, 0);
 
   // PO Payment Settlement & Supplier Debt Tagging State
-  const [amountPaid, setAmountPaid] = useState('');
+  const [paymentStatusTag, setPaymentStatusTag] = useState('PAID_IN_FULL'); // 'PAID_IN_FULL' | 'DEBT_OWING'
+  const [customAmountPaid, setCustomAmountPaid] = useState('');
+
+  const amountPaidNum = paymentStatusTag === 'PAID_IN_FULL'
+    ? totalOrderValuation
+    : (customAmountPaid !== '' ? Number(customAmountPaid) : 0);
+  const remainingDebtNum = Math.max(0, totalOrderValuation - amountPaidNum);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -169,14 +175,11 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
       return;
     }
 
-    const amountPaidNum = Number(amountPaid) || 0;
-    const remainingDebtNum = Math.max(0, totalOrderValuation - amountPaidNum);
-    
-    let paymentStatusTag = 'PAID_FULL';
+    let poPaymentStatusTag = 'PAID_FULL';
     if (remainingDebtNum > 0 && amountPaidNum > 0) {
-      paymentStatusTag = 'PARTIAL_DEBT';
+      poPaymentStatusTag = 'PARTIAL_DEBT';
     } else if (remainingDebtNum > 0 && amountPaidNum === 0) {
-      paymentStatusTag = 'UNPAID_DEBT';
+      poPaymentStatusTag = 'UNPAID_DEBT';
     }
 
     // 1. Optionally Save Supplier in Supplier Directory
@@ -217,7 +220,7 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
       totalAmount: totalOrderValuation,
       amountPaid: amountPaidNum,
       remainingDebt: remainingDebtNum,
-      paymentStatus: paymentStatusTag,
+      paymentStatus: poPaymentStatusTag,
       items: validItems,
       createdBy: user?.name || 'Hassan (Admin)',
       createdByRole: user?.role || 'Admin',
