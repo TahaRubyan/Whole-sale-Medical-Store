@@ -57,7 +57,7 @@ export const DashboardPage = ({ onNavigate }) => {
             </div>
 
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '0.25rem' }}>
-              Welcome back, {user?.name || 'Hassan'} 👋
+              Welcome back, {user?.name || 'Idrees'} 👋
             </h2>
             <p style={{ fontSize: '0.875rem', opacity: 0.9 }}>
               Idrees Medical Store — Commercial Wholesale POS Billing & Inventory Management System.

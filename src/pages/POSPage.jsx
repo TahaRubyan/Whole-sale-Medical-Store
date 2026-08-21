@@ -79,6 +79,17 @@ export const POSPage = () => {
 
   const searchInputRef = useRef(null);
   const searchContainerRef = useRef(null);
+  const itemRefs = useRef([]);
+
+  // Auto-scroll dropdown when navigating with ArrowDown / ArrowUp keys
+  useEffect(() => {
+    if (showDropdown && itemRefs.current[highlightedIndex]) {
+      itemRefs.current[highlightedIndex].scrollIntoView({
+        block: 'nearest',
+        behavior: 'smooth'
+      });
+    }
+  }, [highlightedIndex, showDropdown]);
 
   // Sync customerName with customerDetails
   useEffect(() => {
@@ -325,6 +336,7 @@ export const POSPage = () => {
                     return (
                       <div
                         key={med.id}
+                        ref={(el) => (itemRefs.current[idx] = el)}
                         onClick={() => handleAddItemToCart(med)}
                         onMouseEnter={() => setHighlightedIndex(idx)}
                         style={{

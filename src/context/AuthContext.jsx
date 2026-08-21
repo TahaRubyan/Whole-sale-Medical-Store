@@ -4,14 +4,14 @@ import { MOCK_STAFF_ACCOUNTS } from '../data/mockData';
 const AuthContext = createContext();
 
 const ADMIN_USER = {
-  name: 'Hassan (Admin)',
+  name: 'Idrees (Admin)',
   role: 'Admin',
   staffId: 'EMP-001',
-  title: 'Store Operations Manager (Admin)'
+  title: 'Store Owner & Operations Director'
 };
 
 const CASHIER_USER = {
-  name: 'Ali (Cashier)',
+  name: 'Hassan (Cashier)',
   role: 'Cashier',
   staffId: 'EMP-002',
   title: 'Senior POS Cashier'

@@ -36,7 +36,9 @@ export const Sidebar = ({ currentScreen, onNavigate }) => {
 
   return (
     <aside style={{
-      width: '210px',
+      width: '220px',
+      minWidth: '220px',
+      maxWidth: '220px',
       backgroundColor: '#0284C7', // Ocean Cyan Blue Theme
       color: '#FFFFFF',
       display: 'flex',

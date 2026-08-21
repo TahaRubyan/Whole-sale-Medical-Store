@@ -26,6 +26,7 @@ export const SuppliersPage = () => {
   const [selectedSupplierForRtv, setSelectedSupplierForRtv] = useState(null);
   const [rtvPrintRecord, setRtvPrintRecord] = useState(null);
   const [filterDebtOnly, setFilterDebtOnly] = useState(false);
+  const [supplierSearchQuery, setSupplierSearchQuery] = useState('');
 
   const handleOpenPoModal = (supplierId = null) => {
     setSelectedSupplierForPo(supplierId);
@@ -93,9 +94,24 @@ export const SuppliersPage = () => {
   const debtSuppliersCount = uniqueSuppliers.filter((s) => s.pendingBalance > 0).length;
   const totalDebtAmount = uniqueSuppliers.reduce((sum, s) => sum + Number(s.pendingBalance || 0), 0);
 
-  const displayedSuppliers = filterDebtOnly
-    ? uniqueSuppliers.filter((s) => s.pendingBalance > 0)
-    : uniqueSuppliers;
+  const displayedSuppliers = useMemo(() => {
+    let list = filterDebtOnly
+      ? uniqueSuppliers.filter((s) => s.pendingBalance > 0)
+      : uniqueSuppliers;
+
+    if (supplierSearchQuery.trim()) {
+      const q = supplierSearchQuery.toLowerCase().trim();
+      list = list.filter((s) =>
+        (s.companyName && s.companyName.toLowerCase().includes(q)) ||
+        (s.name && s.name.toLowerCase().includes(q)) ||
+        (s.phone && s.phone.includes(q)) ||
+        (s.licenseNo && s.licenseNo.toLowerCase().includes(q)) ||
+        (s.ntn && s.ntn.includes(q)) ||
+        (s.city && s.city.toLowerCase().includes(q))
+      );
+    }
+    return list;
+  }, [uniqueSuppliers, filterDebtOnly, supplierSearchQuery]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -183,8 +199,22 @@ export const SuppliersPage = () => {
               Pharma Distributor Directory ({displayedSuppliers.length} Companies)
             </h3>
 
-            {/* FILTER TAB BUTTONS */}
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {/* SEARCH INPUT & FILTER TAB BUTTONS */}
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <input
+                type="text"
+                placeholder="Search supplier, license, city..."
+                value={supplierSearchQuery}
+                onChange={(e) => setSupplierSearchQuery(e.target.value)}
+                style={{
+                  padding: '0.4rem 0.75rem',
+                  fontSize: '0.8rem',
+                  borderRadius: '6px',
+                  border: '1px solid #CBD5E1',
+                  minWidth: '220px'
+                }}
+              />
+
               <button
                 onClick={() => setFilterDebtOnly(false)}
                 className={`btn ${!filterDebtOnly ? 'btn-primary' : 'btn-outline'}`}

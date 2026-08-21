@@ -50,11 +50,13 @@ export const InventoryPage = () => {
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
         (m.id && m.id.toLowerCase().includes(q)) ||
-        m.brandName.toLowerCase().includes(q) ||
+        (m.brandName && m.brandName.toLowerCase().includes(q)) ||
         (m.genericFormula && m.genericFormula.toLowerCase().includes(q)) ||
         (m.manufacturer && m.manufacturer.toLowerCase().includes(q)) ||
-        (m.barcode && m.barcode.includes(q));
+        (m.barcode && m.barcode.includes(q)) ||
+        (m.rackLocation && m.rackLocation.toLowerCase().includes(q));
 
+      return matchesCategory && matchesSearch;
     });
   }, [medicines, selectedCategory, searchQuery]);
 

@@ -30,14 +30,21 @@ export const Topbar = ({ currentScreen }) => {
   return (
     <header style={{
       height: '64px',
+      minHeight: '64px',
+      maxHeight: '64px',
       backgroundColor: '#FFFFFF',
       borderBottom: '1px solid var(--color-border)',
       padding: '0 1.5rem',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      boxShadow: 'var(--shadow-sm)',
-      zIndex: 10
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+      position: 'sticky',
+      top: 0,
+      zIndex: 100,
+      flexShrink: 0,
+      width: '100%',
+      boxSizing: 'border-box'
     }}>
       {/* Active Screen Info */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>

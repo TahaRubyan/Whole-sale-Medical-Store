@@ -91,20 +91,20 @@ export const getStoreInfo = () => {
 export const MOCK_STAFF_ACCOUNTS = [
   {
     id: 'EMP-101',
-    name: 'Admin User',
+    name: 'Idrees (Admin)',
     username: 'admin',
     role: 'Admin',
-    title: 'Store Operations Manager (Admin)',
-    phone: '',
+    title: 'Store Owner & Operations Director',
+    phone: '+92 300 1234567',
     status: 'ACTIVE',
   },
   {
     id: 'EMP-102',
-    name: 'Cashier User',
+    name: 'Hassan (Cashier)',
     username: 'cashier',
     role: 'Cashier',
     title: 'Senior POS Cashier',
-    phone: '',
+    phone: '+92 300 7654321',
     status: 'ACTIVE',
   },
 ];
