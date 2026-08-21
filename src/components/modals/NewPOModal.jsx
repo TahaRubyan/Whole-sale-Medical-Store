@@ -172,15 +172,36 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
       return;
     }
 
-    const validItems = poItems.filter((i) => i.brandName && i.brandName.trim().length > 0);
-    if (validItems.length === 0) {
+    const rawItems = poItems.filter((i) => i.brandName && i.brandName.trim().length > 0);
+    if (rawItems.length === 0) {
       alert("Please enter at least one valid Medicine Trade Name in your Purchase Order.");
       return;
     }
 
+    const validItems = rawItems.map((item) => {
+      const brand = item.brandName.trim();
+      const formula = (item.genericFormula || '').trim() || 'Pharmaceutical Formula';
+      const batch = (item.batchNumber || '').trim() || `BAT-${Date.now().toString().slice(-4)}`;
+      const exp = (item.expiryDate || '').trim() || '2028-12';
+      const boxes = Number(item.boxes) > 0 ? Number(item.boxes) : 1;
+      const costBox = Number(item.purchasePriceBox) > 0 ? Number(item.purchasePriceBox) : 100;
+      const mrpBox = Number(item.boxPrice) > 0 ? Number(item.boxPrice) : costBox * 1.25;
+
+      return {
+        ...item,
+        brandName: brand,
+        genericFormula: formula,
+        batchNumber: batch,
+        expiryDate: exp,
+        boxes: boxes,
+        purchasePriceBox: costBox,
+        boxPrice: mrpBox,
+      };
+    });
+
     for (const item of validItems) {
       if (item.expiryDate && isWithinSixMonths(item.expiryDate)) {
-        setWarningMsg(`Cannot Inward Batch: Expiry Date Exceeded for "${item.brandName || 'Medicine'}". Expiry must be greater than 6 months from today!`);
+        setWarningMsg(`Cannot Inward Batch: Expiry Date Exceeded for "${item.brandName}". Expiry must be greater than 6 months from today!`);
         return;
       }
     }
@@ -585,7 +606,6 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
                             value={item.brandName}
                             onChange={(e) => handleItemChange(idx, 'brandName', e.target.value)}
                             style={{ width: '100%', padding: '0.35rem', fontSize: '0.8rem', fontWeight: 700, borderRadius: '4px', border: '1px solid #CBD5E1' }}
-                            required
                           />
                         </td>
                         <td style={{ padding: '0.5rem 0.4rem' }}>
@@ -604,26 +624,25 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
                             value={item.batchNumber}
                             onChange={(e) => handleItemChange(idx, 'batchNumber', e.target.value)}
                             style={{ width: '100%', padding: '0.35rem', fontSize: '0.8rem', fontFamily: 'monospace', borderRadius: '4px', border: '1px solid #CBD5E1' }}
-                            required
                           />
                         </td>
                         <td style={{ padding: '0.5rem 0.4rem' }}>
                           <input
-                            type="date"
+                            type="month"
+                            placeholder="MM-YYYY"
                             value={item.expiryDate}
                             onChange={(e) => handleItemChange(idx, 'expiryDate', e.target.value)}
                             style={{ width: '100%', padding: '0.35rem', fontSize: '0.775rem', borderRadius: '4px', border: '1px solid #CBD5E1' }}
-                            required
                           />
                         </td>
                         <td style={{ padding: '0.5rem 0.4rem', textAlign: 'center' }}>
                           <input
                             type="number"
                             min="1"
+                            placeholder="Boxes Qty"
                             value={item.boxes}
                             onChange={(e) => handleItemChange(idx, 'boxes', e.target.value)}
                             style={{ width: '100%', padding: '0.35rem', fontSize: '0.85rem', fontWeight: 800, textAlign: 'center', borderRadius: '4px', border: '1px solid #CBD5E1' }}
-                            required
                           />
                         </td>
                         <td style={{ padding: '0.5rem 0.4rem', textAlign: 'right' }}>
@@ -631,10 +650,10 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
                             type="number"
                             min="0"
                             step="0.01"
+                            placeholder="Cost Box"
                             value={item.purchasePriceBox}
                             onChange={(e) => handleItemChange(idx, 'purchasePriceBox', e.target.value)}
                             style={{ width: '100%', padding: '0.35rem', fontSize: '0.85rem', fontWeight: 800, textAlign: 'right', borderRadius: '4px', border: '1px solid #CBD5E1' }}
-                            required
                           />
                         </td>
                         <td style={{ padding: '0.5rem 0.4rem', textAlign: 'right' }}>
@@ -642,10 +661,10 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
                             type="number"
                             min="0"
                             step="0.01"
+                            placeholder="MRP Box"
                             value={item.boxPrice}
                             onChange={(e) => handleItemChange(idx, 'boxPrice', e.target.value)}
                             style={{ width: '100%', padding: '0.35rem', fontSize: '0.85rem', fontWeight: 800, textAlign: 'right', borderRadius: '4px', border: '1px solid #CBD5E1' }}
-                            required
                           />
                         </td>
                         <td style={{ padding: '0.5rem 0.4rem', textAlign: 'right', fontWeight: 900, color: '#059669' }}>

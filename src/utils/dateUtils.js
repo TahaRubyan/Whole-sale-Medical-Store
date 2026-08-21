@@ -79,6 +79,12 @@ export const isWithinSixMonths = (dateInput) => {
     if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
       const [y, m, d] = str.split('-').map(Number);
       expDate = new Date(y, m - 1, d);
+    } else if (/^\d{4}-\d{2}$/.test(str)) {
+      const [y, m] = str.split('-').map(Number);
+      expDate = new Date(y, m - 1, 28);
+    } else if (/^\d{2}-\d{4}$/.test(str)) {
+      const [m, y] = str.split('-').map(Number);
+      expDate = new Date(y, m - 1, 28);
     } else if (/^\d{2}-\d{2}-\d{4}$/.test(str)) {
       const [d, m, y] = str.split('-').map(Number);
       expDate = new Date(y, m - 1, d);
