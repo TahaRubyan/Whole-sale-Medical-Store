@@ -62,6 +62,7 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
   const [inwardDate, setInwardDate] = useState(() => formatDateDDMMYYYY(new Date()));
   const [warningMsg, setWarningMsg] = useState('');
   const [isSavingTransition, setIsSavingTransition] = useState(false);
+  const [savingStep, setSavingStep] = useState(0); // 0: Idle, 1: Inwarding, 2: Syncing, 3: Confirmed
 
   // Multi-Item PO Entry State (Box Count Standard - Placeholders Only)
   const [poItems, setPoItems] = useState([
@@ -125,7 +126,7 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
     setPoItems((prev) => [
       ...prev,
       {
-        id: Date.now(),
+        id: Date.now() + Math.random(),
         brandName: '',
         genericFormula: '',
         batchNumber: '',
@@ -187,7 +188,8 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
       ];
     }
 
-    const validItems = itemsToProcess.map((item) => {
+    // PRE-ASSIGN GUARANTEED MATCHING MED IDs
+    const itemsWithMedIds = itemsToProcess.map((item, idx) => {
       const brand = (item.brandName || '').trim() || 'Panadol 500mg Tablet';
       const formula = (item.genericFormula || '').trim() || 'Pharmaceutical Formula';
       const batch = (item.batchNumber || '').trim() || `BAT-${Date.now().toString().slice(-4)}`;
@@ -195,6 +197,11 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
       const boxes = Number(item.boxes) > 0 ? Number(item.boxes) : 10;
       const costBox = Number(item.purchasePriceBox) > 0 ? Number(item.purchasePriceBox) : 480;
       const mrpBox = Number(item.boxPrice) > 0 ? Number(item.boxPrice) : costBox * 1.25;
+
+      const existing = medicines.find(
+        (m) => (m.brandName || '').toLowerCase().trim() === brand.toLowerCase()
+      );
+      const medId = existing ? existing.id : `MED-${Date.now().toString().slice(-4)}-${idx + 1}`;
 
       return {
         ...item,
@@ -205,6 +212,7 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
         boxes: boxes,
         purchasePriceBox: costBox,
         boxPrice: mrpBox,
+        medId: medId // MATCHING ID GUARANTEED FOR BOTH MEDICINE AND BATCH!
       };
     });
 
@@ -237,7 +245,7 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
     }
 
     // 2. Record PO Order in SupplierContext
-    const primaryItem = validItems[0] || {};
+    const primaryItem = itemsWithMedIds[0] || {};
     const poData = {
       poNumber: poNumber || generatePONumber(),
       distributorName: finalDistributor,
@@ -247,18 +255,18 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
       supplierFbrStatus: supplierFbrStatus.trim() || 'ACTIVE FILER',
       supplierPhone: supplierPhone.trim() || '+92 300 0000000',
       inwardDate: inwardDate || formatDateDDMMYYYY(new Date()),
-      brandName: validItems.length === 1 ? primaryItem.brandName : `${primaryItem.brandName} (+${validItems.length - 1} items)`,
+      brandName: itemsWithMedIds.length === 1 ? primaryItem.brandName : `${primaryItem.brandName} (+${itemsWithMedIds.length - 1} items)`,
       genericFormula: primaryItem.genericFormula || '',
       batchNumber: primaryItem.batchNumber || '',
       expiryDate: primaryItem.expiryDate || '',
-      quantity: validItems.reduce((sum, i) => sum + (Number(i.boxes) || 0), 0),
+      quantity: itemsWithMedIds.reduce((sum, i) => sum + (Number(i.boxes) || 0), 0),
       boxPrice: Number(primaryItem.boxPrice) || 0,
       purchasePriceBox: Number(primaryItem.purchasePriceBox) || 0,
       totalAmount: totalOrderValuation || 4800,
       amountPaid: amountPaidNum,
       remainingDebt: remainingDebtNum,
       paymentStatus: poPaymentStatusTag,
-      items: validItems,
+      items: itemsWithMedIds,
       createdBy: user?.name || 'Hassan (Admin)',
       createdByRole: user?.role || 'Admin',
       createdAt: new Date().toISOString(),
@@ -270,13 +278,12 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
       console.error("PO Record creation warning:", err);
     }
 
-    // 3. Stock inward line items into InventoryContext
+    // 3. Stock inward line items into InventoryContext with EXACT MATCHING IDs
     setMedicines((prevMeds) => {
       let updatedMeds = Array.isArray(prevMeds) ? [...prevMeds] : [];
-      validItems.forEach((item) => {
-        const nameStr = (item.brandName || '').trim();
-        if (!nameStr) return;
-        const formulaStr = (item.genericFormula || '').trim();
+      itemsWithMedIds.forEach((item) => {
+        const nameStr = item.brandName.trim();
+        const formulaStr = item.genericFormula.trim();
         const costBox = Number(item.purchasePriceBox) || 0;
         const mrpBox = Number(item.boxPrice) || 0;
 
@@ -286,7 +293,7 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
 
         if (!existingMed) {
           const newMed = {
-            id: `MED-${Date.now().toString().slice(-4)}-${Math.floor(Math.random() * 100)}`,
+            id: item.medId, // MATCHING ID EXACTLY!
             brandName: nameStr,
             genericFormula: formulaStr || 'Pharmaceutical Formula',
             category: 'Tablets',
@@ -320,19 +327,13 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
 
     setBatches((prevBatches) => {
       let updatedBatches = Array.isArray(prevBatches) ? [...prevBatches] : [];
-      validItems.forEach((item) => {
-        const nameStr = (item.brandName || '').trim();
-        if (!nameStr) return;
-        const batchStr = (item.batchNumber || `BAT-${Date.now().toString().slice(-4)}`).trim();
+      itemsWithMedIds.forEach((item) => {
+        const nameStr = item.brandName.trim();
+        const batchStr = item.batchNumber.trim();
         const expStr = item.expiryDate || '2028-12';
         const boxQty = Number(item.boxes) || 10;
         const costBox = Number(item.purchasePriceBox) || 480;
         const mrpBox = Number(item.boxPrice) || 600;
-
-        let existingMed = medicines.find(
-          (m) => (m.brandName || '').toLowerCase().trim() === nameStr.toLowerCase()
-        );
-        const medId = existingMed ? existingMed.id : `MED-${Date.now().toString().slice(-4)}`;
 
         let existingBatch = updatedBatches.find(
           (b) => (b.batchNumber || '').toLowerCase().trim() === batchStr.toLowerCase()
@@ -343,6 +344,7 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
             (b.batchNumber || '').toLowerCase().trim() === batchStr.toLowerCase()
               ? {
                   ...b,
+                  medicineId: item.medId, // MATCHING ID EXACTLY!
                   totalBoxesAvailable: (Number(b.totalBoxesAvailable) || 0) + boxQty,
                   totalTabletsAvailable: (Number(b.totalTabletsAvailable) || 0) + boxQty * (b.tabletsPerBox || 200),
                   boxPrice: mrpBox > 0 ? mrpBox : b.boxPrice,
@@ -354,7 +356,7 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
         } else {
           const newBatch = {
             id: `BAT-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 100)}`,
-            medicineId: medId,
+            medicineId: item.medId, // MATCHING ID EXACTLY!
             batchNumber: batchStr,
             mfgDate: inwardDate || formatDateDDMMYYYY(new Date()),
             expiryDate: expStr,
@@ -374,12 +376,23 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
 
     window.dispatchEvent(new Event('pharmalink_inventory_updated'));
 
-    // 4. Auto-Close Modal with Save Success Transition
+    // 4. ANIMATED MULTI-STEP PO CONFIRMATION TRANSITION OVERLAY
     setIsSavingTransition(true);
+    setSavingStep(1);
+
+    setTimeout(() => {
+      setSavingStep(2);
+    }, 450);
+
+    setTimeout(() => {
+      setSavingStep(3);
+    }, 900);
+
     setTimeout(() => {
       setIsSavingTransition(false);
+      setSavingStep(0);
       onClose();
-    }, 1000);
+    }, 1500);
   };
 
   return (
@@ -387,39 +400,69 @@ export const NewPOModal = ({ isOpen, onClose, initialSupplierId }) => {
       {/* EXTRA-WIDE MODAL LAYOUT (MAX-WIDTH: 1280PX) */}
       <div className="card" style={{ width: '96%', maxWidth: '1280px', maxHeight: '92vh', overflowY: 'auto', padding: '1.75rem', position: 'relative', backgroundColor: '#FFFFFF', boxShadow: '0 10px 30px rgba(0,0,0,0.25)' }}>
         
-        {/* PURCHASE ORDER SAVE SUCCESS TRANSITION OVERLAY */}
+        {/* ANIMATED MULTI-STEP PO CONFIRMATION TRANSITION OVERLAY */}
         {isSavingTransition && (
           <div style={{
             position: 'absolute',
             inset: 0,
-            backgroundColor: 'rgba(255, 255, 255, 0.96)',
-            backdropFilter: 'blur(5px)',
+            backgroundColor: 'rgba(255, 255, 255, 0.97)',
+            backdropFilter: 'blur(6px)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 10000,
             borderRadius: '8px',
-            gap: '0.85rem'
+            gap: '1.25rem',
+            padding: '2rem'
           }}>
             <div style={{
-              width: '64px',
-              height: '64px',
+              width: '76px',
+              height: '76px',
               borderRadius: '50%',
-              backgroundColor: '#ECFDF5',
-              border: '3px solid #10B981',
+              backgroundColor: savingStep === 3 ? '#ECFDF5' : '#E0F2FE',
+              border: savingStep === 3 ? '4px solid #10B981' : '4px solid #0284C7',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              transition: 'all 0.3s ease'
             }}>
-              <CheckCircle size={38} color="#10B981" />
+              {savingStep === 3 ? (
+                <CheckCircle size={44} color="#10B981" />
+              ) : (
+                <Package size={42} color="#0284C7" className="animate-spin" />
+              )}
             </div>
-            <h3 style={{ fontSize: '1.35rem', fontWeight: 900, color: '#065F46', margin: 0 }}>
-              Purchase Order {poNumber} Saved Successfully!
-            </h3>
-            <p style={{ fontSize: '0.9rem', color: '#047857', fontWeight: 700, margin: 0 }}>
-              ✔ Items & Stock Batches updated in Inventory Catalog. Closing window...
-            </p>
+
+            <div style={{ textAlign: 'center' }}>
+              <h3 style={{ fontSize: '1.45rem', fontWeight: 900, color: savingStep === 3 ? '#065F46' : '#0369A1', margin: 0 }}>
+                {savingStep === 1 && '📦 Inwarding Wholesale Stock Batches...'}
+                {savingStep === 2 && '📊 Syncing Catalog & Stock Balances...'}
+                {savingStep === 3 && `✔ Purchase Order ${poNumber} Confirmed!`}
+              </h3>
+              <p style={{ fontSize: '0.925rem', color: '#475569', fontWeight: 700, margin: '0.35rem 0 0 0' }}>
+                {savingStep === 3
+                  ? 'All stock counts, batches, and supplier ledgers have been updated successfully.'
+                  : 'Processing shipment details & updating inventory database...'}
+              </p>
+            </div>
+
+            {/* ANIMATED PROGRESS BAR */}
+            <div style={{ width: '320px', height: '8px', backgroundColor: '#E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{
+                height: '100%',
+                backgroundColor: savingStep === 3 ? '#10B981' : '#0284C7',
+                width: savingStep === 1 ? '35%' : savingStep === 2 ? '75%' : '100%',
+                transition: 'width 0.4s ease-in-out'
+              }} />
+            </div>
+
+            {/* STEP CHECKLIST */}
+            <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.785rem', fontWeight: 800, color: '#334155' }}>
+              <span style={{ color: savingStep >= 1 ? '#059669' : '#94A3B8' }}>✔ Supplier Metadata</span>
+              <span style={{ color: savingStep >= 2 ? '#059669' : '#94A3B8' }}>✔ Stock Batches Inwarded</span>
+              <span style={{ color: savingStep === 3 ? '#059669' : '#94A3B8' }}>✔ Real-time Catalog Synced</span>
+            </div>
           </div>
         )}
 
