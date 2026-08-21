@@ -11,7 +11,11 @@ export const InventoryProvider = ({ children }) => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const existingIds = new Set(parsed.map((m) => m.id));
+          const toAdd = INITIAL_MEDICINES.filter((m) => !existingIds.has(m.id));
+          return [...parsed, ...toAdd];
+        }
       } catch (e) {
         console.error('Failed to parse saved medicines', e);
       }
@@ -24,7 +28,21 @@ export const InventoryProvider = ({ children }) => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Increment previous items in inventory to at least 10 boxes
+          const updatedParsed = parsed.map((b) => {
+            const currentBoxes = Number(b.totalBoxesAvailable) || 0;
+            const newBoxes = Math.max(currentBoxes, 10);
+            return {
+              ...b,
+              totalBoxesAvailable: newBoxes,
+              totalTabletsAvailable: newBoxes * (b.tabletsPerBox || 20),
+            };
+          });
+          const existingBatchIds = new Set(updatedParsed.map((b) => b.id));
+          const toAdd = INITIAL_BATCHES.filter((b) => !existingBatchIds.has(b.id));
+          return [...updatedParsed, ...toAdd];
+        }
       } catch (e) {
         console.error('Failed to parse saved batches', e);
       }

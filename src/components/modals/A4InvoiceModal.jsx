@@ -36,14 +36,14 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
   };
 
   return (
-    <div className="modal-overlay" style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+    <div className="modal-overlay" style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
       {/* PRINT CSS OVERRIDE */}
       <style>
         {`
           @media print {
             @page {
               size: A4 portrait;
-              margin: 5mm 6mm;
+              margin: 6mm 8mm;
             }
             html, body, #root, .app-container, .main-viewport, .content-area {
               height: auto !important;
@@ -52,10 +52,10 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
               margin: 0 !important;
               padding: 0 !important;
               background: #FFFFFF !important;
-              color: #000000 !important;
-              font-family: Arial, sans-serif !important;
-              font-size: 9pt !important;
-              line-height: 1.3 !important;
+              color: #0F172A !important;
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+              font-size: 8.5pt !important;
+              line-height: 1.35 !important;
               overflow: visible !important;
             }
             .sidebar, header, nav, aside, .no-print, button, .btn {
@@ -96,34 +96,32 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
               width: 100% !important;
               height: auto !important;
               margin: 0 !important;
-              padding: 0.5rem !important;
-              border: 1.5px solid #000000 !important;
+              padding: 0 !important;
+              border: none !important;
+              box-shadow: none !important;
               box-sizing: border-box !important;
               background: #FFFFFF !important;
-              color: #000000 !important;
+              color: #0F172A !important;
               overflow: visible !important;
-            }
-            #a4-invoice * {
-              color: #000000 !important;
             }
           }
         `}
       </style>
 
-      <div className="card modal-card" style={{ width: '95%', maxWidth: '980px', maxHeight: '94vh', overflowY: 'auto', padding: '1.5rem', position: 'relative', backgroundColor: '#F8FAFC' }}>
-        <button onClick={onClose} className="no-print" style={{ position: 'absolute', right: '1rem', top: '1rem', background: 'none', border: 'none', cursor: 'pointer' }}>
+      <div className="card modal-card" style={{ width: '95%', maxWidth: '980px', maxHeight: '94vh', overflowY: 'auto', padding: '1.5rem', position: 'relative', backgroundColor: '#F8FAFC', borderRadius: '12px' }}>
+        <button onClick={onClose} className="no-print" style={{ position: 'absolute', right: '1.25rem', top: '1.25rem', background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}>
           <X size={20} />
         </button>
 
-        <div className="no-print" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div className="no-print" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <FileText size={22} color="#000" />
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#000' }}>Commercial Sale Tax Invoice Preview</h3>
+            <FileText size={22} color="#0284C7" />
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Sale Tax Invoice Document</h3>
           </div>
 
           {/* DUAL WARRANTY TOGGLE CHECKBOXES ON PREVIEW MODAL */}
-          <div style={{ display: 'flex', gap: '0.75rem', backgroundColor: '#E0F2FE', padding: '0.4rem 0.75rem', borderRadius: '6px', border: '1px solid #0284C7' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontWeight: 800, fontSize: '0.775rem', color: '#0369A1' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', backgroundColor: '#F0F9FF', padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid #BAE6FD' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontWeight: 700, fontSize: '0.775rem', color: '#0369A1' }}>
               <input
                 type="checkbox"
                 checked={includeDrugActWarranty}
@@ -133,7 +131,7 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
               <span>Section 23 Drug Act 1976 Warranty</span>
             </label>
 
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontWeight: 800, fontSize: '0.775rem', color: '#0369A1' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', fontWeight: 700, fontSize: '0.775rem', color: '#0369A1' }}>
               <input
                 type="checkbox"
                 checked={includeDrapWarranty}
@@ -150,13 +148,15 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
           id="a4-invoice"
           style={{
             backgroundColor: '#FFFFFF',
-            border: '2px solid #000000',
-            padding: '1.25rem',
-            fontSize: '0.835rem',
-            color: '#000000',
-            fontFamily: 'Arial, sans-serif',
-            lineHeight: 1.6,
-            boxSizing: 'border-box'
+            border: 'none',
+            borderRadius: '8px',
+            padding: '1.75rem 2rem',
+            fontSize: '0.815rem',
+            color: '#1E293B',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            lineHeight: 1.5,
+            boxSizing: 'border-box',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
           }}
         >
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -164,65 +164,67 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
             <thead style={{ display: 'table-header-group' }}>
               <tr>
                 <td style={{ border: 'none', padding: 0 }}>
-                  {/* TOP RIGHT COMPLIANCE BLOCK */}
-                  <div style={{ textAlign: 'right', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.25rem', lineHeight: '1.4', letterSpacing: '0.02em' }}>
-                    <div>DSL: <span style={{ fontFamily: 'monospace', fontWeight: '900' }}>{getStoreInfo().dslNumber}</span></div>
-                    <div>STN: <span style={{ fontFamily: 'monospace', fontWeight: '900' }}>{getStoreInfo().stnNumber}</span></div>
-                    <div>NTN: <span style={{ fontFamily: 'monospace', fontWeight: '900' }}>{getStoreInfo().ntnNumber}</span></div>
-                  </div>
-
-                  {/* TOP CENTER STORE BRANDING */}
-                  <div style={{ textAlign: 'center', marginBottom: '0.95rem' }}>
-                    <h1 style={{ fontSize: '1.45rem', fontWeight: '900', margin: 0, textTransform: 'uppercase', letterSpacing: '0.02em', color: '#000000', lineHeight: '1.2' }}>
-                      {getStoreInfo().name}
-                    </h1>
-                    <div style={{ fontSize: '0.785rem', fontWeight: 'bold', marginTop: '0.15rem', lineHeight: '1.3' }}>
-                      {getStoreInfo().address}
-                    </div>
-                    <div style={{ fontSize: '0.725rem', marginTop: '0.1rem', lineHeight: '1.3' }}>
-                      Phone# {getStoreInfo().phone} &nbsp;|&nbsp; E-Mail: {getStoreInfo().email}
+                  {/* STORE HEADER & COMPLIANCE BRANDING */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', paddingBottom: '1rem', borderBottom: '1px solid #E2E8F0' }}>
+                    <div>
+                      <h1 style={{ fontSize: '1.55rem', fontWeight: 900, margin: 0, textTransform: 'uppercase', letterSpacing: '-0.02em', color: '#0F172A', lineHeight: '1.2' }}>
+                        {getStoreInfo().name}
+                      </h1>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 500, color: '#64748B', marginTop: '0.25rem', lineHeight: '1.4' }}>
+                        {getStoreInfo().address}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#94A3B8', marginTop: '0.15rem' }}>
+                        Phone: {getStoreInfo().phone || '-'} &nbsp;•&nbsp; Email: {getStoreInfo().email || '-'}
+                      </div>
                     </div>
 
-                    {/* SALE TAX INVOICE BADGE BOX */}
-                    <div style={{ display: 'inline-block', border: '1.5px solid #000000', padding: '0.25rem 1.5rem', marginTop: '0.45rem', fontWeight: '900', fontSize: '0.95rem', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                      SALE TAX INVOICE
+                    <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.35rem' }}>
+                      <div style={{ display: 'inline-block', backgroundColor: '#0F172A', color: '#FFFFFF', padding: '0.25rem 1rem', borderRadius: '9999px', fontWeight: 800, fontSize: '0.775rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                        SALE TAX INVOICE
+                      </div>
+                      <div style={{ fontSize: '0.725rem', color: '#64748B', lineHeight: '1.4', marginTop: '0.2rem' }}>
+                        <div>DSL: <strong style={{ color: '#0F172A', fontFamily: 'monospace' }}>{getStoreInfo().dslNumber || '-'}</strong></div>
+                        <div>STN: <strong style={{ color: '#0F172A', fontFamily: 'monospace' }}>{getStoreInfo().stnNumber || '-'}</strong></div>
+                        <div>NTN: <strong style={{ color: '#0F172A', fontFamily: 'monospace' }}>{getStoreInfo().ntnNumber || '-'}</strong></div>
+                      </div>
                     </div>
                   </div>
 
                   {/* 3-COLUMN METADATA HEADER GRID */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1.15fr 1.45fr 1.2fr', gap: '0.65rem', border: '1.5px solid #000000', padding: '0.55rem 0.75rem', marginBottom: '0.95rem', fontSize: '0.725rem', lineHeight: '1.5' }}>
-                    {/* COLUMN 1 */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.15fr 1.45fr 1.15fr', gap: '1rem', backgroundColor: '#F8FAFC', borderRadius: '8px', padding: '0.85rem 1rem', marginBottom: '1.25rem', fontSize: '0.735rem', lineHeight: '1.55', border: '1px solid #F1F5F9' }}>
+                    {/* COLUMN 1: INVOICE IDENTIFIERS */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                      <div><strong>Invoice #:</strong> <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{sale.invoiceNo || '-'}</span></div>
-                      <div><strong>Sale Order #:</strong> <span style={{ fontFamily: 'monospace' }}>{sale.saleOrderNo || '-'}</span></div>
-                      <div><strong>DSS Id:</strong> <span style={{ fontFamily: 'monospace' }}>{sale.dssId || '-'}</span></div>
-                      <div><strong>Reference No:</strong> {sale.referenceNo || '-'}</div>
-                      <div><strong>Booking Man:</strong> {sale.bookingMan || '-'}</div>
+                      <div style={{ fontSize: '0.675rem', fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.1rem' }}>Order Details</div>
+                      <div><span style={{ color: '#64748B' }}>Invoice #:</span> <strong style={{ color: '#0F172A', fontFamily: 'monospace' }}>{sale.invoiceNo || '-'}</strong></div>
+                      <div><span style={{ color: '#64748B' }}>Sale Order #:</span> <span style={{ fontFamily: 'monospace', color: '#334155' }}>{sale.saleOrderNo || '-'}</span></div>
+                      <div><span style={{ color: '#64748B' }}>DSS ID:</span> <span style={{ fontFamily: 'monospace', color: '#334155' }}>{sale.dssId || '-'}</span></div>
+                      <div><span style={{ color: '#64748B' }}>Reference No:</span> <span style={{ color: '#334155' }}>{sale.referenceNo || '-'}</span></div>
+                      <div><span style={{ color: '#64748B' }}>Booking Man:</span> <span style={{ color: '#334155' }}>{sale.bookingMan || '-'}</span></div>
                     </div>
 
-                    {/* COLUMN 2 */}
+                    {/* COLUMN 2: CUSTOMER DETAILS */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                      <div><strong>Invoice Date:</strong> {formatDateDDMMYYYY(sale.date || new Date())} &nbsp;|&nbsp; <strong>Customer:</strong> {sale.customerName || '-'}</div>
-                      <div><strong>Sale Order Type:</strong> {sale.saleOrderType || 'REGULAR'} &nbsp;|&nbsp; <strong>Region:</strong> {sale.region || '-'}</div>
-                      <div><strong>Due Date:</strong> {formatDateDDMMYYYY(sale.dueDate || sale.date || new Date())} &nbsp;|&nbsp; <strong>Phone:</strong> {sale.customerPhone || '-'}</div>
-                      <div><strong>Address:</strong> {sale.customerAddress || '-'}</div>
-                      <div><strong>Cust. License #:</strong> {sale.customerLicenseNo || '-'} &nbsp;|&nbsp; <strong>Cust. NTN:</strong> {sale.customerNtn || '-'}</div>
-                      <div><strong>Delivery Man:</strong> {sale.deliveryMan || '-'} &nbsp;|&nbsp; <strong>User:</strong> {user?.name || sale.cashierName || '-'}</div>
+                      <div style={{ fontSize: '0.675rem', fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.1rem' }}>Customer & Billing Info</div>
+                      <div><span style={{ color: '#64748B' }}>Customer:</span> <strong style={{ color: '#0F172A' }}>{sale.customerName || '-'}</strong></div>
+                      <div><span style={{ color: '#64748B' }}>Invoice Date:</span> <strong style={{ color: '#334155' }}>{formatDateDDMMYYYY(sale.date || new Date())}</strong> &nbsp;|&nbsp; <span style={{ color: '#64748B' }}>Due:</span> <strong style={{ color: '#334155' }}>{formatDateDDMMYYYY(sale.dueDate || sale.date || new Date())}</strong></div>
+                      <div><span style={{ color: '#64748B' }}>Order Type:</span> <span style={{ color: '#334155' }}>{sale.saleOrderType || 'REGULAR'}</span> &nbsp;|&nbsp; <span style={{ color: '#64748B' }}>Region:</span> <span style={{ color: '#334155' }}>{sale.region || '-'}</span></div>
+                      <div><span style={{ color: '#64748B' }}>Address:</span> <span style={{ color: '#334155' }}>{sale.customerAddress || '-'}</span></div>
+                      <div><span style={{ color: '#64748B' }}>License #:</span> <span style={{ color: '#334155', fontFamily: 'monospace' }}>{sale.customerLicenseNo || '-'}</span> &nbsp;|&nbsp; <span style={{ color: '#64748B' }}>NTN:</span> <span style={{ color: '#334155', fontFamily: 'monospace' }}>{sale.customerNtn || '-'}</span></div>
                     </div>
 
-                    {/* COLUMN 3: STORE OWNER SECTION */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', borderLeft: '2px solid #000000', paddingLeft: '0.75rem' }}>
-                      <div style={{ fontWeight: '900', textDecoration: 'underline', marginBottom: '0.1rem', letterSpacing: '0.02em' }}>STORE OWNER SECTION:</div>
-                      <div><strong>Owner Name:</strong> {STORE_INFO.ownerName || 'Mr Idrees'}</div>
-                      <div><strong>Store DSL #:</strong> <span style={{ fontFamily: 'monospace' }}>{STORE_INFO.dslNumber}</span></div>
-                      <div style={{ marginTop: '0.15rem' }}>
-                        <strong>Payment Status:</strong>{' '}
+                    {/* COLUMN 3: PAYMENT & STORE OWNER SECTION */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <div style={{ fontSize: '0.675rem', fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.1rem' }}>Billing Status & Auth</div>
+                      <div><span style={{ color: '#64748B' }}>Store Owner:</span> <strong style={{ color: '#0F172A' }}>{STORE_INFO.ownerName || 'Mr Idrees'}</strong></div>
+                      <div><span style={{ color: '#64748B' }}>Billed By:</span> <span style={{ color: '#334155' }}>{user?.name || sale.cashierName || '-'}</span></div>
+                      <div><span style={{ color: '#64748B' }}>Delivery By:</span> <span style={{ color: '#334155' }}>{sale.deliveryMan || '-'}</span></div>
+                      <div style={{ marginTop: '0.35rem' }}>
                         {Number(sale.remainingDebt) > 0 ? (
-                          <span style={{ border: '1.5px solid #DC2626', color: '#DC2626', padding: '0.1rem 0.4rem', fontWeight: '900' }}>
-                            ⚠️ DEBT DUE (Rs. {Number(sale.remainingDebt).toFixed(2)})
+                          <span style={{ backgroundColor: '#FEF2F2', color: '#B91C1C', padding: '0.2rem 0.55rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.725rem', border: '1px solid #FECACA', display: 'inline-block' }}>
+                            ⚠️ DEBT DUE: Rs. {Number(sale.remainingDebt).toFixed(2)}
                           </span>
                         ) : (
-                          <span style={{ border: '1.5px solid #059669', color: '#059669', padding: '0.1rem 0.4rem', fontWeight: '900' }}>
+                          <span style={{ backgroundColor: '#ECFDF5', color: '#047857', padding: '0.2rem 0.55rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.725rem', border: '1px solid #A7F3D0', display: 'inline-block' }}>
                             ✔ PAID IN FULL
                           </span>
                         )}
@@ -237,26 +239,26 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
             <tbody style={{ display: 'table-row-group' }}>
               <tr>
                 <td style={{ border: 'none', padding: 0 }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '1rem', fontSize: '0.785rem' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '1.25rem', fontSize: '0.765rem' }}>
                     <thead>
-                      <tr style={{ borderTop: '2px solid #000000', borderBottom: '2px solid #000000', textAlign: 'left', pageBreakInside: 'avoid' }}>
-                        <th style={{ padding: '0.4rem 0.25rem', width: '25px' }}>Sr.</th>
-                        <th style={{ padding: '0.4rem 0.25rem' }}>Item Name</th>
-                        <th style={{ padding: '0.4rem 0.25rem' }}>Batch No.</th>
-                        <th style={{ padding: '0.4rem 0.25rem' }}>Expiry Date</th>
-                        <th style={{ padding: '0.4rem 0.25rem', textAlign: 'center' }}>Qty</th>
-                        <th style={{ padding: '0.4rem 0.25rem', textAlign: 'center' }}>Bonus</th>
-                        <th style={{ padding: '0.4rem 0.25rem', textAlign: 'right' }}>Rate</th>
-                        <th style={{ padding: '0.4rem 0.25rem', textAlign: 'right' }}>Gross</th>
-                        <th style={{ padding: '0.4rem 0.25rem', textAlign: 'right' }}>Disc %</th>
-                        <th style={{ padding: '0.4rem 0.25rem', textAlign: 'right' }}>Disc Amt</th>
+                      <tr style={{ backgroundColor: '#F8FAFC', color: '#475569', textAlign: 'left', pageBreakInside: 'avoid', borderBottom: '1px solid #CBD5E1' }}>
+                        <th style={{ padding: '0.5rem 0.35rem', width: '25px', fontSize: '0.7rem', fontWeight: 800 }}>Sr</th>
+                        <th style={{ padding: '0.5rem 0.35rem', fontSize: '0.7rem', fontWeight: 800 }}>Item Name</th>
+                        <th style={{ padding: '0.5rem 0.35rem', fontSize: '0.7rem', fontWeight: 800 }}>Batch</th>
+                        <th style={{ padding: '0.5rem 0.35rem', fontSize: '0.7rem', fontWeight: 800 }}>Expiry</th>
+                        <th style={{ padding: '0.5rem 0.35rem', textAlign: 'center', fontSize: '0.7rem', fontWeight: 800 }}>Qty</th>
+                        <th style={{ padding: '0.5rem 0.35rem', textAlign: 'center', fontSize: '0.7rem', fontWeight: 800 }}>Bonus</th>
+                        <th style={{ padding: '0.5rem 0.35rem', textAlign: 'right', fontSize: '0.7rem', fontWeight: 800 }}>Rate</th>
+                        <th style={{ padding: '0.5rem 0.35rem', textAlign: 'right', fontSize: '0.7rem', fontWeight: 800 }}>Gross</th>
+                        <th style={{ padding: '0.5rem 0.35rem', textAlign: 'right', fontSize: '0.7rem', fontWeight: 800 }}>Disc%</th>
+                        <th style={{ padding: '0.5rem 0.35rem', textAlign: 'right', fontSize: '0.7rem', fontWeight: 800 }}>Disc Amt</th>
                         {getTaxConfig().enableSaleTax !== false && (
-                          <th style={{ padding: '0.4rem 0.25rem', textAlign: 'right' }}>{getTaxConfig().saleTaxName || 'Sale Tax 18%'}</th>
+                          <th style={{ padding: '0.5rem 0.35rem', textAlign: 'right', fontSize: '0.7rem', fontWeight: 800 }}>{getTaxConfig().saleTaxName || 'Sale Tax 18%'}</th>
                         )}
                         {getTaxConfig().enableAdvTax !== false && (
-                          <th style={{ padding: '0.4rem 0.25rem', textAlign: 'right' }}>{getTaxConfig().advTaxName || 'Adv Tax 0.5%'}</th>
+                          <th style={{ padding: '0.5rem 0.35rem', textAlign: 'right', fontSize: '0.7rem', fontWeight: 800 }}>{getTaxConfig().advTaxName || 'Adv Tax 0.5%'}</th>
                         )}
-                        <th style={{ padding: '0.4rem 0.25rem', textAlign: 'right' }}>Net Amount</th>
+                        <th style={{ padding: '0.5rem 0.35rem', textAlign: 'right', fontSize: '0.7rem', fontWeight: 800 }}>Net Total</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -274,32 +276,32 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                         const netAmt = item.total || (discountedGross + stAmt + advtAmt);
 
                         return (
-                          <tr key={idx} style={{ borderBottom: '1px solid #CBD5E1', pageBreakInside: 'avoid' }}>
-                            <td style={{ padding: '0.35rem 0.25rem' }}>{idx + 1}</td>
-                            <td style={{ padding: '0.35rem 0.25rem', fontWeight: 'bold' }}>
+                          <tr key={idx} style={{ borderBottom: '1px solid #F1F5F9', pageBreakInside: 'avoid' }}>
+                            <td style={{ padding: '0.45rem 0.35rem', color: '#94A3B8' }}>{idx + 1}</td>
+                            <td style={{ padding: '0.45rem 0.35rem', fontWeight: 700, color: '#0F172A' }}>
                               {item.itemCode ? `${item.itemCode} / ` : ''}{item.brandName}
                             </td>
-                            <td style={{ padding: '0.35rem 0.25rem', fontFamily: 'monospace' }}>{item.batchNumber || '6789'}</td>
-                            <td style={{ padding: '0.35rem 0.25rem' }}>{formatExpiryMMYYYY(item.expiryDate || '2028-12-31')}</td>
-                            <td style={{ padding: '0.35rem 0.25rem', textAlign: 'center', fontWeight: 'bold' }}>{qty}</td>
-                            <td style={{ padding: '0.35rem 0.25rem', textAlign: 'center' }}>{item.bonus || '-'}</td>
-                            <td style={{ padding: '0.35rem 0.25rem', textAlign: 'right' }}>{rate.toFixed(2)}</td>
-                            <td style={{ padding: '0.35rem 0.25rem', textAlign: 'right' }}>{gross.toFixed(2)}</td>
-                            <td style={{ padding: '0.35rem 0.25rem', textAlign: 'right' }}>{discP.toFixed(2)}</td>
-                            <td style={{ padding: '0.35rem 0.25rem', textAlign: 'right' }}>{discAmt.toFixed(2)}</td>
+                            <td style={{ padding: '0.45rem 0.35rem', fontFamily: 'monospace', color: '#475569' }}>{item.batchNumber || '-'}</td>
+                            <td style={{ padding: '0.45rem 0.35rem', color: '#64748B' }}>{formatExpiryMMYYYY(item.expiryDate || '2028-12')}</td>
+                            <td style={{ padding: '0.45rem 0.35rem', textAlign: 'center', fontWeight: 800, color: '#0F172A' }}>{qty}</td>
+                            <td style={{ padding: '0.45rem 0.35rem', textAlign: 'center', color: '#94A3B8' }}>{item.bonus || '-'}</td>
+                            <td style={{ padding: '0.45rem 0.35rem', textAlign: 'right', color: '#334155' }}>{rate.toFixed(2)}</td>
+                            <td style={{ padding: '0.45rem 0.35rem', textAlign: 'right', color: '#334155' }}>{gross.toFixed(2)}</td>
+                            <td style={{ padding: '0.45rem 0.35rem', textAlign: 'right', color: '#64748B' }}>{discP > 0 ? `${discP.toFixed(1)}%` : '-'}</td>
+                            <td style={{ padding: '0.45rem 0.35rem', textAlign: 'right', color: discAmt > 0 ? '#059669' : '#64748B' }}>{discAmt.toFixed(2)}</td>
                             {taxCfg.enableSaleTax !== false && (
-                              <td style={{ padding: '0.35rem 0.25rem', textAlign: 'right' }}>
-                                <span style={{ fontSize: '0.65rem', fontWeight: 'bold', color: '#0369A1', display: 'block' }}>{(item.saleTaxPercent !== undefined ? item.saleTaxPercent : 18)}%</span>
-                                {stAmt.toFixed(2)}
+                              <td style={{ padding: '0.45rem 0.35rem', textAlign: 'right' }}>
+                                <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#0284C7', display: 'block' }}>{(item.saleTaxPercent !== undefined ? item.saleTaxPercent : 18)}%</span>
+                                <span style={{ color: '#334155' }}>{stAmt.toFixed(2)}</span>
                               </td>
                             )}
                             {taxCfg.enableAdvTax !== false && (
-                              <td style={{ padding: '0.35rem 0.25rem', textAlign: 'right' }}>
-                                <span style={{ fontSize: '0.65rem', color: '#475569', display: 'block' }}>{(item.advTaxPercent !== undefined ? item.advTaxPercent : 0.5)}%</span>
-                                {advtAmt.toFixed(2)}
+                              <td style={{ padding: '0.45rem 0.35rem', textAlign: 'right' }}>
+                                <span style={{ fontSize: '0.65rem', color: '#64748B', display: 'block' }}>{(item.advTaxPercent !== undefined ? item.advTaxPercent : 0.5)}%</span>
+                                <span style={{ color: '#334155' }}>{advtAmt.toFixed(2)}</span>
                               </td>
                             )}
-                            <td style={{ padding: '0.35rem 0.25rem', textAlign: 'right', fontWeight: 'bold' }}>{netAmt.toFixed(2)}</td>
+                            <td style={{ padding: '0.45rem 0.35rem', textAlign: 'right', fontWeight: 800, color: '#0F172A' }}>{netAmt.toFixed(2)}</td>
                           </tr>
                         );
                       })}
@@ -313,58 +315,63 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
             <tfoot style={{ display: 'table-footer-group' }}>
               <tr>
                 <td style={{ border: 'none', padding: 0 }}>
-                  {/* DEDICATED FINANCIAL TOTALS & TAX BREAKDOWN SECTION */}
+                  {/* FINANCIAL TOTALS SECTION */}
                   <div style={{
-                    border: '2px solid #000000',
-                    padding: '0.65rem 0.85rem',
-                    marginBottom: '0.65rem',
+                    backgroundColor: '#F8FAFC',
+                    borderRadius: '8px',
+                    padding: '0.85rem 1.25rem',
+                    marginBottom: '0.85rem',
                     fontSize: '0.8rem',
-                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #F1F5F9',
                     pageBreakInside: 'avoid'
                   }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1rem', alignItems: 'center' }}>
-                      {/* LEFT SIDE: DEDICATED FINANCIAL BREAKDOWN */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', fontSize: '0.775rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: '1.5rem', alignItems: 'center' }}>
+                      {/* LEFT: BREAKDOWN */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.775rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748B' }}>
                           <span>Gross Subtotal:</span>
-                          <strong>Rs. {Number(sale.grossSubtotal || sale.subtotal || 0).toFixed(2)}</strong>
+                          <strong style={{ color: '#0F172A' }}>Rs. {Number(sale.grossSubtotal || sale.subtotal || 0).toFixed(2)}</strong>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#059669' }}>
-                          <span>Total Order Discount:</span>
-                          <strong>- Rs. {Number(sale.discountAmount || 0).toFixed(2)}</strong>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed #CBD5E1', paddingTop: '0.15rem' }}>
-                          <span>Net Total (Before Tax):</span>
-                          <strong>Rs. {Number(sale.discountedSubtotal || (sale.subtotal - (sale.discountAmount || 0)) || 0).toFixed(2)}</strong>
+                        {Number(sale.discountAmount || 0) > 0 && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#059669' }}>
+                            <span>Total Order Discount:</span>
+                            <strong>- Rs. {Number(sale.discountAmount || 0).toFixed(2)}</strong>
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed #E2E8F0', paddingTop: '0.2rem', color: '#475569' }}>
+                          <span>Net Taxable Total:</span>
+                          <strong style={{ color: '#0F172A' }}>Rs. {Number(sale.discountedSubtotal || (sale.subtotal - (sale.discountAmount || 0)) || 0).toFixed(2)}</strong>
                         </div>
                         {getTaxConfig().enableSaleTax !== false && (
-                          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0369A1' }}>
-                            <span>Sales Tax Amount:</span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0284C7' }}>
+                            <span>Sales Tax (18% FBR):</span>
                             <strong>+ Rs. {Number(sale.totalSaleTax || 0).toFixed(2)}</strong>
                           </div>
                         )}
                         {getTaxConfig().enableAdvTax !== false && (
-                          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
-                            <span>Advance Tax Amount:</span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748B' }}>
+                            <span>Advance Tax (0.5% Sec 236G):</span>
                             <strong>+ Rs. {Number(sale.totalAdvTax || 0).toFixed(2)}</strong>
                           </div>
                         )}
                       </div>
 
-                      {/* RIGHT SIDE: PROMINENT GRAND NET TOTAL */}
+                      {/* RIGHT: GRAND TOTAL CARD */}
                       <div style={{
-                        borderLeft: '2px solid #000000',
-                        paddingLeft: '1rem',
+                        backgroundColor: '#0F172A',
+                        borderRadius: '6px',
+                        padding: '0.85rem 1.15rem',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center',
                         alignItems: 'flex-end',
-                        textAlign: 'right'
+                        textAlign: 'right',
+                        color: '#FFFFFF'
                       }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                          GRAND NET INVOICE TOTAL:
+                        <span style={{ fontSize: '0.675rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#94A3B8' }}>
+                          Grand Net Invoice Total
                         </span>
-                        <span style={{ fontSize: '1.4rem', fontWeight: '900', color: '#000000', textDecoration: 'underline', marginTop: '0.1rem' }}>
+                        <span style={{ fontSize: '1.45rem', fontWeight: 900, color: '#38BDF8', marginTop: '0.15rem' }}>
                           Rs. {Number(sale.netTotal || 0).toFixed(2)}
                         </span>
                       </div>
@@ -372,22 +379,22 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                   </div>
 
                   {/* URDU ADVANCE TAX NOTICE BANNER */}
-                  <div style={{ textAlign: 'right', direction: 'rtl', fontSize: '0.85rem', fontWeight: 'bold', padding: '0.45rem 0.65rem', border: '1.5px solid #000000', marginBottom: '0.65rem', backgroundColor: '#FFFFFF', lineHeight: '1.5', pageBreakInside: 'avoid' }}>
+                  <div style={{ textAlign: 'right', direction: 'rtl', fontSize: '0.825rem', fontWeight: 600, padding: '0.5rem 0.85rem', marginBottom: '0.85rem', backgroundColor: '#FFFBEB', color: '#92400E', borderRadius: '6px', lineHeight: '1.5', border: '1px solid #FDE68A', pageBreakInside: 'avoid' }}>
                     {STORE_INFO.urduNotice}
                   </div>
 
                   {/* FORM 2A LEGAL WARRANTIES SECTION */}
                   {(includeDrugActWarranty || includeDrapWarranty) && (
-                    <div style={{ border: '1.5px solid #000000', padding: '0.55rem 0.75rem', fontSize: '0.725rem', lineHeight: '1.5', pageBreakInside: 'avoid', marginBottom: '0.65rem' }}>
-                      <div style={{ fontWeight: 'bold', textDecoration: 'underline', marginBottom: '0.25rem', letterSpacing: '0.02em' }}>
-                        FORM 2A (See rules 19 and 30):
+                    <div style={{ backgroundColor: '#FAFAFA', borderRadius: '6px', padding: '0.65rem 0.85rem', fontSize: '0.7rem', color: '#64748B', lineHeight: '1.5', pageBreakInside: 'avoid', marginBottom: '0.85rem', border: '1px solid #E2E8F0' }}>
+                      <div style={{ fontWeight: 800, color: '#0F172A', marginBottom: '0.35rem', letterSpacing: '0.02em' }}>
+                        FORM 2A (See rules 19 and 30) — LEGAL WARRANTY STATEMENTS:
                       </div>
 
                       {/* DRUG ACT 1976 WARRANTY */}
                       {includeDrugActWarranty && (
-                        <div style={{ marginBottom: '0.4rem' }}>
-                          <strong>Warranty under Section 23(1)(i) of the Drugs Act, 1976:</strong>
-                          <div style={{ marginTop: '0.15rem', textAlign: 'justify' }}>
+                        <div style={{ marginBottom: '0.35rem' }}>
+                          <strong style={{ color: '#334155' }}>Warranty under Section 23(1)(i) of the Drugs Act, 1976:</strong>
+                          <div style={{ marginTop: '0.1rem', textAlign: 'justify' }}>
                             I, <strong>{getStoreInfo().signatoryName || STORE_INFO.ownerName || 'Authorized Signatory'}</strong> being a person resident in Pakistan carrying on business at {getStoreInfo().address || 'Wholesale Market'} under the name of <strong>{getStoreInfo().name}</strong> and being authorized distributor of the manufacturers / Principals, do hereby give this warranty that the drugs here above described as sold by me, and contained in this invoice prescribing the goods referred to herein do not contravene in any way the provisions of Section 23 of the Drug Act.
                           </div>
                         </div>
@@ -395,17 +402,17 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
 
                       {/* DRAP 2014 ALTERNATIVE MEDICINES WARRANTY */}
                       {includeDrapWarranty && (
-                        <div style={{ marginBottom: '0.4rem', borderTop: includeDrugActWarranty ? '1px dashed #000000' : 'none', paddingTop: includeDrugActWarranty ? '0.35rem' : '0' }}>
-                          <strong>Warranty under Alternative Medicines and Health Products (Enlistment) Rules 2014 [See Rules 10(3) and (5)]:</strong>
-                          <div style={{ marginTop: '0.15rem', textAlign: 'justify' }}>
+                        <div style={{ marginBottom: '0.35rem', borderTop: includeDrugActWarranty ? '1px dashed #E2E8F0' : 'none', paddingTop: includeDrugActWarranty ? '0.35rem' : '0' }}>
+                          <strong style={{ color: '#334155' }}>Warranty under Alternative Medicines and Health Products (Enlistment) Rules 2014 [See Rules 10(3) and (5)]:</strong>
+                          <div style={{ marginTop: '0.1rem', textAlign: 'justify' }}>
                             We, as the authorized distributors/agents and on behalf of the principals/manufacturers/importers hereby give warranty that the supplied alternative medicines and health products mentioned herein do not contravene any provision of the prevailing DRAP Act 2012 and rules framed thereunder.
                           </div>
                         </div>
                       )}
 
                       {/* 4 STANDARD WHOLESALE NOTES */}
-                      <div style={{ borderTop: '1px solid #000000', paddingTop: '0.35rem', marginTop: '0.35rem' }}>
-                        <strong>Note:</strong>
+                      <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '0.35rem', marginTop: '0.35rem' }}>
+                        <strong style={{ color: '#334155' }}>Note:</strong>
                         <ol style={{ margin: 0, paddingLeft: '1.25rem', lineHeight: '1.5' }}>
                           {STORE_INFO.noteItems.map((note, i) => (
                             <li key={i}>{note}</li>
@@ -416,18 +423,18 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                   )}
 
                   {/* FOOTER SIGNATURES: LEFT SIDE & RIGHT SIDE */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '2px solid #000000', paddingTop: '0.55rem', marginTop: '0.65rem', fontSize: '0.75rem', lineHeight: '1.4', pageBreakInside: 'avoid' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '1px solid #E2E8F0', paddingTop: '0.75rem', marginTop: '0.75rem', fontSize: '0.75rem', lineHeight: '1.4', pageBreakInside: 'avoid' }}>
                     {/* LEFT BOTTOM: DELIVERY MAN & CUSTOMER RECEIVER SIGNATURE */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', minWidth: '220px' }}>
-                      <div>Printed By: <strong>{user?.name || sale.cashierName || '-'}</strong></div>
-                      <div>Delivery Driver: <strong>{sale.deliveryMan || '-'}</strong></div>
-                      <div style={{ borderTop: '1px solid #000000', marginTop: '0.85rem', paddingTop: '0.15rem', fontWeight: 'bold', fontSize: '0.7rem' }}>
+                      <div style={{ color: '#64748B' }}>Printed By: <strong style={{ color: '#0F172A' }}>{user?.name || sale.cashierName || '-'}</strong></div>
+                      <div style={{ color: '#64748B' }}>Delivery Driver: <strong style={{ color: '#0F172A' }}>{sale.deliveryMan || '-'}</strong></div>
+                      <div style={{ borderTop: '1px dashed #CBD5E1', marginTop: '1rem', paddingTop: '0.2rem', fontWeight: 700, fontSize: '0.7rem', color: '#64748B' }}>
                         Delivery Driver / Customer Receiver Sign
                       </div>
                     </div>
 
                     {/* RIGHT BOTTOM: OFFICIAL DIGITAL SIGNATURE */}
-                    <div style={{ textAlign: 'center', minWidth: '220px', padding: '0.45rem 0.85rem' }}>
+                    <div style={{ textAlign: 'center', minWidth: '220px', padding: '0.35rem 0.75rem' }}>
                       {getStoreInfo().signatureImage ? (
                         <img
                           src={getStoreInfo().signatureImage}
@@ -435,21 +442,21 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                           style={{ height: '48px', maxHeight: '55px', maxWidth: '170px', objectFit: 'contain', display: 'block', margin: '0 auto 0.2rem auto' }}
                         />
                       ) : (
-                        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '1.2rem', fontWeight: 'bold', color: '#0F172A' }}>
+                        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '1.25rem', fontWeight: 'bold', color: '#0F172A' }}>
                           {getStoreInfo().signatoryName || 'M. Idrees'}
                         </div>
                       )}
-                      <div style={{ borderTop: '1.5px solid #000000', marginTop: '0.2rem', paddingTop: '0.15rem', fontWeight: 'bold', fontSize: '0.775rem' }}>
+                      <div style={{ borderTop: '1px dashed #CBD5E1', marginTop: '0.25rem', paddingTop: '0.2rem', fontWeight: 800, fontSize: '0.75rem', color: '#0F172A' }}>
                         {getStoreInfo().signatoryName || 'M. Idrees'} ({getStoreInfo().signatoryTitle || 'Managing Director'})
                       </div>
-                      <div style={{ fontSize: '0.65rem', color: '#0284C7', fontWeight: 700 }}>
+                      <div style={{ fontSize: '0.65rem', color: '#0284C7', fontWeight: 700, marginTop: '0.1rem' }}>
                         ✔ VERIFIED DIGITAL SIGNATURE
                       </div>
                     </div>
                   </div>
 
                   {/* MULTI-PAGE A4 FOOTER PAGE NUMBERING (PAGE N OF M) */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.4rem', paddingTop: '0.25rem', borderTop: '1px solid #000000', fontSize: '0.675rem', color: '#000000', fontWeight: 'bold' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', paddingTop: '0.35rem', borderTop: '1px solid #F1F5F9', fontSize: '0.675rem', color: '#94A3B8' }}>
                     <div>Page 1 of {Math.ceil((sale.items?.length || 1) / 12) || 1}</div>
                     <div>Original Customer Delivery Copy</div>
                   </div>
@@ -460,15 +467,15 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
         </div>
 
         {/* MODAL ACTION BUTTONS */}
-        <div className="no-print" style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+        <div className="no-print" style={{ display: 'flex', gap: '0.5rem', marginTop: '1.25rem' }}>
           <button onClick={onClose} className="btn btn-outline" style={{ flex: 1 }}>Close</button>
           
           <button onClick={handlePrint} className="btn btn-outline" style={{ flex: 1, borderColor: '#0284C7', color: '#0284C7', fontWeight: 800 }}>
             <Download size={16} /> Save PDF
           </button>
           
-          <button onClick={handlePrint} className="btn btn-primary" style={{ flex: 1, backgroundColor: '#000000', color: '#FFF', fontWeight: 900 }}>
-            <Printer size={16} /> Print Invoice
+          <button onClick={handlePrint} className="btn btn-primary" style={{ flex: 1, backgroundColor: '#0F172A', color: '#FFF', fontWeight: 900 }}>
+            <Printer size={16} /> Print A4 Invoice
           </button>
         </div>
       </div>
