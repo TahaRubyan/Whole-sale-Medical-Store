@@ -193,21 +193,21 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                   <div style={{ display: 'grid', gridTemplateColumns: '1.15fr 1.45fr 1.2fr', gap: '0.65rem', border: '1.5px solid #000000', padding: '0.55rem 0.75rem', marginBottom: '0.95rem', fontSize: '0.725rem', lineHeight: '1.5' }}>
                     {/* COLUMN 1 */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                      <div><strong>Invoice #:</strong> <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{sale.invoiceNo || 'DJ-8263263'}</span></div>
-                      <div><strong>Sale Order #:</strong> <span style={{ fontFamily: 'monospace' }}>{sale.saleOrderNo || '0170804'}</span></div>
-                      <div><strong>DSS Id:</strong> <span style={{ fontFamily: 'monospace' }}>{sale.dssId || '3032285'}</span></div>
-                      <div><strong>Reference No:</strong> {sale.referenceNo || 'Naeem Shah'}</div>
-                      <div><strong>Booking Man:</strong> {sale.bookingMan || 'Naeem Shah'}</div>
+                      <div><strong>Invoice #:</strong> <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{sale.invoiceNo || '-'}</span></div>
+                      <div><strong>Sale Order #:</strong> <span style={{ fontFamily: 'monospace' }}>{sale.saleOrderNo || '-'}</span></div>
+                      <div><strong>DSS Id:</strong> <span style={{ fontFamily: 'monospace' }}>{sale.dssId || '-'}</span></div>
+                      <div><strong>Reference No:</strong> {sale.referenceNo || '-'}</div>
+                      <div><strong>Booking Man:</strong> {sale.bookingMan || '-'}</div>
                     </div>
 
                     {/* COLUMN 2 */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                      <div><strong>Invoice Date:</strong> {formatDateDDMMYYYY(sale.date || '03/08/2026')} &nbsp;|&nbsp; <strong>Customer:</strong> {sale.customerName || 'M/S Idrees Pharmacy / 280073'}</div>
-                      <div><strong>Sale Order Type:</strong> {sale.saleOrderType || 'REGULAR'} &nbsp;|&nbsp; <strong>Region:</strong> {sale.region || 'Jalapur Jattan'}</div>
-                      <div><strong>Due Date:</strong> {formatDateDDMMYYYY(sale.dueDate || sale.date || '03/08/2026')} &nbsp;|&nbsp; <strong>Phone:</strong> {sale.customerPhone || '053-3724601'}</div>
-                      <div><strong>Address:</strong> {sale.customerAddress || 'Main Bazar, Near HBL Bank, Jalal Pur Jattan'}</div>
-                      <div><strong>Cust. License #:</strong> {sale.customerLicenseNo || '09-342-0139-98309'} &nbsp;|&nbsp; <strong>Cust. NTN:</strong> {sale.customerNtn || '34202-0723603-5'}</div>
-                      <div><strong>Delivery Man:</strong> {sale.deliveryMan || 'Awais Ijaz'} &nbsp;|&nbsp; <strong>User:</strong> {user?.name || sale.cashierName || 'Hassan (Admin)'}</div>
+                      <div><strong>Invoice Date:</strong> {formatDateDDMMYYYY(sale.date || new Date())} &nbsp;|&nbsp; <strong>Customer:</strong> {sale.customerName || '-'}</div>
+                      <div><strong>Sale Order Type:</strong> {sale.saleOrderType || 'REGULAR'} &nbsp;|&nbsp; <strong>Region:</strong> {sale.region || '-'}</div>
+                      <div><strong>Due Date:</strong> {formatDateDDMMYYYY(sale.dueDate || sale.date || new Date())} &nbsp;|&nbsp; <strong>Phone:</strong> {sale.customerPhone || '-'}</div>
+                      <div><strong>Address:</strong> {sale.customerAddress || '-'}</div>
+                      <div><strong>Cust. License #:</strong> {sale.customerLicenseNo || '-'} &nbsp;|&nbsp; <strong>Cust. NTN:</strong> {sale.customerNtn || '-'}</div>
+                      <div><strong>Delivery Man:</strong> {sale.deliveryMan || '-'} &nbsp;|&nbsp; <strong>User:</strong> {user?.name || sale.cashierName || '-'}</div>
                     </div>
 
                     {/* COLUMN 3: STORE OWNER SECTION */}
@@ -388,7 +388,7 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                         <div style={{ marginBottom: '0.4rem' }}>
                           <strong>Warranty under Section 23(1)(i) of the Drugs Act, 1976:</strong>
                           <div style={{ marginTop: '0.15rem', textAlign: 'justify' }}>
-                            I, <strong>M. Idrees</strong> being a person resident in Pakistan carrying on business at Jalal Pur Jattan under the name of <strong>Idrees Medical Store</strong> and being authorized distributor of the manufacturers / Principals, do hereby give this warranty that the drugs here above described as sold by me, and contained in this invoice prescribing the goods referred to herein do not contravene in any way the provisions of Section 23 of the Drug Act.
+                            I, <strong>{getStoreInfo().signatoryName || STORE_INFO.ownerName || 'Authorized Signatory'}</strong> being a person resident in Pakistan carrying on business at {getStoreInfo().address || 'Wholesale Market'} under the name of <strong>{getStoreInfo().name}</strong> and being authorized distributor of the manufacturers / Principals, do hereby give this warranty that the drugs here above described as sold by me, and contained in this invoice prescribing the goods referred to herein do not contravene in any way the provisions of Section 23 of the Drug Act.
                           </div>
                         </div>
                       )}
@@ -419,8 +419,8 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '2px solid #000000', paddingTop: '0.55rem', marginTop: '0.65rem', fontSize: '0.75rem', lineHeight: '1.4', pageBreakInside: 'avoid' }}>
                     {/* LEFT BOTTOM: DELIVERY MAN & CUSTOMER RECEIVER SIGNATURE */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', minWidth: '220px' }}>
-                      <div>Printed By: <strong>{sale.cashierName || 'Husnain Ali'}</strong></div>
-                      <div>Delivery Driver: <strong>{sale.deliveryMan || 'Awais Ijaz'}</strong></div>
+                      <div>Printed By: <strong>{user?.name || sale.cashierName || '-'}</strong></div>
+                      <div>Delivery Driver: <strong>{sale.deliveryMan || '-'}</strong></div>
                       <div style={{ borderTop: '1px solid #000000', marginTop: '0.85rem', paddingTop: '0.15rem', fontWeight: 'bold', fontSize: '0.7rem' }}>
                         Delivery Driver / Customer Receiver Sign
                       </div>
