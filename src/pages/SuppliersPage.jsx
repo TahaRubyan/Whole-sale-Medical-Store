@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Truck, Lock, Plus, CheckCircle, DollarSign, RotateCcw, FileText } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSupplier } from '../context/SupplierContext';
