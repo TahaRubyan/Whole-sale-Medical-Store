@@ -69,7 +69,7 @@ export const DashboardPage = ({ onNavigate }) => {
       {/* 2. KPI Cards Grid (Wholesale Focus) */}
       <div className="grid-3">
         {/* Today's Sales */}
-        <div className="card">
+        <div className="card card-interactive">
           <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
             <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
               Today's Wholesale Turnover
@@ -98,7 +98,7 @@ export const DashboardPage = ({ onNavigate }) => {
 
         {/* Est. Gross Profit (Admin Only) */}
         {!isCashier && (
-          <div className="card">
+          <div className="card card-interactive">
             <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
               <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
                 Est. Today's Commercial Profit
@@ -127,7 +127,7 @@ export const DashboardPage = ({ onNavigate }) => {
 
         {/* Low Stock Alerts */}
         <div 
-          className="card" 
+          className="card card-interactive" 
           onClick={() => onNavigate('inventory')}
           style={{ cursor: 'pointer' }}
         >

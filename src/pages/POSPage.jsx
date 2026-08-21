@@ -230,7 +230,7 @@ export const POSPage = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', height: 'calc(100vh - 110px)' }}>
       
       {/* 1. TOP TOOLBAR: CUSTOMER METADATA ACTION & SALES RETURN */}
-      <div className="card" style={{ padding: '0.75rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+      <div className="card card-interactive" style={{ padding: '0.75rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <button
             onClick={() => setShowCustomerModal(true)}
@@ -283,7 +283,7 @@ export const POSPage = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', overflow: 'hidden' }}>
           
           {/* CLEAN KEYBOARD SEARCH INPUT FIELD WITH LIVE DROPDOWN SUGGESTIONS */}
-          <div ref={searchContainerRef} className="card" style={{ padding: '0.85rem', position: 'relative', overflow: 'visible', zIndex: 100 }}>
+          <div ref={searchContainerRef} className="card card-interactive" style={{ padding: '0.85rem', position: 'relative', overflow: 'visible', zIndex: 100 }}>
             <div style={{ position: 'relative' }}>
               <input
                 ref={searchInputRef}

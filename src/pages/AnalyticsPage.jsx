@@ -299,7 +299,7 @@ export const AnalyticsPage = () => {
 
       {/* 2. COMPACT KPI FINANCIAL SUMMARY CARDS (REDUCED SIZE) */}
       <div className="grid-3">
-        <div className="card" style={{ padding: '0.75rem 1rem' }}>
+        <div className="card card-interactive" style={{ padding: '0.75rem 1rem' }}>
           <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>GROSS WHOLESALE TURNOVER</span>
           <div style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--color-text-main)', marginTop: '0.15rem' }}>
             Rs. {totalGrossSales.toLocaleString('en-PK', { minimumFractionDigits: 2 })}
@@ -309,7 +309,7 @@ export const AnalyticsPage = () => {
           </div>
         </div>
 
-        <div className="card" style={{ padding: '0.75rem 1rem' }}>
+        <div className="card card-interactive" style={{ padding: '0.75rem 1rem' }}>
           <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#059669' }}>ESTIMATED NET PROFIT (25%)</span>
           <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#059669', marginTop: '0.15rem' }}>
             Rs. {netProfit.toLocaleString('en-PK', { minimumFractionDigits: 2 })}
@@ -319,7 +319,7 @@ export const AnalyticsPage = () => {
           </div>
         </div>
 
-        <div className="card" style={{ padding: '0.75rem 1rem' }}>
+        <div className="card card-interactive" style={{ padding: '0.75rem 1rem' }}>
           <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#DC2626' }}>OUTSTANDING CUSTOMER DEBT</span>
           <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#DC2626', marginTop: '0.15rem' }}>
             Rs. {totalUnpaidDebt.toLocaleString('en-PK', { minimumFractionDigits: 2 })}
@@ -344,7 +344,7 @@ export const AnalyticsPage = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.65rem' }}>
           {top5SellingMedicines.length > 0 ? (
             top5SellingMedicines.map((med, idx) => (
-              <div key={idx} style={{ backgroundColor: '#FFFFFF', padding: '0.65rem', borderRadius: '6px', border: '1px solid #CBD5E1', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <div key={idx} className="card-interactive" style={{ backgroundColor: '#FFFFFF', padding: '0.65rem', borderRadius: '6px', border: '1px solid #CBD5E1', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <span style={{ fontSize: '0.7rem', fontWeight: 900, backgroundColor: idx === 0 ? '#FEF3C7' : '#F1F5F9', color: idx === 0 ? '#D97706' : '#475569', padding: '0.1rem 0.35rem', borderRadius: '4px' }}>
                     Rank #{idx + 1}

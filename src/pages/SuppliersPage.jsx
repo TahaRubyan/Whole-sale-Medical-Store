@@ -169,21 +169,21 @@ export const SuppliersPage = () => {
 
       {/* SUPPLIER DEBT SUMMARY KPI CARDS */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-        <div className="card" style={{ padding: '1rem', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }}>
+        <div className="card card-interactive" style={{ padding: '1rem', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748B' }}>TOTAL REGISTERED PHARMA DISTRIBUTORS</div>
           <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0F172A', marginTop: '0.2rem' }}>
             {uniqueSuppliers.length} Companies
           </div>
         </div>
 
-        <div className="card" style={{ padding: '1rem', backgroundColor: '#FEF2F2', border: '1.5px solid #FCA5A5' }}>
+        <div className="card card-interactive" style={{ padding: '1rem', backgroundColor: '#FEF2F2', border: '1.5px solid #FCA5A5' }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 900, color: '#991B1B' }}>DISTRIBUTORS WITH OUTSTANDING DEBT</div>
           <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#DC2626', marginTop: '0.2rem' }}>
             {debtSuppliersCount} Distributors Owing Debt
           </div>
         </div>
 
-        <div className="card" style={{ padding: '1rem', backgroundColor: '#F0F9FF', border: '1.5px solid #0284C7' }}>
+        <div className="card card-interactive" style={{ padding: '1rem', backgroundColor: '#F0F9FF', border: '1.5px solid #0284C7' }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 900, color: '#0369A1' }}>NET TOTAL PAYABLE STOCK DEBT</div>
           <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0284C7', marginTop: '0.2rem' }}>
             Rs. {totalDebtAmount.toLocaleString('en-PK', { minimumFractionDigits: 2 })}

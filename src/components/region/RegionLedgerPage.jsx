@@ -445,6 +445,7 @@ export const RegionLedgerPage = () => {
       >
         {/* KPI Card 1: Total Regional Sales */}
         <div
+          className="card-interactive"
           style={{
             backgroundColor: '#FFFFFF',
             border: '1px solid #E2E8F0',
@@ -455,7 +456,6 @@ export const RegionLedgerPage = () => {
             alignItems: 'center',
             gap: '1rem',
             boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
           }}
         >
           <div
@@ -488,6 +488,7 @@ export const RegionLedgerPage = () => {
 
         {/* KPI Card 2: Total Outstanding Debt */}
         <div
+          className="card-interactive"
           style={{
             backgroundColor: '#FFFFFF',
             border: '1px solid #FCA5A5',
@@ -498,7 +499,6 @@ export const RegionLedgerPage = () => {
             alignItems: 'center',
             gap: '1rem',
             boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
           }}
         >
           <div
@@ -531,6 +531,7 @@ export const RegionLedgerPage = () => {
 
         {/* KPI Card 3: Total Cash Settled Today */}
         <div
+          className="card-interactive"
           style={{
             backgroundColor: '#FFFFFF',
             border: '1px solid #6EE7B7',
@@ -541,7 +542,6 @@ export const RegionLedgerPage = () => {
             alignItems: 'center',
             gap: '1rem',
             boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
           }}
         >
           <div
@@ -553,7 +553,7 @@ export const RegionLedgerPage = () => {
               color: '#059669',
               display: 'flex',
               alignItems: 'center',
-              justify: 'center',
+              justifyContent: 'center',
               flexShrink: 0,
             }}
           >
@@ -574,6 +574,7 @@ export const RegionLedgerPage = () => {
 
         {/* KPI Card 4: Active Regions & Shops */}
         <div
+          className="card-interactive"
           style={{
             backgroundColor: '#FFFFFF',
             border: '1px solid #C7D2FE',
@@ -584,7 +585,6 @@ export const RegionLedgerPage = () => {
             alignItems: 'center',
             gap: '1rem',
             boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
           }}
         >
           <div
@@ -596,7 +596,7 @@ export const RegionLedgerPage = () => {
               color: '#4F46E5',
               display: 'flex',
               alignItems: 'center',
-              justify: 'center',
+              justifyContent: 'center',
               flexShrink: 0,
             }}
           >
