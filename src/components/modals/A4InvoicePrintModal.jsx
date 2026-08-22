@@ -38,7 +38,7 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
   const store = getStoreInfo();
   const items = invoice.items || [];
   
-  // Page capacity: 10 items per page. Data exceeds to page 2 ONLY when item count > 10
+  // Page capacity: 10 items per page. Data exceeds to next page ONLY when first page limit is reached
   const ITEMS_PER_PAGE = 10;
   const totalPages = Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE));
 
@@ -54,6 +54,7 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
   const totalDiscount = Number(invoice.discountAmount || 0);
   const totalST = Number(invoice.totalSaleTax || 0);
   const totalAdvTax = Number(invoice.totalAdvTax || 0);
+  const totalTaxes = totalST + totalAdvTax;
   const netPayable = Number(invoice.netTotal || 0);
   const netInWords = numberToWordsPKR(netPayable);
 
@@ -69,13 +70,13 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
 
   return (
     <div className="modal-overlay" style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-      {/* EXACT BLACK & WHITE COMMERCIAL PRINT STYLING */}
+      {/* HIGH-CONTRAST COMMERCIAL INVOICE PRINT STYLING */}
       <style>
         {`
           @media print {
             @page {
               size: A4 portrait;
-              margin: 8mm 10mm 10mm 10mm;
+              margin: 6mm 8mm 8mm 8mm;
             }
             html, body, #root, .app-container, .main-viewport, .content-area {
               height: auto !important;
@@ -124,7 +125,7 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
             .a4-page {
               page-break-after: always !important;
               break-after: page !important;
-              min-height: 275mm !important;
+              min-height: 280mm !important;
               margin: 0 !important;
               padding: 0 !important;
               box-shadow: none !important;
@@ -204,17 +205,17 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
                 <div>
                   {/* TITLE & HEADER BAR */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #000000', paddingBottom: '6px', marginBottom: '8px' }}>
-                    {/* LEFT: SHOP OWNER / DISTRIBUTOR DETAILS (DISTINCT SECTION) */}
-                    <div style={{ flex: 1.3, lineHeight: '1.3' }}>
-                      <div style={{ fontSize: '12pt', fontWeight: 'bold', textTransform: 'uppercase', color: '#000000', letterSpacing: '-0.01em' }}>
+                    {/* LEFT: SHOP OWNER / DISTRIBUTOR DETAILS (SPECIFIED SECTION) */}
+                    <div style={{ flex: 1.3, lineHeight: '1.35' }}>
+                      <div style={{ fontSize: '13pt', fontWeight: 'bold', textTransform: 'uppercase', color: '#000000', letterSpacing: '-0.01em' }}>
                         {store.name || 'Idrees Medical Store'}
                       </div>
-                      <div style={{ fontSize: '7.5pt', color: '#111827', marginTop: '2px' }}>
-                        <div><strong>N.T.N.:</strong> {store.ntnNumber || '-'}</div>
-                        <div><strong>S.T.R.N. / GSTN:</strong> {store.stnNumber || '-'}</div>
-                        <div><strong>Address:</strong> {store.address || 'Commercial Wholesale Market'} {store.phone ? `• Tel: ${store.phone}` : ''}</div>
+                      <div style={{ fontSize: '7.5pt', color: '#000000', marginTop: '2px' }}>
+                        <div><strong>Owner N.T.N.:</strong> {store.ntnNumber || '-'}</div>
+                        <div><strong>Owner S.T.R.N. / GSTN:</strong> {store.stnNumber || '-'}</div>
+                        <div><strong>Store Address:</strong> {store.address || 'Commercial Wholesale Market'} {store.phone ? `• Tel: ${store.phone}` : ''}</div>
                         <div style={{ display: 'flex', gap: '10px', marginTop: '1px' }}>
-                          <span><strong>DSL#:</strong> {store.dslNumber || '-'}</span>
+                          <span><strong>Depot DSL#:</strong> {store.dslNumber || '-'}</span>
                           <span><strong>DSL Valid Upto:</strong> {store.dslValidUpto || '09/02/2029'}</span>
                           <span><strong>Issued By:</strong> {store.dslIssuedBy || 'CDC, Punjab'}</span>
                         </div>
@@ -223,7 +224,7 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
 
                     {/* CENTER: INVOICE TITLE */}
                     <div style={{ flex: 0.8, textAlign: 'center' }}>
-                      <span style={{ fontSize: '13pt', fontWeight: '900', letterSpacing: '0.08em', textTransform: 'uppercase', borderBottom: '2px solid #000000', paddingBottom: '2px' }}>
+                      <span style={{ fontSize: '14pt', fontWeight: '900', letterSpacing: '0.08em', textTransform: 'uppercase', borderBottom: '2px solid #000000', paddingBottom: '2px' }}>
                         INVOICE
                       </span>
                     </div>
@@ -231,7 +232,7 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
                     {/* RIGHT: PRINT META, PAGE N OF M & QR CODE */}
                     <div style={{ flex: 0.9, textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
                       <div style={{ fontSize: '7.5pt', fontWeight: 'bold' }}>Printed On: {printTimestamp}</div>
-                      <div style={{ fontSize: '8pt', fontWeight: 'bold' }}>Page {pageIdx + 1} of {totalPages}</div>
+                      <div style={{ fontSize: '8.5pt', fontWeight: '900' }}>Page {pageIdx + 1} of {totalPages}</div>
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', border: '1px solid #000000', padding: '2px 5px', borderRadius: '3px', marginTop: '3px' }}>
                         <QrCode size={22} color="#000000" />
                         <span style={{ fontSize: '6.5pt', fontWeight: 'bold' }}>Verify Invoice</span>
@@ -239,7 +240,7 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
                     </div>
                   </div>
 
-                  {/* 2 DISTINCT METADATA SECTIONS: CUSTOMER DETAILS vs INVOICE / ORDER DETAILS */}
+                  {/* 2 DISTINCT METADATA SECTIONS: CUSTOMER DETAILS vs INVOICE & ORDER DETAILS */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1.45fr 1fr', gap: '16px', borderBottom: '1px solid #000000', paddingBottom: '6px', marginBottom: '8px', fontSize: '7.5pt', lineHeight: '1.4' }}>
                     {/* LEFT COLUMN: CUSTOMER SECTION */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5px' }}>
@@ -274,22 +275,21 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
                     </div>
                   )}
 
-                  {/* 2. ITEMIZED PRODUCTS TABLE */}
+                  {/* 2. ITEMIZED PRODUCTS TABLE (EXACT REQUESTED COLUMNS) */}
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '7.5pt', marginBottom: '6px' }}>
                     <thead>
-                      <tr style={{ borderTop: '1px solid #000000', borderBottom: '1px solid #000000', textAlign: 'left', fontWeight: 'bold' }}>
-                        <th style={{ padding: '4px 2px', width: '65px' }}>Product Code</th>
-                        <th style={{ padding: '4px 2px' }}>Product Description</th>
-                        <th style={{ padding: '4px 2px', textAlign: 'center', width: '32px' }}>Qty.</th>
-                        <th style={{ padding: '4px 2px', width: '55px' }}>Batch Number</th>
-                        <th style={{ padding: '4px 2px', width: '55px' }}>Expiry Date</th>
-                        <th style={{ padding: '4px 2px', textAlign: 'right', width: '50px' }}>TP/Rate</th>
-                        <th style={{ padding: '4px 2px', textAlign: 'right', width: '60px' }}>Gross Amount</th>
-                        <th style={{ padding: '4px 2px', textAlign: 'right', width: '48px' }}>Discount Amount</th>
-                        <th style={{ padding: '4px 2px', textAlign: 'right', width: '48px' }}>Sales Tax</th>
-                        <th style={{ padding: '4px 2px', textAlign: 'right', width: '45px' }}>Further Tax</th>
-                        <th style={{ padding: '4px 2px', textAlign: 'right', width: '48px' }}>Advance Tax</th>
-                        <th style={{ padding: '4px 2px', textAlign: 'right', width: '65px' }}>Value Incl. Of Taxes</th>
+                      <tr style={{ borderTop: '1px solid #000000', borderBottom: '1px solid #000000', textAlign: 'left', fontWeight: 'bold', backgroundColor: '#F8FAFC' }}>
+                        <th style={{ padding: '5px 3px', width: '28px' }}>Sr.</th>
+                        <th style={{ padding: '5px 3px' }}>Item Name</th>
+                        <th style={{ padding: '5px 3px', width: '70px' }}>Batch No.</th>
+                        <th style={{ padding: '5px 3px', width: '60px' }}>Expiry</th>
+                        <th style={{ padding: '5px 3px', textAlign: 'center', width: '35px' }}>Qty</th>
+                        <th style={{ padding: '5px 3px', textAlign: 'right', width: '55px' }}>Rate</th>
+                        <th style={{ padding: '5px 3px', textAlign: 'right', width: '65px' }}>Gross</th>
+                        <th style={{ padding: '5px 3px', textAlign: 'right', width: '48px' }}>Disc %</th>
+                        <th style={{ padding: '5px 3px', textAlign: 'right', width: '65px' }}>Sale Tax 18%</th>
+                        <th style={{ padding: '5px 3px', textAlign: 'right', width: '55px' }}>Adv Tax 0.5%</th>
+                        <th style={{ padding: '5px 3px', textAlign: 'right', width: '75px' }}>Net Amount</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -305,23 +305,23 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
                         const taxCfg = getTaxConfig();
                         const stAmt = taxCfg.enableSaleTax !== false ? (item.saleTaxAmt !== undefined ? item.saleTaxAmt : (discountedGross * 0.18)) : 0;
                         const advtAmt = taxCfg.enableAdvTax !== false ? (item.advTaxAmt !== undefined ? item.advTaxAmt : (discountedGross * 0.005)) : 0;
-                        const furtherTaxAmt = 0;
-                        const netAmt = item.total || (discountedGross + stAmt + advtAmt + furtherTaxAmt);
+                        const netAmt = item.total || (discountedGross + stAmt + advtAmt);
 
                         return (
                           <tr key={idx} style={{ borderBottom: '1px dotted #CCCCCC' }}>
-                            <td style={{ padding: '4px 2px', fontFamily: 'monospace', fontWeight: 'bold' }}>{item.itemCode || item.medicineId || `MED-${1000 + globalIndex + 1}`}</td>
-                            <td style={{ padding: '4px 2px', fontWeight: 'bold' }}>{item.brandName} {item.genericFormula ? `(${item.genericFormula})` : ''}</td>
-                            <td style={{ padding: '4px 2px', textAlign: 'center', fontWeight: 'bold' }}>{qty}</td>
-                            <td style={{ padding: '4px 2px', fontFamily: 'monospace' }}>{item.batchNumber || '-'}</td>
-                            <td style={{ padding: '4px 2px' }}>{formatExpiryMMYYYY(item.expiryDate || '2028-12')}</td>
-                            <td style={{ padding: '4px 2px', textAlign: 'right' }}>{rate.toFixed(2)}</td>
-                            <td style={{ padding: '4px 2px', textAlign: 'right' }}>{gross.toFixed(2)}</td>
-                            <td style={{ padding: '4px 2px', textAlign: 'right' }}>{discAmt.toFixed(2)}</td>
-                            <td style={{ padding: '4px 2px', textAlign: 'right' }}>{stAmt.toFixed(2)}</td>
-                            <td style={{ padding: '4px 2px', textAlign: 'right' }}>{furtherTaxAmt.toFixed(2)}</td>
-                            <td style={{ padding: '4px 2px', textAlign: 'right' }}>{advtAmt.toFixed(2)}</td>
-                            <td style={{ padding: '4px 2px', textAlign: 'right', fontWeight: 'bold' }}>{netAmt.toFixed(2)}</td>
+                            <td style={{ padding: '4px 3px', color: '#000000', fontWeight: 'bold' }}>{globalIndex + 1}</td>
+                            <td style={{ padding: '4px 3px', fontWeight: 'bold' }}>
+                              {item.brandName} {item.genericFormula ? `(${item.genericFormula})` : ''}
+                            </td>
+                            <td style={{ padding: '4px 3px', fontFamily: 'monospace', fontWeight: 'bold' }}>{item.batchNumber || '-'}</td>
+                            <td style={{ padding: '4px 3px' }}>{formatExpiryMMYYYY(item.expiryDate || '2028-12')}</td>
+                            <td style={{ padding: '4px 3px', textAlign: 'center', fontWeight: '900' }}>{qty}</td>
+                            <td style={{ padding: '4px 3px', textAlign: 'right' }}>{rate.toFixed(2)}</td>
+                            <td style={{ padding: '4px 3px', textAlign: 'right' }}>{gross.toFixed(2)}</td>
+                            <td style={{ padding: '4px 3px', textAlign: 'right' }}>{discP > 0 ? `${discP.toFixed(1)}%` : '-'}</td>
+                            <td style={{ padding: '4px 3px', textAlign: 'right' }}>{stAmt.toFixed(2)}</td>
+                            <td style={{ padding: '4px 3px', textAlign: 'right' }}>{advtAmt.toFixed(2)}</td>
+                            <td style={{ padding: '4px 3px', textAlign: 'right', fontWeight: '900' }}>{netAmt.toFixed(2)}</td>
                           </tr>
                         );
                       })}
@@ -329,61 +329,48 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
                   </table>
                 </div>
 
-                {/* 3. FINANCIAL TOTALS, FORM 2A WARRANTIES & SIGNATURES (ON EVERY PAGE) */}
+                {/* 3. FINANCIAL TOTALS, URDU NOTE, FORM 2A WARRANTIES & SIGNATURES (ON EVERY PAGE) */}
                 <div>
-                  {/* PRODUCT COUNT LINE */}
-                  <div style={{ fontSize: '7.5pt', fontWeight: 'bold', borderTop: '1px solid #000000', paddingTop: '3px', marginBottom: '3px' }}>
-                    Total Products: {items.length} | Total Batches: {items.length} | * Total Cool Chain Products: 0
+                  {/* SUMMARY TOTALS BREAKDOWN */}
+                  <div style={{ borderTop: '1px solid #000000', borderBottom: '1px solid #000000', padding: '6px 4px', marginBottom: '6px', display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: '12px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '7.5pt' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Gross Total:</span>
+                        <strong>Rs. {totalGross.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</strong>
+                      </div>
+                      {totalDiscount > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Discount Total:</span>
+                          <strong>- Rs. {totalDiscount.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</strong>
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Total Tax (Sales Tax + Adv Tax):</span>
+                        <strong>+ Rs. {totalTaxes.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</strong>
+                      </div>
+                      <div style={{ marginTop: '3px', fontWeight: 'bold' }}>
+                        Net Total In Words: <span style={{ textTransform: 'capitalize' }}>{netInWords}</span>
+                      </div>
+                    </div>
+
+                    <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderLeft: '1px solid #E2E8F0', paddingLeft: '12px' }}>
+                      <div style={{ fontSize: '7.5pt', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Grand Net Total
+                      </div>
+                      <div style={{ fontSize: '13pt', fontWeight: '900', marginTop: '2px' }}>
+                        Rs. {netPayable.toLocaleString('en-PK', { minimumFractionDigits: 2 })}
+                      </div>
+                    </div>
                   </div>
 
-                  {/* SUMMARY TABLE TOTALS GRID */}
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '7.5pt', borderTop: '1px solid #000000', borderBottom: '1px solid #000000', marginBottom: '4px' }}>
-                    <thead>
-                      <tr style={{ textAlign: 'right', fontWeight: 'bold' }}>
-                        <th style={{ padding: '3px 2px', textAlign: 'center', width: '60px' }}>Qty.</th>
-                        <th style={{ padding: '3px 2px', width: '90px' }}>Gross Amount</th>
-                        <th style={{ padding: '3px 2px', width: '80px' }}>Discount Amount</th>
-                        <th style={{ padding: '3px 2px', width: '70px' }}>Sales Tax</th>
-                        <th style={{ padding: '3px 2px', width: '65px' }}>Further Tax</th>
-                        <th style={{ padding: '3px 2px', width: '70px' }}>Advance Tax</th>
-                        <th style={{ padding: '3px 2px', width: '95px' }}>Value Incl. Of Taxes</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr style={{ textAlign: 'right', fontWeight: 'bold' }}>
-                        <td style={{ padding: '3px 2px', textAlign: 'center' }}>{totalQty}</td>
-                        <td style={{ padding: '3px 2px' }}>{totalGross.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
-                        <td style={{ padding: '3px 2px' }}>{totalDiscount.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
-                        <td style={{ padding: '3px 2px' }}>{totalST.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
-                        <td style={{ padding: '3px 2px' }}>0.00</td>
-                        <td style={{ padding: '3px 2px' }}>{totalAdvTax.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
-                        <td style={{ padding: '3px 2px' }}>{netPayable.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-
-                  {/* FINANCIAL NET PAYABLE BREAKDOWN */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '10px', fontSize: '7.5pt', marginBottom: '4px', alignItems: 'flex-start' }}>
-                    <div>
-                      <div><strong>Class:</strong> C-PHR &nbsp;|&nbsp; <strong>Weight:</strong> 5.50KG</div>
-                      <div><strong>Delivery Instructions:</strong> Wholesale Immediate Dispatch</div>
-                      <div style={{ marginTop: '3px', fontWeight: 'bold', textTransform: 'capitalize' }}>
-                        <strong>In Words:</strong> {netInWords}
-                      </div>
-                    </div>
-
-                    <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                      <div>Sub Total: <strong>{netPayable.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</strong></div>
-                      <div>LESS SRR / Return Payable: <strong>0.00</strong></div>
-                      <div style={{ fontSize: '10pt', fontWeight: '900', borderTop: '1px solid #000000', paddingTop: '2px', marginTop: '2px' }}>
-                        Net Payable: <span style={{ fontSize: '11pt' }}>Rs. {netPayable.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</span>
-                      </div>
-                    </div>
+                  {/* URDU NOTICE BANNER */}
+                  <div style={{ textAlign: 'right', direction: 'rtl', fontSize: '7.5pt', fontWeight: 'bold', padding: '3px 8px', marginBottom: '4px', border: '1px solid #000000', backgroundColor: '#F8FAFC', lineHeight: '1.4' }}>
+                    {store.urduNotice || 'برائے مہربانی انوائس پر اپنا این-ٹی-این اور شناختی کارڈ نمبر چیک کر لیں غلط ٹیکس جمع ہونے کی صورت میں کمپنی ذمہ دار نہیں ہوگی'}
                   </div>
 
                   {/* FORM 2A LEGAL WARRANTIES SECTION */}
                   {(includeDrugActWarranty || includeDrapWarranty) && (
-                    <div style={{ borderTop: '1px solid #000000', paddingTop: '4px', fontSize: '6.5pt', lineHeight: '1.25', color: '#111827', marginBottom: '6px' }}>
+                    <div style={{ borderTop: '1px solid #000000', paddingTop: '4px', fontSize: '6.5pt', lineHeight: '1.25', color: '#000000', marginBottom: '6px' }}>
                       <div style={{ fontWeight: 'bold', textAlign: 'center', marginBottom: '2px' }}>
                         FORM 2A (SEE RULES 19 & 30)
                       </div>
@@ -408,9 +395,9 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
                     </div>
                   )}
 
-                  {/* SIGNATURE SECTION */}
+                  {/* DUAL SIGNATURES SECTION */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '1px solid #000000', paddingTop: '6px', fontSize: '7.5pt' }}>
-                    {/* LEFT SIGNATURE: WARRANTOR */}
+                    {/* LEFT SIGNATURE: DIGITAL SIGNATURE WITH IMAGE & NAME */}
                     <div style={{ minWidth: '220px' }}>
                       {store.signatureImage ? (
                         <img
@@ -424,21 +411,21 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
                         </div>
                       )}
                       <div style={{ borderTop: '1px solid #000000', paddingTop: '2px', fontWeight: 'bold' }}>
-                        Signature of Warrantor: For {store.name}
+                        Signature of Warrantor: For {store.name} ({store.signatoryName || 'Authorized Signatory'})
                       </div>
                     </div>
 
-                    {/* RIGHT SIGNATURE: CUSTOMER ACKNOWLEDGEMENT */}
+                    {/* RIGHT SIGNATURE: CUSTOMER RECEIVER SIGNATURE */}
                     <div style={{ textAlign: 'right', minWidth: '260px' }}>
                       <div style={{ height: '28px' }}></div>
                       <div style={{ borderTop: '1px solid #000000', paddingTop: '2px', fontSize: '6.5pt', fontWeight: 'bold' }}>
-                        I Confirm that I have read and I agree with Terms & Conditions printed overleaf.
+                        Customer Receiver Sign: I Confirm that I have read and agree with Terms printed overleaf.
                       </div>
                     </div>
                   </div>
 
-                  {/* FOOTER BOTTOM PAGE NUMBER */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', paddingTop: '2px', borderTop: '1px dotted #94A3B8', fontSize: '6.5pt', color: '#64748B' }}>
+                  {/* FOOTER BOTTOM PAGE NUMBER (PAGE N OF M) */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', paddingTop: '2px', borderTop: '1px dotted #000000', fontSize: '6.5pt', color: '#000000' }}>
                     <span>Original Customer Delivery Copy</span>
                     <span style={{ fontWeight: 'bold' }}>Page {pageIdx + 1} of {totalPages}</span>
                   </div>
