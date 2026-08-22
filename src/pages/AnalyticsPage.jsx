@@ -538,7 +538,7 @@ export const AnalyticsPage = () => {
                           <span style={{ fontSize: '0.775rem', fontWeight: 600 }}>{inv.paymentMode}</span>
                         </td>
                         <td style={{ textAlign: 'right', fontSize: '0.8rem', color: '#64748B' }}>
-                          Rs. {(Number(inv.totalSaleTax || 0) + Number(inv.totalAdTax || 0) + Number(inv.totalAdvTax || 0)).toFixed(2)}
+                          Rs. {Number(inv.totalSaleTax || 0).toFixed(2)}
                         </td>
                         <td style={{ textAlign: 'right', fontWeight: 900, color: isUnpaid ? '#DC2626' : '#059669' }}>
                           Rs. {originalNet.toLocaleString('en-PK', { minimumFractionDigits: 2 })}
