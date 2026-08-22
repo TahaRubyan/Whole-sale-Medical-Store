@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings, Store, Printer, Users, Save, ShieldCheck, Calculator, CheckCircle, Plus, UserPlus, Trash2, Upload, Download, Image as ImageIcon, RotateCcw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getTaxConfig, getWarrantyConfig, getStoreInfo, STORE_INFO } from '../data/mockData';
@@ -22,6 +22,39 @@ export const SettingsPage = () => {
   const [signatoryTitle, setSignatoryTitle] = useState(initialStoreInfo.signatoryTitle || '');
   const [signatureImage, setSignatureImage] = useState(initialStoreInfo.signatureImage || '');
   const [printerWidth, setPrinterWidth] = useState('80mm');
+
+  // Purge any legacy pre-filled mock profile data from previous sessions
+  useEffect(() => {
+    const saved = localStorage.getItem('pharmalink_store_info');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (
+          parsed &&
+          (parsed.name === 'Idrees Medical Store' ||
+           parsed.name === 'My Medical Store' ||
+           parsed.address === 'Jalal Pur Jattan, Gujrat' ||
+           parsed.address === 'Commercial Market' ||
+           parsed.phone === '053-3724601, 053-3724602' ||
+           parsed.signatoryName === 'M. Idrees')
+        ) {
+          localStorage.removeItem('pharmalink_store_info');
+          setStoreName('');
+          setStoreAddress('');
+          setStorePhone('');
+          setStnNumber('');
+          setNtnNumber('');
+          setForm20('');
+          setForm21('');
+          setGstin('');
+          setSignatoryName('');
+          setSignatoryTitle('');
+          setSignatureImage('');
+          window.dispatchEvent(new Event('store_info_updated'));
+        }
+      } catch (e) {}
+    }
+  }, []);
 
   // System-Wide Taxes State with Toggle Checkboxes
   const initialTaxes = getTaxConfig();
@@ -74,6 +107,23 @@ export const SettingsPage = () => {
     setSignatureImage(STORE_INFO.signatureImage || '');
   };
 
+  const handleClearAllProfile = () => {
+    setStoreName('');
+    setStoreAddress('');
+    setStorePhone('');
+    setStnNumber('');
+    setNtnNumber('');
+    setForm20('');
+    setForm21('');
+    setGstin('');
+    setSignatoryName('');
+    setSignatoryTitle('');
+    setSignatureImage('');
+    localStorage.removeItem('pharmalink_store_info');
+    window.dispatchEvent(new Event('store_info_updated'));
+    showSaveSuccess('All store profile fields have been cleared!');
+  };
+
   const handleSaveProfile = (e) => {
     e.preventDefault();
     const info = {
@@ -92,7 +142,7 @@ export const SettingsPage = () => {
     };
     localStorage.setItem('pharmalink_store_info', JSON.stringify(info));
     window.dispatchEvent(new Event('store_info_updated'));
-    showSaveSuccess('Pharmacy Store Profile & Digital Signature PNG saved successfully!');
+    showSaveSuccess('Pharmacy Store Profile & Digital Signature saved successfully!');
   };
 
   const handleSaveTaxes = (e) => {
@@ -296,6 +346,7 @@ export const SettingsPage = () => {
                 type="text"
                 value={storeName}
                 onChange={(e) => setStoreName(e.target.value)}
+                placeholder="Enter pharmacy / wholesale store name"
                 style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-border)', fontWeight: 700 }}
                 required
               />
@@ -307,7 +358,7 @@ export const SettingsPage = () => {
                 type="text"
                 value={storePhone}
                 onChange={(e) => setStorePhone(e.target.value)}
-                placeholder="e.g. 053-3724601, 053-3724602"
+                placeholder="Enter contact phone number(s)"
                 style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-border)', fontWeight: 700 }}
                 required
               />
@@ -320,7 +371,7 @@ export const SettingsPage = () => {
               type="text"
               value={storeAddress}
               onChange={(e) => setStoreAddress(e.target.value)}
-              placeholder="e.g. Jalal Pur Jattan, Gujrat"
+              placeholder="Enter full physical store address"
               style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-border)', fontWeight: 700 }}
               required
             />
@@ -333,7 +384,7 @@ export const SettingsPage = () => {
                 type="text"
                 value={stnNumber}
                 onChange={(e) => setStnNumber(e.target.value)}
-                placeholder="e.g. 3277876174544"
+                placeholder="Enter STN registration # (Optional)"
                 style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-mono)' }}
               />
             </div>
@@ -344,7 +395,7 @@ export const SettingsPage = () => {
                 type="text"
                 value={ntnNumber}
                 onChange={(e) => setNtnNumber(e.target.value)}
-                placeholder="e.g. 4442705-7"
+                placeholder="Enter NTN tax # (Optional)"
                 style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-mono)' }}
               />
             </div>
@@ -355,7 +406,7 @@ export const SettingsPage = () => {
                 type="text"
                 value={gstin}
                 onChange={(e) => setGstin(e.target.value)}
-                placeholder="e.g. 3277876174544"
+                placeholder="Enter GSTIN / Tax Reg # (Optional)"
                 style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-mono)' }}
               />
             </div>
@@ -368,6 +419,7 @@ export const SettingsPage = () => {
                 type="text"
                 value={form20}
                 onChange={(e) => setForm20(e.target.value)}
+                placeholder="Enter Drug License Form 20 (Optional)"
                 style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-mono)' }}
               />
             </div>
@@ -378,6 +430,7 @@ export const SettingsPage = () => {
                 type="text"
                 value={form21}
                 onChange={(e) => setForm21(e.target.value)}
+                placeholder="Enter Drug License Form 21 (Optional)"
                 style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--color-border)', fontFamily: 'var(--font-mono)' }}
               />
             </div>
@@ -401,7 +454,7 @@ export const SettingsPage = () => {
                   type="text"
                   value={signatoryName}
                   onChange={(e) => setSignatoryName(e.target.value)}
-                  placeholder="e.g. M. Idrees"
+                  placeholder="Enter authorized signatory name"
                   style={{ width: '100%', padding: '0.45rem', fontSize: '0.85rem', fontWeight: 800, borderRadius: '4px', border: '1px solid #CBD5E1' }}
                   required
                 />
@@ -413,7 +466,7 @@ export const SettingsPage = () => {
                   type="text"
                   value={signatoryTitle}
                   onChange={(e) => setSignatoryTitle(e.target.value)}
-                  placeholder="e.g. Managing Director / Authorized Signatory"
+                  placeholder="Enter designation / role"
                   style={{ width: '100%', padding: '0.45rem', fontSize: '0.85rem', fontWeight: 700, borderRadius: '4px', border: '1px solid #CBD5E1' }}
                   required
                 />
@@ -484,9 +537,19 @@ export const SettingsPage = () => {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ width: '280px', padding: '0.65rem', fontWeight: 900, backgroundColor: '#0284C7', color: '#FFF' }}>
-            <Save size={16} /> [Save Store Profile & Signature]
-          </button>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+            <button type="submit" className="btn btn-primary" style={{ padding: '0.65rem 1.5rem', fontWeight: 900, backgroundColor: '#0284C7', color: '#FFF', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', borderRadius: '6px', border: 'none', cursor: 'pointer' }}>
+              <Save size={16} /> Save Store Profile & Signature
+            </button>
+            <button
+              type="button"
+              onClick={handleClearAllProfile}
+              className="btn btn-outline"
+              style={{ padding: '0.65rem 1.25rem', fontWeight: 800, color: '#DC2626', borderColor: '#DC2626', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', borderRadius: '6px', cursor: 'pointer' }}
+            >
+              <Trash2 size={16} /> Clear All Profile Fields
+            </button>
+          </div>
         </form>
       )}
 

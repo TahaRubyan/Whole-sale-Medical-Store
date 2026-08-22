@@ -82,7 +82,20 @@ export const getStoreInfo = () => {
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
-      return { ...STORE_INFO, ...parsed };
+      if (parsed && typeof parsed === 'object') {
+        if (
+          parsed.name === 'Idrees Medical Store' ||
+          parsed.name === 'My Medical Store' ||
+          parsed.address === 'Jalal Pur Jattan, Gujrat' ||
+          parsed.address === 'Commercial Market' ||
+          parsed.phone === '053-3724601, 053-3724602' ||
+          parsed.signatoryName === 'M. Idrees'
+        ) {
+          localStorage.removeItem('pharmalink_store_info');
+          return STORE_INFO;
+        }
+        return { ...STORE_INFO, ...parsed };
+      }
     } catch (e) {}
   }
   return STORE_INFO;
