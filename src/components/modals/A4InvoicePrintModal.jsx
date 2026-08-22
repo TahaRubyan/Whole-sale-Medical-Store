@@ -32,12 +32,14 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
   if (!invoice) return null;
 
   const handlePrint = () => {
-    printElementById('a4-invoice-container', `Cashmemo - ${invoice.invoiceNo || 'Invoice'}`);
+    printElementById('a4-invoice-container', `Invoice - ${invoice.invoiceNo || 'Document'}`);
   };
 
   const store = getStoreInfo();
   const items = invoice.items || [];
-  const ITEMS_PER_PAGE = 7; // Clean multi-page pagination limit
+  
+  // Page capacity: 10 items per page. Data exceeds to page 2 ONLY when item count > 10
+  const ITEMS_PER_PAGE = 10;
   const totalPages = Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE));
 
   // Partition items into pages
@@ -149,7 +151,7 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <FileText size={22} color="#0F172A" />
             <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-              Commercial Cashmemo Invoice ({totalPages} Page{totalPages > 1 ? 's' : ''})
+              Commercial Sales Invoice ({totalPages} Page{totalPages > 1 ? 's' : ''})
             </h3>
           </div>
 
@@ -176,12 +178,9 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
           </div>
         </div>
 
-        {/* CONTAINER FOR ALL A4 PAGES */}
+        {/* CONTAINER FOR ALL A4 PAGES (EACH PAGE HAS FULL HEADER & FOOTER) */}
         <div id="a4-invoice-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           {pages.map((pageItems, pageIdx) => {
-            const isFirstPage = pageIdx === 0;
-            const isLastPage = pageIdx === totalPages - 1;
-
             return (
               <div
                 key={pageIdx}
@@ -208,62 +207,62 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
                     {/* LEFT: SHOP OWNER / DISTRIBUTOR DETAILS (DISTINCT SECTION) */}
                     <div style={{ flex: 1.3, lineHeight: '1.3' }}>
                       <div style={{ fontSize: '12pt', fontWeight: 'bold', textTransform: 'uppercase', color: '#000000', letterSpacing: '-0.01em' }}>
-                        {store.name || 'Muller & Phipps Pakistan (Private) Limited'}
+                        {store.name || 'Idrees Medical Store'}
                       </div>
                       <div style={{ fontSize: '7.5pt', color: '#111827', marginTop: '2px' }}>
-                        <div><strong>M&P N.T.N.:</strong> {store.ntnNumber || '0792320-1'}</div>
-                        <div><strong>M&P S.T.R.N.:</strong> {store.stnNumber || '12-90-9909-433-46'}</div>
-                        <div><strong>M&P Depot Address:</strong> {store.address || 'Sardar Plaza, Opp Bashir Marriage Hall, Gujrat'} Tel: {store.phone || '053-3516191-94'}</div>
+                        <div><strong>N.T.N.:</strong> {store.ntnNumber || '-'}</div>
+                        <div><strong>S.T.R.N. / GSTN:</strong> {store.stnNumber || '-'}</div>
+                        <div><strong>Address:</strong> {store.address || 'Commercial Wholesale Market'} {store.phone ? `• Tel: ${store.phone}` : ''}</div>
                         <div style={{ display: 'flex', gap: '10px', marginTop: '1px' }}>
-                          <span><strong>Depot DSL#:</strong> {store.dslNumber || '09-342-0139-028589D'}</span>
+                          <span><strong>DSL#:</strong> {store.dslNumber || '-'}</span>
                           <span><strong>DSL Valid Upto:</strong> {store.dslValidUpto || '09/02/2029'}</span>
-                          <span><strong>DSL Issued By:</strong> {store.dslIssuedBy || 'CDC, Punjab'}</span>
+                          <span><strong>Issued By:</strong> {store.dslIssuedBy || 'CDC, Punjab'}</span>
                         </div>
                       </div>
                     </div>
 
-                    {/* CENTER: CASHMEMO TITLE */}
+                    {/* CENTER: INVOICE TITLE */}
                     <div style={{ flex: 0.8, textAlign: 'center' }}>
                       <span style={{ fontSize: '13pt', fontWeight: '900', letterSpacing: '0.08em', textTransform: 'uppercase', borderBottom: '2px solid #000000', paddingBottom: '2px' }}>
-                        CASHMEMO
+                        INVOICE
                       </span>
                     </div>
 
-                    {/* RIGHT: PRINT META & QR CODE */}
+                    {/* RIGHT: PRINT META, PAGE N OF M & QR CODE */}
                     <div style={{ flex: 0.9, textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
                       <div style={{ fontSize: '7.5pt', fontWeight: 'bold' }}>Printed On: {printTimestamp}</div>
                       <div style={{ fontSize: '8pt', fontWeight: 'bold' }}>Page {pageIdx + 1} of {totalPages}</div>
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', border: '1px solid #000000', padding: '2px 5px', borderRadius: '3px', marginTop: '3px' }}>
                         <QrCode size={22} color="#000000" />
-                        <span style={{ fontSize: '6.5pt', fontWeight: 'bold' }}>Verify Cashmemo</span>
+                        <span style={{ fontSize: '6.5pt', fontWeight: 'bold' }}>Verify Invoice</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* 2 DISTINCT METADATA SECTIONS: CUSTOMER DETAILS vs CASHMEMO / ORDER DETAILS */}
+                  {/* 2 DISTINCT METADATA SECTIONS: CUSTOMER DETAILS vs INVOICE / ORDER DETAILS */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1.45fr 1fr', gap: '16px', borderBottom: '1px solid #000000', paddingBottom: '6px', marginBottom: '8px', fontSize: '7.5pt', lineHeight: '1.4' }}>
                     {/* LEFT COLUMN: CUSTOMER SECTION */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5px' }}>
                       <div style={{ fontSize: '7.5pt', fontWeight: 'bold', textDecoration: 'underline', textTransform: 'uppercase', marginBottom: '2px' }}>
                         Customer Details
                       </div>
-                      <div><span style={{ width: '115px', display: 'inline-block', fontWeight: 'bold' }}>Customer Code:</span> {invoice.customerId || invoice.customerCode || '000217-001-001-207'}</div>
-                      <div><span style={{ width: '115px', display: 'inline-block', fontWeight: 'bold' }}>Customer Name:</span> <strong>{invoice.customerName || 'IDREES PHARMACY'}</strong></div>
-                      <div><span style={{ width: '115px', display: 'inline-block', fontWeight: 'bold' }}>Customer Address:</span> {invoice.customerAddress || 'MAIN BAZAR JALAL PUR JATTAN-J.PUR JATTAN'}</div>
-                      <div><span style={{ width: '115px', display: 'inline-block', fontWeight: 'bold' }}>Customer NTN/CNIC:</span> {invoice.customerNtn || invoice.customerCnic || '34202-0723603-5'}</div>
-                      <div><span style={{ width: '115px', display: 'inline-block', fontWeight: 'bold' }}>Customer STRN:</span> {invoice.customerStrn || '(FILER)'}</div>
-                      <div><span style={{ width: '115px', display: 'inline-block', fontWeight: 'bold' }}>Delivered By:</span> {invoice.deliveryMan || 'HASHAM'} &nbsp;&nbsp;&nbsp; <strong>Delivery Date:</strong> {formatDateDDMMYYYY(invoice.date || new Date())}</div>
+                      <div><span style={{ width: '115px', display: 'inline-block', fontWeight: 'bold' }}>Customer Code:</span> {invoice.customerId || invoice.customerCode || '-'}</div>
+                      <div><span style={{ width: '115px', display: 'inline-block', fontWeight: 'bold' }}>Customer Name:</span> <strong>{invoice.customerName || '-'}</strong></div>
+                      <div><span style={{ width: '115px', display: 'inline-block', fontWeight: 'bold' }}>Customer Address:</span> {invoice.customerAddress || '-'}</div>
+                      <div><span style={{ width: '115px', display: 'inline-block', fontWeight: 'bold' }}>Customer NTN/CNIC:</span> {invoice.customerNtn || invoice.customerCnic || '-'}</div>
+                      <div><span style={{ width: '115px', display: 'inline-block', fontWeight: 'bold' }}>Customer STRN:</span> {invoice.customerStrn || '-'}</div>
+                      <div><span style={{ width: '115px', display: 'inline-block', fontWeight: 'bold' }}>Delivered By:</span> {invoice.deliveryMan || '-'} &nbsp;&nbsp;&nbsp; <strong>Delivery Date:</strong> {formatDateDDMMYYYY(invoice.date || new Date())}</div>
                     </div>
 
-                    {/* RIGHT COLUMN: CASHMEMO / BILLING DETAILS */}
+                    {/* RIGHT COLUMN: INVOICE & ORDER DETAILS */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5px' }}>
                       <div style={{ fontSize: '7.5pt', fontWeight: 'bold', textDecoration: 'underline', textTransform: 'uppercase', marginBottom: '2px' }}>
-                        Cashmemo & Order Details
+                        Invoice & Order Details
                       </div>
-                      <div><span style={{ width: '110px', display: 'inline-block', fontWeight: 'bold' }}>Cashmemo Number:</span> <strong>{invoice.invoiceNo || '26/51/061700'}</strong></div>
-                      <div><span style={{ width: '110px', display: 'inline-block', fontWeight: 'bold' }}>Cashmemo Date:</span> {formatDateDDMMYYYY(invoice.date || new Date())}</div>
-                      <div><span style={{ width: '110px', display: 'inline-block', fontWeight: 'bold' }}>Booked By:</span> {invoice.bookingMan || invoice.cashierName || user?.name || 'REHMAN ALI SHAH(PHR) (D)'}</div>
-                      <div><span style={{ width: '110px', display: 'inline-block', fontWeight: 'bold' }}>Pick Summary No:</span> {invoice.saleOrderNo || invoice.referenceNo || '2026D20263'}</div>
+                      <div><span style={{ width: '110px', display: 'inline-block', fontWeight: 'bold' }}>Invoice Number:</span> <strong>{invoice.invoiceNo || '-'}</strong></div>
+                      <div><span style={{ width: '110px', display: 'inline-block', fontWeight: 'bold' }}>Invoice Date:</span> {formatDateDDMMYYYY(invoice.date || new Date())}</div>
+                      <div><span style={{ width: '110px', display: 'inline-block', fontWeight: 'bold' }}>Booked By:</span> {invoice.bookingMan || invoice.cashierName || user?.name || '-'}</div>
+                      <div><span style={{ width: '110px', display: 'inline-block', fontWeight: 'bold' }}>Order Ref No:</span> {invoice.saleOrderNo || invoice.referenceNo || '-'}</div>
                       <div><span style={{ width: '110px', display: 'inline-block', fontWeight: 'bold' }}>Payment Due Date:</span> {formatDateDDMMYYYY(invoice.dueDate || invoice.date || new Date())}</div>
                     </div>
                   </div>
@@ -306,15 +305,15 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
                         const taxCfg = getTaxConfig();
                         const stAmt = taxCfg.enableSaleTax !== false ? (item.saleTaxAmt !== undefined ? item.saleTaxAmt : (discountedGross * 0.18)) : 0;
                         const advtAmt = taxCfg.enableAdvTax !== false ? (item.advTaxAmt !== undefined ? item.advTaxAmt : (discountedGross * 0.005)) : 0;
-                        const furtherTaxAmt = 0; // Standard wholesale further tax
+                        const furtherTaxAmt = 0;
                         const netAmt = item.total || (discountedGross + stAmt + advtAmt + furtherTaxAmt);
 
                         return (
                           <tr key={idx} style={{ borderBottom: '1px dotted #CCCCCC' }}>
-                            <td style={{ padding: '4px 2px', fontFamily: 'monospace', fontWeight: 'bold' }}>{item.itemCode || item.medicineId || `8810${globalIndex + 1}`}</td>
+                            <td style={{ padding: '4px 2px', fontFamily: 'monospace', fontWeight: 'bold' }}>{item.itemCode || item.medicineId || `MED-${1000 + globalIndex + 1}`}</td>
                             <td style={{ padding: '4px 2px', fontWeight: 'bold' }}>{item.brandName} {item.genericFormula ? `(${item.genericFormula})` : ''}</td>
                             <td style={{ padding: '4px 2px', textAlign: 'center', fontWeight: 'bold' }}>{qty}</td>
-                            <td style={{ padding: '4px 2px', fontFamily: 'monospace' }}>{item.batchNumber || `N${7430 + globalIndex}`}</td>
+                            <td style={{ padding: '4px 2px', fontFamily: 'monospace' }}>{item.batchNumber || '-'}</td>
                             <td style={{ padding: '4px 2px' }}>{formatExpiryMMYYYY(item.expiryDate || '2028-12')}</td>
                             <td style={{ padding: '4px 2px', textAlign: 'right' }}>{rate.toFixed(2)}</td>
                             <td style={{ padding: '4px 2px', textAlign: 'right' }}>{gross.toFixed(2)}</td>
@@ -330,7 +329,7 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
                   </table>
                 </div>
 
-                {/* 3. FINANCIAL TOTALS, FORM 2A WARRANTIES & SIGNATURES (ON EVERY PAGE OR ACCUMULATED) */}
+                {/* 3. FINANCIAL TOTALS, FORM 2A WARRANTIES & SIGNATURES (ON EVERY PAGE) */}
                 <div>
                   {/* PRODUCT COUNT LINE */}
                   <div style={{ fontSize: '7.5pt', fontWeight: 'bold', borderTop: '1px solid #000000', paddingTop: '3px', marginBottom: '3px' }}>
@@ -382,7 +381,7 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
                     </div>
                   </div>
 
-                  {/* FORM 2A LEGAL WARRANTIES SECTION (EXACT COMPLIANCE WITH PHOTO) */}
+                  {/* FORM 2A LEGAL WARRANTIES SECTION */}
                   {(includeDrugActWarranty || includeDrapWarranty) && (
                     <div style={{ borderTop: '1px solid #000000', paddingTop: '4px', fontSize: '6.5pt', lineHeight: '1.25', color: '#111827', marginBottom: '6px' }}>
                       <div style={{ fontWeight: 'bold', textAlign: 'center', marginBottom: '2px' }}>
@@ -391,14 +390,14 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
 
                       {includeDrugActWarranty && (
                         <div style={{ marginBottom: '2px', textAlign: 'justify' }}>
-                          <strong>(i) WARRANTY UNDER SECTION 23(1)(i) OF THE DRUGS ACT, 1976:</strong> I, <strong>{store.signatoryName || 'M. Idrees'}</strong> being a person resident in Pakistan, carrying on business at the aforesaid address under the name of <strong>{store.name}</strong> having valid license(s) as mentioned above issued by Licensing Authority, and being Importers/Authorized Distributors of the Manufacturers / Principals, do hereby give this warranty that the drugs here above described as sold by me/specified and contained in the cash memo/invoice or other document describing the goods referred to herein do not contravene in any way the provisions of section 23 of the Drugs Act, 1976.
+                          <strong>(i) WARRANTY UNDER SECTION 23(1)(i) OF THE DRUGS ACT, 1976:</strong> I, <strong>{store.signatoryName || 'Authorized Signatory'}</strong> being a person resident in Pakistan, carrying on business at the aforesaid address under the name of <strong>{store.name}</strong> having valid license(s) as mentioned above issued by Licensing Authority, and being Importers/Authorized Distributors of the Manufacturers / Principals, do hereby give this warranty that the drugs here above described as sold by me/specified and contained in the invoice or other document describing the goods referred to herein do not contravene in any way the provisions of section 23 of the Drugs Act, 1976.
                         </div>
                       )}
 
                       {includeDrapWarranty && (
                         <>
                           <div style={{ marginBottom: '2px', textAlign: 'justify' }}>
-                            <strong>(ii) FORM-5 [see rule 6(2)(1), 8(5)(b), 16(7) and 49(1)(i)] Warranty under Medical Devices Rules, 2017:</strong> I, <strong>{store.signatoryName || 'M. Idrees'}</strong> being a person resident in Pakistan, carrying on business at aforesaid address under the name of <strong>{store.name}</strong> holding valid license issued by Licensing Authority and having authority or being authorized by Manufacturers / Principals vide letters, do hereby give this warranty that the medical devices hereabove described as sold by me and contained in the bill of sale, invoice, bill of lading or other document describing the medical devices referred to herein do not contravene in any way the provisions of the DRAP Act, 2012 and the rules framed thereunder.
+                            <strong>(ii) FORM-5 [see rule 6(2)(1), 8(5)(b), 16(7) and 49(1)(i)] Warranty under Medical Devices Rules, 2017:</strong> I, <strong>{store.signatoryName || 'Authorized Signatory'}</strong> being a person resident in Pakistan, carrying on business at aforesaid address under the name of <strong>{store.name}</strong> holding valid license issued by Licensing Authority and having authority or being authorized by Manufacturers / Principals vide letters, do hereby give this warranty that the medical devices hereabove described as sold by me and contained in the bill of sale, invoice, bill of lading or other document describing the medical devices referred to herein do not contravene in any way the provisions of the DRAP Act, 2012 and the rules framed thereunder.
                           </div>
 
                           <div style={{ textAlign: 'justify' }}>
@@ -421,7 +420,7 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
                         />
                       ) : (
                         <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '10pt', fontWeight: 'bold', marginBottom: '2px' }}>
-                          {store.signatoryName || 'M. Idrees'}
+                          {store.signatoryName || 'Authorized Signatory'}
                         </div>
                       )}
                       <div style={{ borderTop: '1px solid #000000', paddingTop: '2px', fontWeight: 'bold' }}>
@@ -436,6 +435,12 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
                         I Confirm that I have read and I agree with Terms & Conditions printed overleaf.
                       </div>
                     </div>
+                  </div>
+
+                  {/* FOOTER BOTTOM PAGE NUMBER */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', paddingTop: '2px', borderTop: '1px dotted #94A3B8', fontSize: '6.5pt', color: '#64748B' }}>
+                    <span>Original Customer Delivery Copy</span>
+                    <span style={{ fontWeight: 'bold' }}>Page {pageIdx + 1} of {totalPages}</span>
                   </div>
                 </div>
               </div>
@@ -452,7 +457,7 @@ export const A4InvoicePrintModal = ({ invoice, onClose }) => {
           </button>
           
           <button onClick={handlePrint} className="btn btn-primary" style={{ flex: 1, backgroundColor: '#000000', color: '#FFF', fontWeight: 900 }}>
-            <Printer size={16} /> Print Cashmemo ({totalPages} Page{totalPages > 1 ? 's' : ''})
+            <Printer size={16} /> Print Invoice ({totalPages} Page{totalPages > 1 ? 's' : ''})
           </button>
         </div>
       </div>
