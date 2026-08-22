@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useInventory } from '../context/InventoryContext';
+import { useSales } from '../context/SalesContext';
 import { useCart } from '../context/CartContext';
 import { getTaxConfig, getWarrantyConfig } from '../data/mockData';
 import {
@@ -20,7 +21,8 @@ import AlertWarningModal from '../components/modals/AlertWarningModal';
 import { formatDateDDMMYYYY, formatExpiryMMYYYY, isWithinSixMonths } from '../utils/dateUtils';
 
 export const POSPage = () => {
-  const { medicines, batches } = useInventory();
+  const { medicines, batches, deductStock } = useInventory();
+  const { recordSale } = useSales();
   const {
     cart,
     setCart,
@@ -210,6 +212,8 @@ export const POSPage = () => {
   };
 
   const handleCheckoutClick = () => {
+    if (cart.length === 0) return;
+
     const extraDetails = {
       ...customerDetails,
       paymentStatus,
@@ -217,8 +221,14 @@ export const POSPage = () => {
       includeDrapWarranty
     };
 
+    const cartSnapshot = [...cart];
     const saleRecord = processCheckout(extraDetails);
     if (saleRecord) {
+      // 1. Deduct Stock from Inventory & log Stock Movement audit log
+      deductStock(cartSnapshot);
+      // 2. Record Sale in SalesContext (updates Analytics, FBR Tax Report, Ledger & Stock Movements in real-time)
+      recordSale(saleRecord);
+      // 3. Open A4 Commercial Invoice Modal
       setShowA4Modal(true);
     }
   };

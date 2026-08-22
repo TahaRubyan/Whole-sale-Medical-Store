@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { TrendingUp, Search, FileText, CheckCircle, Calendar, Award, ListFilter, ShieldCheck, Download, Printer, RefreshCw } from 'lucide-react';
+import { TrendingUp, Search, FileText, CheckCircle, Calendar, Award, ListFilter, ShieldCheck, Download, Printer } from 'lucide-react';
 import { useSales } from '../context/SalesContext';
 import A4InvoicePrintModal from '../components/modals/A4InvoicePrintModal';
 import MarkDebtPaidModal from '../components/modals/MarkDebtPaidModal';
@@ -8,7 +8,7 @@ import FbrTaxAuditPrintModal from '../components/modals/FbrTaxAuditPrintModal';
 import { formatDateDDMMYYYY } from '../utils/dateUtils';
 
 export const AnalyticsPage = () => {
-  const { invoices, resetDemoSales } = useSales();
+  const { invoices } = useSales();
 
   // Active Tab at TOP NAVBAR: 'DAILY_SUMMARY' vs 'DETAILED_LOG'
   const [activeTab, setActiveTab] = useState('DAILY_SUMMARY');
@@ -597,27 +597,13 @@ export const AnalyticsPage = () => {
                 </p>
               </div>
 
-              <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center' }}>
-                <button
-                  onClick={() => {
-                    resetDemoSales();
-                    alert('FBR Sales Tax Audit sample transactions loaded successfully!');
-                  }}
-                  className="btn btn-outline"
-                  style={{ backgroundColor: '#FFFFFF', borderColor: '#0284C7', color: '#0284C7', fontWeight: 800, padding: '0.65rem 1rem', fontSize: '0.825rem', display: 'flex', alignItems: 'center', gap: '0.4rem', borderRadius: '6px', cursor: 'pointer' }}
-                  title="Populate realistic FBR sales tax demo invoices"
-                >
-                  <RefreshCw size={15} /> Load Demo Audit Data
-                </button>
-
-                <button
-                  onClick={() => setIsFbrModalOpen(true)}
-                  className="btn btn-primary"
-                  style={{ backgroundColor: '#0284C7', color: '#FFF', fontWeight: 900, padding: '0.65rem 1.25rem', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.45rem', borderRadius: '6px', border: 'none', boxShadow: '0 4px 6px -1px rgba(2,132,199,0.3)', cursor: 'pointer' }}
-                >
-                  <Printer size={16} /> Generate FBR Sales Tax PDF
-                </button>
-              </div>
+              <button
+                onClick={() => setIsFbrModalOpen(true)}
+                className="btn btn-primary"
+                style={{ backgroundColor: '#0284C7', color: '#FFF', fontWeight: 900, padding: '0.65rem 1.25rem', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.45rem', borderRadius: '6px', border: 'none', boxShadow: '0 4px 6px -1px rgba(2,132,199,0.3)', cursor: 'pointer' }}
+              >
+                <Printer size={16} /> Generate FBR Sales Tax PDF
+              </button>
             </div>
 
             {/* FBR TAX SUMMARY CARDS */}
