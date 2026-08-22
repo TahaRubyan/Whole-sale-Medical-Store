@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Printer, X, FileText, Download, QrCode } from 'lucide-react';
+import { Printer, X, FileText, Download } from 'lucide-react';
 import { STORE_INFO, getTaxConfig, getStoreInfo } from '../../data/mockData';
 import { formatDateDDMMYYYY, formatExpiryMMYYYY } from '../../utils/dateUtils';
 import { numberToWordsPKR } from '../../utils/numberUtils';
@@ -205,7 +205,7 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                 <div>
                   {/* TITLE & HEADER BAR */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #000000', paddingBottom: '6px', marginBottom: '8px' }}>
-                    {/* LEFT: SHOP OWNER / DISTRIBUTOR DETAILS (SPECIFIED SECTION) */}
+                    {/* LEFT: SHOP OWNER / DISTRIBUTOR DETAILS */}
                     <div style={{ flex: 1.3, lineHeight: '1.35' }}>
                       <div style={{ fontSize: '13pt', fontWeight: 'bold', textTransform: 'uppercase', color: '#000000', letterSpacing: '-0.01em' }}>
                         {store.name || 'Idrees Medical Store'}
@@ -214,10 +214,8 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                         <div><strong>Owner N.T.N.:</strong> {store.ntnNumber || '-'}</div>
                         <div><strong>Owner S.T.R.N. / GSTN:</strong> {store.stnNumber || '-'}</div>
                         <div><strong>Store Address:</strong> {store.address || 'Commercial Wholesale Market'} {store.phone ? `• Tel: ${store.phone}` : ''}</div>
-                        <div style={{ display: 'flex', gap: '10px', marginTop: '1px' }}>
-                          <span><strong>Depot DSL#:</strong> {store.dslNumber || '-'}</span>
-                          <span><strong>DSL Valid Upto:</strong> {store.dslValidUpto || '09/02/2029'}</span>
-                          <span><strong>Issued By:</strong> {store.dslIssuedBy || 'CDC, Punjab'}</span>
+                        <div style={{ marginTop: '1px' }}>
+                          <strong>Depot DSL#:</strong> {store.dslNumber || '-'}
                         </div>
                       </div>
                     </div>
@@ -229,18 +227,16 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                       </span>
                     </div>
 
-                    {/* RIGHT: PRINT META, PAGE N OF M & QR CODE */}
-                    <div style={{ flex: 0.9, textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                    {/* RIGHT: PRINT META & PAGE N OF M */}
+                    <div style={{ flex: 0.9, textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px' }}>
                       <div style={{ fontSize: '7.5pt', fontWeight: 'bold' }}>Printed On: {printTimestamp}</div>
-                      <div style={{ fontSize: '8.5pt', fontWeight: '900' }}>Page {pageIdx + 1} of {totalPages}</div>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', border: '1px solid #000000', padding: '2px 5px', borderRadius: '3px', marginTop: '3px' }}>
-                        <QrCode size={22} color="#000000" />
-                        <span style={{ fontSize: '6.5pt', fontWeight: 'bold' }}>Verify Invoice</span>
+                      <div style={{ fontSize: '9pt', fontWeight: '900', border: '1px solid #000000', padding: '2px 8px', borderRadius: '3px', marginTop: '2px' }}>
+                        Page {pageIdx + 1} of {totalPages}
                       </div>
                     </div>
                   </div>
 
-                  {/* 2 DISTINCT METADATA SECTIONS: CUSTOMER DETAILS vs INVOICE & ORDER DETAILS */}
+                  {/* 2 DISTINCT METADATA SECTIONS: CUSTOMER DETAILS vs INVOICE DETAILS */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1.45fr 1fr', gap: '16px', borderBottom: '1px solid #000000', paddingBottom: '6px', marginBottom: '8px', fontSize: '7.5pt', lineHeight: '1.4' }}>
                     {/* LEFT COLUMN: CUSTOMER SECTION */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5px' }}>
@@ -255,15 +251,14 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                       <div><span style={{ width: '115px', display: 'inline-block', fontWeight: 'bold' }}>Delivered By:</span> {sale.deliveryMan || '-'} &nbsp;&nbsp;&nbsp; <strong>Delivery Date:</strong> {formatDateDDMMYYYY(sale.date || new Date())}</div>
                     </div>
 
-                    {/* RIGHT COLUMN: INVOICE & ORDER DETAILS */}
+                    {/* RIGHT COLUMN: INVOICE DETAILS */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5px' }}>
                       <div style={{ fontSize: '7.5pt', fontWeight: 'bold', textDecoration: 'underline', textTransform: 'uppercase', marginBottom: '2px' }}>
-                        Invoice & Order Details
+                        Invoice Details
                       </div>
                       <div><span style={{ width: '110px', display: 'inline-block', fontWeight: 'bold' }}>Invoice Number:</span> <strong>{sale.invoiceNo || '-'}</strong></div>
                       <div><span style={{ width: '110px', display: 'inline-block', fontWeight: 'bold' }}>Invoice Date:</span> {formatDateDDMMYYYY(sale.date || new Date())}</div>
                       <div><span style={{ width: '110px', display: 'inline-block', fontWeight: 'bold' }}>Booked By:</span> {sale.bookingMan || sale.cashierName || user?.name || '-'}</div>
-                      <div><span style={{ width: '110px', display: 'inline-block', fontWeight: 'bold' }}>Order Ref No:</span> {sale.saleOrderNo || sale.referenceNo || '-'}</div>
                       <div><span style={{ width: '110px', display: 'inline-block', fontWeight: 'bold' }}>Payment Due Date:</span> {formatDateDDMMYYYY(sale.dueDate || sale.date || new Date())}</div>
                     </div>
                   </div>
