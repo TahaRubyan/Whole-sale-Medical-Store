@@ -48,13 +48,13 @@ export const getWarrantyConfig = () => {
 };
 
 export const STORE_INFO = {
-  name: 'My Medical Store',
-  address: 'Commercial Market',
+  name: '',
+  address: '',
   phone: '',
   email: '',
   ownerName: '',
   signatoryName: '',
-  signatoryTitle: 'Authorized Signatory',
+  signatoryTitle: '',
   signatureStyle: 'FONT', // 'FONT' | 'SEAL' | 'CUSTOM'
   sellerName: '',
   dslNumber: '',

@@ -10,17 +10,17 @@ export const SettingsPage = () => {
 
   // Store Profile & Digital Signature State
   const initialStoreInfo = getStoreInfo();
-  const [storeName, setStoreName] = useState(initialStoreInfo.name || 'Idrees Medical Store');
-  const [storeAddress, setStoreAddress] = useState(initialStoreInfo.address || 'Jalal Pur Jattan, Gujrat');
-  const [storePhone, setStorePhone] = useState(initialStoreInfo.phone || '053-3724601, 053-3724602');
-  const [stnNumber, setStnNumber] = useState(initialStoreInfo.stnNumber || '3277876174544');
-  const [ntnNumber, setNtnNumber] = useState(initialStoreInfo.ntnNumber || '4442705-7');
-  const [form20, setForm20] = useState(initialStoreInfo.dslNumber || '09-342-0139-045748D');
-  const [form21, setForm21] = useState(initialStoreInfo.dlNumber || '09-342-0139-045748D');
-  const [gstin, setGstin] = useState(initialStoreInfo.gstin || '3277876174544');
-  const [signatoryName, setSignatoryName] = useState(initialStoreInfo.signatoryName || 'M. Idrees');
-  const [signatoryTitle, setSignatoryTitle] = useState(initialStoreInfo.signatoryTitle || 'Managing Director / Authorized Signatory');
-  const [signatureImage, setSignatureImage] = useState(initialStoreInfo.signatureImage || STORE_INFO.signatureImage || '');
+  const [storeName, setStoreName] = useState(initialStoreInfo.name || '');
+  const [storeAddress, setStoreAddress] = useState(initialStoreInfo.address || '');
+  const [storePhone, setStorePhone] = useState(initialStoreInfo.phone || '');
+  const [stnNumber, setStnNumber] = useState(initialStoreInfo.stnNumber || '');
+  const [ntnNumber, setNtnNumber] = useState(initialStoreInfo.ntnNumber || '');
+  const [form20, setForm20] = useState(initialStoreInfo.dslNumber || '');
+  const [form21, setForm21] = useState(initialStoreInfo.dlNumber || '');
+  const [gstin, setGstin] = useState(initialStoreInfo.gstin || '');
+  const [signatoryName, setSignatoryName] = useState(initialStoreInfo.signatoryName || '');
+  const [signatoryTitle, setSignatoryTitle] = useState(initialStoreInfo.signatoryTitle || '');
+  const [signatureImage, setSignatureImage] = useState(initialStoreInfo.signatureImage || '');
   const [printerWidth, setPrinterWidth] = useState('80mm');
 
   // System-Wide Taxes State with Toggle Checkboxes

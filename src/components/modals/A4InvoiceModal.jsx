@@ -208,7 +208,7 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                     {/* LEFT: SHOP OWNER / DISTRIBUTOR DETAILS */}
                     <div style={{ flex: 1.3, lineHeight: '1.35' }}>
                       <div style={{ fontSize: '13pt', fontWeight: 'bold', textTransform: 'uppercase', color: '#000000', letterSpacing: '-0.01em' }}>
-                        {store.name || 'Idrees Medical Store'}
+                        {store.name || 'WHOLESALE PHARMACY'}
                       </div>
                       <div style={{ fontSize: '7.5pt', color: '#000000', marginTop: '2px' }}>
                         <div><strong>Owner N.T.N.:</strong> {store.ntnNumber || '-'}</div>
