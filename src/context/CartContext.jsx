@@ -50,6 +50,7 @@ export const CartProvider = ({ children }) => {
   const addToCart = (medicine, batch, unitSelection = 'Box') => {
     const currentGlobalTaxes = getTaxConfig();
     const isSaleTaxEnabled = currentGlobalTaxes.enableSaleTax !== false;
+    const isAdvTaxEnabled = currentGlobalTaxes.enableAdvTax !== false;
 
     setCart((prev) => {
       const existing = prev.find((i) => i.medicineId === medicine.id && i.batchNumber === batch.batchNumber);
@@ -63,8 +64,11 @@ export const CartProvider = ({ children }) => {
         const discountedGross = gross - discAmt;
 
         const stP = isSaleTaxEnabled ? (existing.saleTaxPercent !== undefined ? existing.saleTaxPercent : Number(currentGlobalTaxes.saleTaxPercent || 18)) : 0;
+        const advtP = isAdvTaxEnabled ? (existing.advTaxPercent !== undefined ? existing.advTaxPercent : Number(currentGlobalTaxes.advTaxPercent || 0.5)) : 0;
+
         const stAmt = discountedGross * (stP / 100);
-        const lineTotal = discountedGross + stAmt;
+        const advtAmt = discountedGross * (advtP / 100);
+        const lineTotal = discountedGross + stAmt + advtAmt;
 
         return prev.map((i) =>
           i.medicineId === medicine.id && i.batchNumber === batch.batchNumber
@@ -75,6 +79,8 @@ export const CartProvider = ({ children }) => {
                 discAmount: discAmt,
                 saleTaxPercent: stP,
                 saleTaxAmt: stAmt,
+                advTaxPercent: advtP,
+                advTaxAmt: advtAmt,
                 total: lineTotal
               }
             : i
@@ -87,8 +93,11 @@ export const CartProvider = ({ children }) => {
         const discountedGross = gross;
 
         const stP = isSaleTaxEnabled ? Number(currentGlobalTaxes.saleTaxPercent || 18) : 0;
+        const advtP = isAdvTaxEnabled ? Number(currentGlobalTaxes.advTaxPercent !== undefined ? currentGlobalTaxes.advTaxPercent : 0.5) : 0;
+
         const stAmt = discountedGross * (stP / 100);
-        const lineTotal = discountedGross + stAmt;
+        const advtAmt = discountedGross * (advtP / 100);
+        const lineTotal = discountedGross + stAmt + advtAmt;
 
         return [
           ...prev,
@@ -109,6 +118,8 @@ export const CartProvider = ({ children }) => {
             discAmount: discAmt,
             saleTaxPercent: stP,
             saleTaxAmt: stAmt,
+            advTaxPercent: advtP,
+            advTaxAmt: advtAmt,
             total: lineTotal,
           },
         ];
@@ -119,6 +130,7 @@ export const CartProvider = ({ children }) => {
   const updateCartQuantity = (index, qty) => {
     const currentGlobalTaxes = getTaxConfig();
     const isSaleTaxEnabled = currentGlobalTaxes.enableSaleTax !== false;
+    const isAdvTaxEnabled = currentGlobalTaxes.enableAdvTax !== false;
 
     const q = Math.max(1, Number(qty) || 1);
     setCart((prev) =>
@@ -131,8 +143,11 @@ export const CartProvider = ({ children }) => {
         const discountedGross = gross - discAmt;
 
         const stP = isSaleTaxEnabled ? (item.saleTaxPercent !== undefined ? item.saleTaxPercent : 18) : 0;
+        const advtP = isAdvTaxEnabled ? (item.advTaxPercent !== undefined ? item.advTaxPercent : 0.5) : 0;
+
         const stAmt = discountedGross * (stP / 100);
-        const lineTotal = discountedGross + stAmt;
+        const advtAmt = discountedGross * (advtP / 100);
+        const lineTotal = discountedGross + stAmt + advtAmt;
 
         return {
           ...item,
@@ -141,6 +156,8 @@ export const CartProvider = ({ children }) => {
           discAmount: discAmt,
           saleTaxPercent: stP,
           saleTaxAmt: stAmt,
+          advTaxPercent: advtP,
+          advTaxAmt: advtAmt,
           total: lineTotal
         };
       })
@@ -166,13 +183,15 @@ export const CartProvider = ({ children }) => {
   const calculations = useMemo(() => {
     const taxCfg = getTaxConfig();
     const isSaleTaxEnabled = taxCfg.enableSaleTax !== false;
+    const isAdvTaxEnabled = taxCfg.enableAdvTax !== false;
 
     const grossSubtotal = cart.reduce((sum, item) => sum + (item.gross || item.total), 0);
     const lineDiscounts = cart.reduce((sum, item) => sum + (item.discAmount || 0), 0);
     const subtotalAfterLineDiscounts = grossSubtotal - lineDiscounts;
 
     const totalSaleTax = isSaleTaxEnabled ? cart.reduce((sum, item) => sum + (item.saleTaxAmt || 0), 0) : 0;
-    const totalTaxes = totalSaleTax;
+    const totalAdvTax = isAdvTaxEnabled ? cart.reduce((sum, item) => sum + (item.advTaxAmt || 0), 0) : 0;
+    const totalTaxes = totalSaleTax + totalAdvTax;
 
     let extraOrderDiscount = 0;
     if (discountType === 'percentage') {
@@ -181,7 +200,7 @@ export const CartProvider = ({ children }) => {
       extraOrderDiscount = Math.min(subtotalAfterLineDiscounts, Number(discountValue) || 0);
     }
 
-    // Final Net Total Bill including Sale Tax (18%)
+    // Final Net Total Bill including Sale Tax (18%) and Adv Tax (0.5%)
     const netTotal = Math.max(0, subtotalAfterLineDiscounts + totalTaxes - extraOrderDiscount);
     const tendered = Number(cashTendered) || 0;
     const change = Math.max(0, tendered - netTotal);
@@ -191,6 +210,7 @@ export const CartProvider = ({ children }) => {
       grossSubtotal,
       lineDiscounts,
       totalSaleTax,
+      totalAdvTax,
       totalTaxes,
       discountAmount: extraOrderDiscount,
       netTotal,
@@ -242,6 +262,7 @@ export const CartProvider = ({ children }) => {
       grossSubtotal: calculations.grossSubtotal,
       subtotal: calculations.subtotal,
       totalSaleTax: calculations.totalSaleTax,
+      totalAdvTax: calculations.totalAdvTax,
       totalTaxes: calculations.totalTaxes,
       discount: calculations.discountAmount,
       netTotal: calculations.netTotal,

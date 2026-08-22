@@ -48,11 +48,13 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
     pages.push(items.slice(i * ITEMS_PER_PAGE, (i + 1) * ITEMS_PER_PAGE));
   }
 
-  // Summary Totals Calculation (FBR Sales Tax 18% Only)
+  // Summary Totals Calculation (FBR Sales Tax 18% & Adv Tax 0.5%)
   const totalQty = items.reduce((sum, item) => sum + (Number(item.quantity) || 1), 0);
   const totalGross = Number(sale.grossSubtotal || sale.subtotal || items.reduce((sum, item) => sum + ((Number(item.quantity) || 1) * (Number(item.unitPrice) || 600)), 0));
   const totalDiscount = Number(sale.discountAmount || 0);
   const totalST = Number(sale.totalSaleTax || 0);
+  const totalAdvTax = Number(sale.totalAdvTax || 0);
+  const totalTaxes = totalST + totalAdvTax;
   const netPayable = Number(sale.netTotal || 0);
   const netInWords = numberToWordsPKR(netPayable);
 
@@ -268,7 +270,7 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                     </div>
                   )}
 
-                  {/* 2. ITEMIZED PRODUCTS TABLE */}
+                  {/* 2. ITEMIZED PRODUCTS TABLE (INCLUDING ADV TAX 0.5%) */}
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '7.5pt', marginBottom: '6px' }}>
                     <thead>
                       <tr style={{ borderTop: '1px solid #000000', borderBottom: '1px solid #000000', textAlign: 'left', fontWeight: 'bold', backgroundColor: '#F8FAFC' }}>
@@ -277,11 +279,12 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                         <th style={{ padding: '5px 3px', width: '70px' }}>Batch No.</th>
                         <th style={{ padding: '5px 3px', width: '60px' }}>Expiry</th>
                         <th style={{ padding: '5px 3px', textAlign: 'center', width: '35px' }}>Qty</th>
-                        <th style={{ padding: '5px 3px', textAlign: 'right', width: '60px' }}>Rate</th>
-                        <th style={{ padding: '5px 3px', textAlign: 'right', width: '70px' }}>Gross</th>
-                        <th style={{ padding: '5px 3px', textAlign: 'right', width: '50px' }}>Disc %</th>
-                        <th style={{ padding: '5px 3px', textAlign: 'right', width: '75px' }}>Sale Tax 18%</th>
-                        <th style={{ padding: '5px 3px', textAlign: 'right', width: '85px' }}>Net Amount</th>
+                        <th style={{ padding: '5px 3px', textAlign: 'right', width: '55px' }}>Rate</th>
+                        <th style={{ padding: '5px 3px', textAlign: 'right', width: '65px' }}>Gross</th>
+                        <th style={{ padding: '5px 3px', textAlign: 'right', width: '48px' }}>Disc %</th>
+                        <th style={{ padding: '5px 3px', textAlign: 'right', width: '65px' }}>Sale Tax 18%</th>
+                        <th style={{ padding: '5px 3px', textAlign: 'right', width: '55px' }}>Adv Tax 0.5%</th>
+                        <th style={{ padding: '5px 3px', textAlign: 'right', width: '75px' }}>Net Amount</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -296,7 +299,8 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
 
                         const taxCfg = getTaxConfig();
                         const stAmt = taxCfg.enableSaleTax !== false ? (item.saleTaxAmt !== undefined ? item.saleTaxAmt : (discountedGross * 0.18)) : 0;
-                        const netAmt = item.total || (discountedGross + stAmt);
+                        const advtAmt = taxCfg.enableAdvTax !== false ? (item.advTaxAmt !== undefined ? item.advTaxAmt : (discountedGross * 0.005)) : 0;
+                        const netAmt = item.total || (discountedGross + stAmt + advtAmt);
 
                         return (
                           <tr key={idx} style={{ borderBottom: '1px dotted #CCCCCC' }}>
@@ -311,6 +315,7 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                             <td style={{ padding: '4px 3px', textAlign: 'right' }}>{gross.toFixed(2)}</td>
                             <td style={{ padding: '4px 3px', textAlign: 'right' }}>{discP > 0 ? `${discP.toFixed(1)}%` : '-'}</td>
                             <td style={{ padding: '4px 3px', textAlign: 'right' }}>{stAmt.toFixed(2)}</td>
+                            <td style={{ padding: '4px 3px', textAlign: 'right' }}>{advtAmt.toFixed(2)}</td>
                             <td style={{ padding: '4px 3px', textAlign: 'right', fontWeight: '900' }}>{netAmt.toFixed(2)}</td>
                           </tr>
                         );
@@ -335,8 +340,8 @@ export const A4InvoiceModal = ({ sale, onClose }) => {
                         </div>
                       )}
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Sales Tax (FBR 18%):</span>
-                        <strong>+ Rs. {totalST.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</strong>
+                        <span>Total Tax (Sales Tax + Adv Tax):</span>
+                        <strong>+ Rs. {totalTaxes.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</strong>
                       </div>
                       <div style={{ marginTop: '3px', fontWeight: 'bold' }}>
                         Net Total In Words: <span style={{ textTransform: 'capitalize' }}>{netInWords}</span>

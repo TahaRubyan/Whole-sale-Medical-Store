@@ -29,6 +29,10 @@ export const SettingsPage = () => {
   const [saleTaxPercent, setSaleTaxPercent] = useState(initialTaxes.saleTaxPercent || 18);
   const [saleTaxName, setSaleTaxName] = useState(initialTaxes.saleTaxName || 'Sale Tax 18%');
 
+  const [enableAdvTax, setEnableAdvTax] = useState(initialTaxes.enableAdvTax !== false);
+  const [advTaxPercent, setAdvTaxPercent] = useState(initialTaxes.advTaxPercent !== undefined ? initialTaxes.advTaxPercent : 0.5);
+  const [advTaxName, setAdvTaxName] = useState(initialTaxes.advTaxName || 'Adv Tax 0.5%');
+
   // Warranty & Invoice Notes State
   const initialWarranty = getWarrantyConfig();
   const [enableDrugActWarrantySetting, setEnableDrugActWarrantySetting] = useState(initialWarranty.enableDrugActWarranty !== false);
@@ -97,6 +101,9 @@ export const SettingsPage = () => {
       enableSaleTax,
       saleTaxPercent: Number(saleTaxPercent) || 0,
       saleTaxName: saleTaxName.trim() || 'Sale Tax 18%',
+      enableAdvTax,
+      advTaxPercent: Number(advTaxPercent) || 0,
+      advTaxName: advTaxName.trim() || 'Adv Tax 0.5%',
     };
     localStorage.setItem('pharmalink_tax_config', JSON.stringify(taxConfig));
     window.dispatchEvent(new Event('tax_config_updated'));
@@ -528,6 +535,42 @@ export const SettingsPage = () => {
                   onChange={(e) => setSaleTaxPercent(e.target.value)}
                   style={{ width: '100%', padding: '0.35rem', fontSize: '0.95rem', fontWeight: 900, borderRadius: '4px', border: '1.5px solid #0284C7' }}
                   disabled={!enableSaleTax}
+                />
+              </div>
+            </div>
+
+            {/* ADV TAX CONFIG WITH CHECKBOX */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: '#FFFFFF', padding: '0.85rem', borderRadius: '6px', border: '1px solid #CBD5E1' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 800, color: '#0369A1', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={enableAdvTax}
+                  onChange={(e) => setEnableAdvTax(e.target.checked)}
+                  style={{ width: '16px', height: '16px', accentColor: '#0284C7' }}
+                />
+                <span>Enable Advance Tax (Adv Tax) 0.5%</span>
+              </label>
+
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '0.15rem' }}>Tax Heading Name:</label>
+                <input
+                  type="text"
+                  value={advTaxName}
+                  onChange={(e) => setAdvTaxName(e.target.value)}
+                  style={{ width: '100%', padding: '0.35rem', fontSize: '0.8rem', fontWeight: 700, borderRadius: '4px', border: '1px solid #CBD5E1' }}
+                  disabled={!enableAdvTax}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '0.15rem' }}>Percentage (%):</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={advTaxPercent}
+                  onChange={(e) => setAdvTaxPercent(e.target.value)}
+                  style={{ width: '100%', padding: '0.35rem', fontSize: '0.95rem', fontWeight: 900, borderRadius: '4px', border: '1.5px solid #0284C7' }}
+                  disabled={!enableAdvTax}
                 />
               </div>
             </div>

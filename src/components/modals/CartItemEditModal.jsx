@@ -8,6 +8,7 @@ export const CartItemEditModal = ({ item, onSave, onClose }) => {
   const [unitPrice, setUnitPrice] = useState(item.unitPrice || 600);
   const [discPercent, setDiscPercent] = useState(item.discPercent || 0);
   const [saleTaxPercent, setSaleTaxPercent] = useState(item.saleTaxPercent !== undefined ? item.saleTaxPercent : 18);
+  const [advTaxPercent, setAdvTaxPercent] = useState(item.advTaxPercent !== undefined ? item.advTaxPercent : 0.5);
 
   const qtyNum = Number(quantity) || 1;
   const rateNum = Number(unitPrice) || 0;
@@ -16,7 +17,8 @@ export const CartItemEditModal = ({ item, onSave, onClose }) => {
   const discountedGross = grossAmount - discAmt;
 
   const saleTaxAmt = discountedGross * (Number(saleTaxPercent) / 100);
-  const netAmount = discountedGross + saleTaxAmt;
+  const advTaxAmt = discountedGross * (Number(advTaxPercent) / 100);
+  const netAmount = discountedGross + saleTaxAmt + advTaxAmt;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -28,6 +30,8 @@ export const CartItemEditModal = ({ item, onSave, onClose }) => {
       gross: grossAmount,
       saleTaxPercent: Number(saleTaxPercent),
       saleTaxAmt: saleTaxAmt,
+      advTaxPercent: Number(advTaxPercent),
+      advTaxAmt: advTaxAmt,
       total: netAmount
     });
     onClose();
@@ -112,23 +116,44 @@ export const CartItemEditModal = ({ item, onSave, onClose }) => {
             </div>
           </div>
 
-          {/* Tax Rates Row: Sale Tax 18% */}
-          <div>
-            <label style={{ fontSize: '0.75rem', fontWeight: 700, display: 'block', marginBottom: '0.2rem' }}>
-              Sale Tax (FBR 18%):
-            </label>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <input
-                type="number"
-                min="0"
-                step="0.1"
-                value={saleTaxPercent}
-                onChange={(e) => setSaleTaxPercent(e.target.value)}
-                style={{ flex: 1, padding: '0.45rem', fontSize: '0.875rem', fontWeight: 700, borderRadius: '4px', border: '1px solid #CBD5E1' }}
-              />
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0284C7', width: '120px', textAlign: 'right' }}>
-                + Rs. {saleTaxAmt.toFixed(2)}
-              </span>
+          {/* Tax Rates Row: Sale Tax 18% & Advance Tax 0.5% (Editable Increase / Decrease) */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, display: 'block', marginBottom: '0.2rem' }}>
+                Sale Tax (18%):
+              </label>
+              <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={saleTaxPercent}
+                  onChange={(e) => setSaleTaxPercent(e.target.value)}
+                  style={{ flex: 1, padding: '0.45rem', fontSize: '0.875rem', fontWeight: 700, borderRadius: '4px', border: '1px solid #CBD5E1' }}
+                />
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0284C7', minWidth: '70px', textAlign: 'right' }}>
+                  +Rs.{saleTaxAmt.toFixed(2)}
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '0.75rem', fontWeight: 700, display: 'block', marginBottom: '0.2rem' }}>
+                Adv Tax (0.5% - Editable):
+              </label>
+              <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={advTaxPercent}
+                  onChange={(e) => setAdvTaxPercent(e.target.value)}
+                  style={{ flex: 1, padding: '0.45rem', fontSize: '0.875rem', fontWeight: 700, borderRadius: '4px', border: '1px solid #CBD5E1' }}
+                />
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0284C7', minWidth: '70px', textAlign: 'right' }}>
+                  +Rs.{advTaxAmt.toFixed(2)}
+                </span>
+              </div>
             </div>
           </div>
 

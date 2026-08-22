@@ -131,8 +131,14 @@ export const ThermalReceiptModal = () => {
             )}
             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748B' }}>
               <span>Sales Tax (18%):</span>
-              <span>+Rs. {Number(calculations.totalSaleTax || 0).toFixed(2)}</span>
+              <span>+Rs. {Number(sale.totalSaleTax || calculations.totalSaleTax || 0).toFixed(2)}</span>
             </div>
+            {Number(sale.totalAdvTax || calculations.totalAdvTax || 0) > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748B' }}>
+                <span>Adv Tax (0.5%):</span>
+                <span>+Rs. {Number(sale.totalAdvTax || calculations.totalAdvTax || 0).toFixed(2)}</span>
+              </div>
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '0.875rem', color: '#0284C7', borderTop: '1px solid #E2E8F0', paddingTop: '0.3rem', marginTop: '0.2rem' }}>
               <span>NET TOTAL:</span>
               <span>Rs. {Number(sale.grandTotal || calculations.netTotal || 0).toFixed(2)}</span>

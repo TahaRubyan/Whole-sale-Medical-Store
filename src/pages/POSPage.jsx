@@ -403,6 +403,9 @@ export const POSPage = () => {
                     {getTaxConfig().enableSaleTax !== false && (
                       <th style={{ padding: '0.65rem 0.35rem', textAlign: 'right' }}>{getTaxConfig().saleTaxName || 'Sale Tax 18%'}</th>
                     )}
+                    {getTaxConfig().enableAdvTax !== false && (
+                      <th style={{ padding: '0.65rem 0.35rem', textAlign: 'right' }}>{getTaxConfig().advTaxName || 'Adv Tax 0.5%'}</th>
+                    )}
                     <th style={{ padding: '0.65rem 0.35rem', textAlign: 'right' }}>Net Amount</th>
                     <th style={{ padding: '0.65rem 0.35rem', textAlign: 'center' }}>Edit / Del</th>
                   </tr>
@@ -419,7 +422,8 @@ export const POSPage = () => {
 
                       const taxCfg = getTaxConfig();
                       const stAmt = taxCfg.enableSaleTax !== false ? (ci.saleTaxAmt !== undefined ? ci.saleTaxAmt : (discountedGross * 0.18)) : 0;
-                      const netAmt = ci.total || (discountedGross + stAmt);
+                      const advtAmt = taxCfg.enableAdvTax !== false ? (ci.advTaxAmt !== undefined ? ci.advTaxAmt : (discountedGross * 0.005)) : 0;
+                      const netAmt = ci.total || (discountedGross + stAmt + advtAmt);
 
                       return (
                         <tr
@@ -475,6 +479,12 @@ export const POSPage = () => {
                             <td style={{ padding: '0.65rem 0.35rem', textAlign: 'right', fontSize: '0.75rem' }}>
                               <div style={{ fontWeight: 800, color: '#0369A1' }}>{(ci.saleTaxPercent !== undefined ? ci.saleTaxPercent : 18)}%</div>
                               <div>Rs. {stAmt.toFixed(2)}</div>
+                            </td>
+                          )}
+                          {taxCfg.enableAdvTax !== false && (
+                            <td style={{ padding: '0.65rem 0.35rem', textAlign: 'right', fontSize: '0.75rem' }}>
+                              <div style={{ fontWeight: 700, color: '#0284C7' }}>{(ci.advTaxPercent !== undefined ? ci.advTaxPercent : 0.5)}%</div>
+                              <div>Rs. {advtAmt.toFixed(2)}</div>
                             </td>
                           )}
                           <td style={{ padding: '0.65rem 0.35rem', textAlign: 'right', fontWeight: 900, color: '#059669' }}>

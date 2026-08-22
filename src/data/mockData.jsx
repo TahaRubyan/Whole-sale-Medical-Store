@@ -5,6 +5,9 @@ export const getTaxConfig = () => {
     enableSaleTax: true,
     saleTaxPercent: 18,
     saleTaxName: 'Sale Tax 18%',
+    enableAdvTax: true,
+    advTaxPercent: 0.5,
+    advTaxName: 'Adv Tax 0.5%',
   };
   const saved = localStorage.getItem('pharmalink_tax_config');
   if (saved) {
