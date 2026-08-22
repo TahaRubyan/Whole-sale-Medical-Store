@@ -9,7 +9,7 @@ export const SalesProvider = ({ children }) => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch (e) {
         console.error('Failed to parse saved invoices', e);
       }
@@ -105,6 +105,11 @@ export const SalesProvider = ({ children }) => {
     recordDebtPayment(invoiceNo, amount, paymentMode, 'Full Settlement');
   };
 
+  const resetDemoSales = () => {
+    setInvoices(INITIAL_INVOICES);
+    localStorage.setItem('pharmalink_pk_invoices', JSON.stringify(INITIAL_INVOICES));
+  };
+
   return (
     <SalesContext.Provider
       value={{
@@ -115,6 +120,7 @@ export const SalesProvider = ({ children }) => {
         findInvoice,
         recordDebtPayment,
         markInvoiceAsPaid,
+        resetDemoSales,
       }}
     >
       {children}
