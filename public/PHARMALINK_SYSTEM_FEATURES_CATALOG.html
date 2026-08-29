@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PharmaLink ERP — Complete System Features & Technical Specification</title>
+  <style>
+    :root {
+      --primary: #0284C7;
+      --primary-dark: #0369A1;
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --text: #0F172A;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --badge-bg: #E0F2FE;
+      --badge-text: #0369A1;
+      --success: #16A34A;
+      --warning: #D97706;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+      color: #FFFFFF;
+      padding: 2.5rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.3);
+      position: relative;
+    }
+
+    .header h1 {
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      font-size: 1.05rem;
+      color: #E0F2FE;
+      max-width: 800px;
+    }
+
+    .header-badges {
+      display: flex;
+      gap: 0.6rem;
+      margin-top: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      background-color: rgba(255, 255, 255, 0.2);
+      color: #FFFFFF;
+      padding: 0.35rem 0.8rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      backdrop-filter: blur(4px);
+    }
+
+    .actions-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+      background: #FFFFFF;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .btn {
+      padding: 0.65rem 1.25rem;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 0.875rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background-color: #0284C7;
+      color: #FFFFFF;
+    }
+
+    .btn-primary:hover {
+      background-color: #0369A1;
+    }
+
+    .btn-outline {
+      background-color: #FFFFFF;
+      color: #334155;
+      border: 1px solid #CBD5E1;
+    }
+
+    .btn-outline:hover {
+      background-color: #F1F5F9;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    .module-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.75rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .module-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+    }
+
+    .module-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #0369A1;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.75rem;
+      border-bottom: 2px solid #F1F5F9;
+      padding-bottom: 0.5rem;
+    }
+
+    .feature-list {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      font-size: 0.925rem;
+      color: #334155;
+    }
+
+    .feature-item::before {
+      content: "✔";
+      color: #0284C7;
+      font-weight: 900;
+      margin-top: 0.1rem;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      margin-top: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th, td {
+      border: 1px solid #CBD5E1;
+      padding: 0.6rem 0.85rem;
+      text-align: left;
+    }
+
+    th {
+      background-color: #F1F5F9;
+      font-weight: 800;
+      color: #0F172A;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding: 2rem 0;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+    }
+
+    @media print {
+      body {
+        background-color: #FFFFFF;
+        padding: 0;
+      }
+      .actions-bar, .no-print {
+        display: none !important;
+      }
+      .header {
+        background: #0F172A !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+        border: 1px solid #000000;
+      }
+      .module-card {
+        page-break-inside: avoid;
+        box-shadow: none !important;
+        border: 1px solid #CBD5E1;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- HEADER HERO BANNER -->
+    <header class="header">
+      <h1>🏥 PharmaLink ERP & POS</h1>
+      <p>Complete Enterprise Features Specification & Technical Product Manual for Wholesale Pharmaceutical Depots, Distributors & Multi-Tenant SaaS Providers.</p>
+      
+      <div class="header-badges">
+        <span class="tag">Version 2.5.0 Production Ready</span>
+        <span class="tag">DRAP Act 2012 & Form 2 Compliant</span>
+        <span class="tag">FBR Annexure-C 18% Sales Tax</span>
+        <span class="tag">Section 23 Drug Act Warranty</span>
+        <span class="tag">PWA Offline Mode Active</span>
+      </div>
+    </header>
+
+    <!-- ACTION CONTROLS -->
+    <div class="actions-bar no-print">
+      <div>
+        <strong style="color: #0F172A; font-size: 0.95rem;">📄 Complete Product Specification Manual</strong>
+        <p style="color: #64748B; font-size: 0.8rem;">Every feature, module, regulatory clause, calculation formula & security matrix documented.</p>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <button onclick="window.print()" class="btn btn-primary">
+          📥 Download PDF / Print Manual
+        </button>
+        <a href="PHARMALINK_COMPLETE_SYSTEM_FEATURES_DOCUMENTATION.md" download="PHARMALINK_COMPLETE_SYSTEM_FEATURES_DOCUMENTATION.md" class="btn btn-outline">
+          ⬇ Download Raw Markdown (.md)
+        </a>
+      </div>
+    </div>
+
+    <!-- MODULES GRID -->
+    <div class="grid">
+
+      <!-- MODULE 1 -->
+      <div class="module-card">
+        <h2 class="module-title">🏛️ 1. Multi-Tenant SaaS & Super-Admin Governance</h2>
+        <ul class="feature-list">
+          <li class="feature-item"><strong>Super-Admin Portal:</strong> Master authentication (<code>rubyan/1234</code>) for central software distributors.</li>
+          <li class="feature-item"><strong>Automated Tenant Provisioning:</strong> Generates unique <code>tenant_id</code> (e.g. <code>TENANT-1002</code>) and isolated tenant databases.</li>
+          <li class="feature-item"><strong>30-Day Automated Subscription Tracking:</strong> Live calculation of monthly billing renewal dates with high-contrast <code>ACTIVE</code> vs <code>MEMBERSHIP DUE</code> status badges.</li>
+          <li class="feature-item"><strong>Subscription Payment Logging:</strong> One-click monthly fee payment extension (+30 days) with complete transaction audit timestamps.</li>
+          <li class="feature-item"><strong>Security Onboarding:</strong> Mandatory password reset on first tenant login.</li>
+        </ul>
+      </div>
+
+      <!-- MODULE 2 -->
+      <div class="module-card">
+        <h2 class="module-title">🔐 2. Role-Based Access Control (RBAC) & Multi-User Governance</h2>
+        <ul class="feature-list">
+          <li class="feature-item"><strong>Admin / Operations Director:</strong> Full uninhibited access across inventory, ledgers, pricing overrides, supplier POs, FBR tax audits, and settings.</li>
+          <li class="feature-item"><strong>Cashier Role Isolation:</strong> Strictly limited to POS fast checkout and sales return processing. Completely blocked from sensitive customer debt ledgers, audit logs, supplier balances, and system settings.</li>
+          <li class="feature-item"><strong>Immutable Author Audit Trail:</strong> Every single sales order, purchase order, batch stock edit, and refund note records the creating operator's name and role (e.g., <code>Hassan (Cashier)</code> vs <code>Dr. Idrees (Admin)</code>).</li>
+        </ul>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>System Module</th>
+                <th>Admin (Owner)</th>
+                <th>Cashier (Operator)</th>
+                <th>Delivery Staff</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Wholesale POS Billing</td>
+                <td>✅ Full Access</td>
+                <td>✅ Full Access</td>
+                <td>❌ Restricted</td>
+              </tr>
+              <tr>
+                <td>Customer Ledger & Debt Settlement</td>
+                <td>✅ Full Access</td>
+                <td>❌ Blocked</td>
+                <td>❌ Restricted</td>
+              </tr>
+              <tr>
+                <td>Supplier Directory & PO Creation</td>
+                <td>✅ Full Access</td>
+                <td>❌ Blocked</td>
+                <td>❌ Restricted</td>
+              </tr>
+              <tr>
+                <td>FBR Official Sales Tax Audit</td>
+                <td>✅ Full Access</td>
+                <td>❌ Blocked</td>
+                <td>❌ Restricted</td>
+              </tr>
+              <tr>
+                <td>System Settings & Tax Toggles</td>
+                <td>✅ Full Access</td>
+                <td>❌ Blocked</td>
+                <td>❌ Restricted</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MODULE 3 -->
+      <div class="module-card">
+        <h2 class="module-title">⚡ 3. Wholesale Fast POS & fast Billing Engine</h2>
+        <ul class="feature-list">
+          <li class="feature-item"><strong>Multi-Field Instant Search:</strong> Real-time indexing across Brand Name, Generic Formula, Item Code, Barcode, and Rack Location.</li>
+          <li class="feature-item"><strong>Full Keyboard Navigation:</strong> Use <code>ArrowDown</code> and <code>ArrowUp</code> to traverse live medicine suggestions, <code>Enter</code> to insert into cart, and <code>Esc</code> to dismiss.</li>
+          <li class="feature-item"><strong>Packaging Unit Conversion:</strong> Instant switching between whole Box packaging and loose units (Tablets/Strips) with dynamic price conversions.</li>
+          <li class="feature-item"><strong>Interactive Cart Line Edit Modal:</strong> Click edit to modify Line Discount %, Adv Tax % (0.5% default), Sale Tax % (18% default), and Unit Price with live preview calculations.</li>
+          <li class="feature-item"><strong>Multi-Channel Payment Settlement:</strong> Supports Cash with live Change Due calculation, Bank Transfer, Cheque, and Credit Receivables.</li>
+          <li class="feature-item"><strong>Real-Time Atomic Stock Deduction:</strong> Reduces batch boxes and tablets immediately upon checkout and syncs regional distribution logs.</li>
+        </ul>
+      </div>
+
+      <!-- MODULE 4 -->
+      <div class="module-card">
+        <h2 class="module-title">📄 4. A4 Commercial Dual-Page Invoice & Thermal Receipt Engine</h2>
+        <ul class="feature-list">
+          <li class="feature-item"><strong>Drug Act Form 2 Legal Layout:</strong> High-contrast black & white visual hierarchy optimized for laser/inkjet printing and photocopying.</li>
+          <li class="feature-item"><strong>Intelligent 10-Item Multi-Page Pagination:</strong> Item rows seamlessly flow to Page 2 only when Page 1 capacity is reached (no overlapping text).</li>
+          <li class="feature-item"><strong>Full Header & Footer on Every Page:</strong> Every page retains distributor licensing details, customer credentials, legal warranties, digital signature stamp, and <code>Page n of m</code> pagination.</li>
+          <li class="feature-item"><strong>Pakistani Rupees In Words:</strong> Auto-translates numeric totals to words (e.g., <em>"Rupees Twenty-Seven Thousand Seven Hundred Five and 30/100 Only"</em>).</li>
+          <li class="feature-item"><strong>Section 23 Drugs Act & DRAP Warranty:</strong> Formally embedded statutory warranty text with Urdu notice disclaimer.</li>
+          <li class="feature-item"><strong>Digital Signature & Stamp Badge:</strong> High-resolution PNG digital signature badge rendering with dual issuer and receiver signature lines.</li>
+          <li class="feature-item"><strong>80mm / 58mm Thermal Receipts:</strong> Compact thermal slip generation with QR code verification and barcode footer.</li>
+        </ul>
+      </div>
+
+      <!-- MODULE 5 -->
+      <div class="module-card">
+        <h2 class="module-title">📦 5. Inventory, Batch Management & FEFO Expiry Radar</h2>
+        <ul class="feature-list">
+          <li class="feature-item"><strong>20+ Pharmaceutical Wholesale Catalog:</strong> Pre-loaded catalog of high-demand medicines across tablets, capsules, syrups, and antibiotics.</li>
+          <li class="feature-item"><strong>Granular Batch Tracking:</strong> Tracks Batch Number, Expiry Date, Total Boxes, Total Tablets, Purchase Cost, Wholesale Rate, and Supplier Distributor.</li>
+          <li class="feature-item"><strong>First-Expiry-First-Out (FEFO) Automation:</strong> POS automatically recommends and dispatches earliest expiring active batches.</li>
+          <li class="feature-item"><strong>Expiry Radar Dashboard:</strong> Color-coded alerts for Critical (&lt; 3 Months / Expired), Near Expiry (&lt; 6 Months), and Safe (&gt; 1 Year) inventory.</li>
+          <li class="feature-item"><strong>Prescription (Rx) Safety Guard:</strong> Interactive toggle to flag prescription drugs with doctor note warning modals during POS checkout.</li>
+          <li class="feature-item"><strong>Stock Override & Adjustments:</strong> Authorized admin physical stock audits, sample deductions, and batch extensions.</li>
+        </ul>
+      </div>
+
+      <!-- MODULE 6 -->
+      <div class="module-card">
+        <h2 class="module-title">📊 6. Stock Movement & Regional Distribution Audit</h2>
+        <ul class="feature-list">
+          <li class="feature-item"><strong>Stock Velocity & Turnover Calculation:</strong> Inward receiving vs outward sales box tracking and turnover percentage metrics.</li>
+          <li class="feature-item"><strong>Regional Distribution Matrix:</strong> Breakdown of commercial deliveries across North, Central, and South distribution territories (Gujrat, Lahore, Gujranwala, Faisalabad).</li>
+          <li class="feature-item"><strong>Regional Delivery Manifest Generator:</strong> Printable delivery dispatch sheets with driver names, vehicle numbers, invoice stop orders, carton counts, and receiver signature blocks.</li>
+          <li class="feature-item"><strong>Stock Movement Audit Print Modal:</strong> Official printable audit report for stock movement verification.</li>
+        </ul>
+      </div>
+
+      <!-- MODULE 7 -->
+      <div class="module-card">
+        <h2 class="module-title">🏛️ 7. FBR Official Sales Tax Audit & Lawyer Schedule (Annexure-C)</h2>
+        <ul class="feature-list">
+          <li class="feature-item"><strong>Standard 18% Sales Tax + 0.5% Advance Tax:</strong> Automatically computed and aggregated across line items and invoices.</li>
+          <li class="feature-item"><strong>Audit Preset Time Windows:</strong> Filter by <code>Today</code>, <code>Past 7 Days</code>, <code>Past 30 Days</code>, <code>Custom Date Range</code>, or <code>Credit Debt</code>.</li>
+          <li class="feature-item"><strong>Itemized Sales Tax Breakdown:</strong> Medicine Brand, Generic Formula, Regulatory Category, Total Boxes Sold, Net Taxable Sales Value, and 18% Sales Tax Collected.</li>
+          <li class="feature-item"><strong>Official Lawyer Report Print Modal:</strong> Printable audit document with Annexure-C reference, NTN/STRN credentials, total tax collected summary cards, legal declaration, and verified signature badge.</li>
+        </ul>
+      </div>
+
+      <!-- MODULE 8 -->
+      <div class="module-card">
+        <h2 class="module-title">👥 8. Customer Ledger & Credit Receivables Engine</h2>
+        <ul class="feature-list">
+          <li class="feature-item"><strong>Customer Master Directory:</strong> Full records with NTN, STRN, credit limits, phone numbers, and physical delivery addresses.</li>
+          <li class="feature-item"><strong>Chronological Ledger Statement:</strong> Tracks invoice history with DSS tracking numbers, invoice totals, payments received, and remaining credit debt.</li>
+          <li class="feature-item"><strong>Debt Settlement Modal:</strong> Record partial payments or full settlements with Cash, Bank, or Cheque tags.</li>
+          <li class="feature-item"><strong>Printable Customer Statement:</strong> Formal A4 Statement of Account with custom date range filters, aging breakdown, and payment history.</li>
+        </ul>
+      </div>
+
+      <!-- MODULE 9 -->
+      <div class="module-card">
+        <h2 class="module-title">🚚 9. Supplier Directory, Purchase Orders (PO) & Return to Vendor (RTV)</h2>
+        <ul class="feature-list">
+          <li class="feature-item"><strong>Registered Pharmaceutical Distributors:</strong> Directory of major pharmaceutical distributors (GSK, Getz, Abbott, Sanofi, Novartis, Haleon).</li>
+          <li class="feature-item"><strong>Purchase Order (PO) Workflow:</strong> Create POs, receive stock into inventory batches, and flag payment status (<code>PAID</code> vs <code>DEBT_OWING</code>).</li>
+          <li class="feature-item"><strong>Return to Vendor (RTV) Debit Notes:</strong> Generate return debit notes for near-expiry or damaged batches with automatic stock deduction and supplier balance credit offset.</li>
+          <li class="feature-item"><strong>Supplier Ledger Modal:</strong> Printable supplier account statement with purchase logs and debit note reconciliations.</li>
+        </ul>
+      </div>
+
+      <!-- MODULE 10 -->
+      <div class="module-card">
+        <h2 class="module-title">⚙️ 10. Settings, Profile Management, Data Backup & Disaster Recovery</h2>
+        <ul class="feature-list">
+          <li class="feature-item"><strong>Store Profile Customization:</strong> Configurable trade name, physical address, phone numbers, NTN, STRN, GSTIN, Drug License Form 20 & 21.</li>
+          <li class="feature-item"><strong>Automatic Legacy Data Purger:</strong> Automatically cleanses cached legacy mock profiles from browser storage upon initial load.</li>
+          <li class="feature-item"><strong>Clear All Profile Fields:</strong> One-click manual reset button to clear all profile fields for new testers.</li>
+          <li class="feature-item"><strong>Digital Signature PNG Center:</strong> Upload PNG signature images with live preview and base64 persistence for automatic embedding on all printed documents.</li>
+          <li class="feature-item"><strong>Global Tax Toggles:</strong> Enable or disable 18% Sales Tax and 0.5% Advance Tax system-wide.</li>
+          <li class="feature-item"><strong>One-Click JSON System Backup & Restore:</strong> Export and restore the entire system database in a single JSON backup file (<code>pharmalink_system_backup_YYYY-MM-DD.json</code>).</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <p><strong>PharmaLink ERP & POS System Specification Manual</strong></p>
+      <p>Designed for Enterprise Pharmaceutical Wholesale Distribution in Pakistan • Engineered by Google DeepMind Pair Programming Team</p>
+    </footer>
+
+  </div>
+
+</body>
+</html>
