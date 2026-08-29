@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Store, Printer, Users, Save, ShieldCheck, Calculator, CheckCircle, Plus, UserPlus, Trash2, Upload, Download, Image as ImageIcon, RotateCcw } from 'lucide-react';
+import { Settings, Store, Printer, Users, Save, ShieldCheck, Calculator, CheckCircle, Plus, UserPlus, Trash2, Upload, Download, Image as ImageIcon, RotateCcw, FileText, BookOpen } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getTaxConfig, getWarrantyConfig, getStoreInfo, STORE_INFO } from '../data/mockData';
 import PwaInstallButton from '../components/layout/PwaInstallButton';
@@ -870,6 +870,38 @@ export const SettingsPage = () => {
                   style={{ display: 'none' }}
                 />
               </label>
+            </div>
+          </div>
+
+          {/* COMPLETE FEATURES & TECHNICAL SPECIFICATION MANUAL CARD */}
+          <div style={{ backgroundColor: '#F8FAFC', padding: '1.25rem', borderRadius: '8px', border: '1.5px solid #0284C7', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginTop: '0.5rem' }}>
+            <div>
+              <div style={{ fontWeight: 900, fontSize: '1rem', color: '#0369A1', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <BookOpen size={20} /> 📋 Complete System Features & Technical Product Manual
+              </div>
+              <p style={{ fontSize: '0.8rem', color: '#475569', margin: '0.25rem 0 0 0' }}>
+                Download or view the comprehensive specification manual covering all modules: POS Fast Billing, Form 2 Invoices, Multi-Tenant SaaS, FBR Annexure-C Sales Tax, Expiry Radar, and RBAC Security.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <a
+                href="/PHARMALINK_SYSTEM_FEATURES_CATALOG.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary"
+                style={{ padding: '0.6rem 1.15rem', fontWeight: 900, backgroundColor: '#0284C7', color: '#FFF', fontSize: '0.825rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                <BookOpen size={16} /> Open & Print Interactive Manual
+              </a>
+              <a
+                href="/PHARMALINK_COMPLETE_SYSTEM_FEATURES_DOCUMENTATION.md"
+                download="PHARMALINK_COMPLETE_SYSTEM_FEATURES_DOCUMENTATION.md"
+                className="btn btn-outline"
+                style={{ padding: '0.6rem 1.15rem', fontWeight: 800, borderColor: '#0284C7', color: '#0284C7', fontSize: '0.825rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                <Download size={16} /> Download Markdown (.md)
+              </a>
             </div>
           </div>
         </div>
